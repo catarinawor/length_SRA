@@ -1,4 +1,4 @@
-
+## test GIT 
 if (Sys.info()["nodename"] == "sager") setwd("~/Dropbox/MS_sra/perujmsra")
 require(PBSmodelling)
 source("read.admb.R")
