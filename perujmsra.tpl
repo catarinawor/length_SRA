@@ -29,6 +29,8 @@ DATA_SECTION
 // !! 	cout<<iyr<<"\n"<<survB<<endl;
 // !! 	exit(1);
 	
+
+	// what are these for?
 	init_number ilinf;
 	init_number ik
 	init_number to
