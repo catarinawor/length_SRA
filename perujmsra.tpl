@@ -118,6 +118,8 @@ PARAMETER_SECTION
 	vector fec(1,nage);				// age-specific fecundity - used for stock-recruit function
 	matrix P_la(1,nage,1,nlen);			// probability of being length at age
 	matrix P_al(1,nlen,1,nage);			// transpose of above
+	
+
 	matrix Nat(syr,eyr,1,nage);
 	matrix Ulength(syr,eyr,1,nlen);
 	matrix Uage(syr,eyr,1,nage);
@@ -270,6 +272,8 @@ FUNCTION observation_model
 	zstat=log(survB)-log(psurvB(iyr));		// posterior probability distribution of q
 //	zstat = log( elem_div( survB, psurvB ));
 	q=mfexp(mean(zstat));
+ 	
+// I t
  	zstat -= mean(zstat);				// z-statistic used for calculating MLE of q
  
 	
@@ -368,7 +372,7 @@ GLOBALS_SECTION
 
 	#include <admodel.h>
 	#include <time.h>
-	#include <contrib.h>//IF you have ADMB-11
+	//#include <contrib.h>//IF you have ADMB-11
 	//#include<stats.cxx>//If you have ADMB-10 and make sure stats.cxx is in your working directory
 	//#include<MyLikelihoods.cpp>
 	time_t start,finish;
