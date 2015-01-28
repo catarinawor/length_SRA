@@ -10,6 +10,8 @@
 DATA_SECTION
 	//int mod;										// if mod==1, do SRA; if mod==2, do VPA - given un the command line
 	// given in directions.txt
+	
+	int phz_growth;		// phase for growth parameters
 	int est;										// if est==1, estimate real data; if est==0, simulate-estimate
 	int seed;										// seed to be used in the simulations
 	int debug;										// if debug==1, only calculates the initial model run and spits out lots of numbers	
@@ -18,9 +20,10 @@ DATA_SECTION
 	int autooff;								//if autooff quits after calculating objective function			
 	
 	int tempmod;
+
 	LOCAL_CALCS
 		ifstream ifsin("directions.txt");       //input stream :  read from this file
-		ifsin>>grow>>est>>seed>>debug>>simeval>>varon>>autooff; // read in the following numbers
+		ifsin>>phz_growth>>est>>seed>>debug>>simeval>>varon>>autooff; // read in the following numbers
 		//mod=1;          // set SRA mode on
 		if( debug )	{ varon=0.;	autooff=1; 
 			cout<<" phz_growth\t"<<phz_growth<<"\n est\t"<<est<<"\n seed\t"<<seed<<"\n debug\t"<<debug<<"\n simeval\t"<<simeval<<"\n varon\t"<<varon<<"\n autooff\t"<<autooff<<endl; // print all these variables to the screen
@@ -68,6 +71,7 @@ DATA_SECTION
 	init_number ghat;							// vulnerability parameter
 	init_vector va(1,nage);						// survey vulnerability
 	init_int nyt
+	init_vector survyrs(1,nyt);
 	init_ivector iyr(1,nyt); 					// survey counter
 	init_vector survB(1,nyt); 					// survey biomass
 
@@ -89,7 +93,6 @@ DATA_SECTION
 	init_number sigR;			// sigma R
 	init_number sigVul;
 	init_int 	phz_reck;		// phase for reck
-	init_int 	phz_growth;		// phase for growth parameters
 	init_int 	use_prior;		// add priors to the likehoods ? (1 or 0)
 
 
@@ -134,7 +137,7 @@ DATA_SECTION
 	init_number lreck;				// recruitment compensation ratio
 	init_number lRo;				// average recruitment at virgin levels
 	init_vector lwt(syr,eyr-1);		//recruitment deviations
-	init_vector tPplus(syr,eyr-1);  //plus group values
+	//init_vector tPplus(syr,eyr-1);  //plus group values
 	//init_vector lNtermyear(1,nage); //number at terminal year, only needed for VPA
 	init_number dend2;
 
@@ -164,7 +167,7 @@ PARAMETER_SECTION
 	//init_number log_ptau(-1); // observation error, nor estimated in thei example why?
 	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2); // recruitment deviations. only estimated inSRA
 	
-	!! log_wt = log(iwt);
+	!! log_wt = log(lwt);
 
 	//init_vector t_Pplus(syr,eyr-1,phz2);// vector of plus group at a year, proportion that survived within the group transformed to vary between +-inf
 	
@@ -272,7 +275,7 @@ FUNCTION gen_parms
 	log_Ro = lRo * ( 1. + r( 2 ) * cv2 );						// unexploited average recruitment
 	if( varon )	lwt=0.;											// if variaton is on, initialize lwt
 	log_wt = lwt + r4 * cv3;									// log_lwt= normally distributed error *cv
-	t_Pplus = tPplus + elem_prod( tPplus, r2 ) * cv2; 			//add error to the tPplus (varies between -inf and +inf)
+	//t_Pplus = tPplus + elem_prod( tPplus, r2 ) * cv2; 			//add error to the tPplus (varies between -inf and +inf)
 	//log_Ntermyear = lNtermyear + elem_prod( lNtermyear, r3 ) * cv1;
 
 	ofstream ofs3( "SRA.pin" ); //print real numbers to a pin file, initial guesses
@@ -284,7 +287,7 @@ FUNCTION gen_parms
 	ofs3<<"#log_Ro\n"<<log_Ro<<endl;
 	ofs3<<"#log_wt\n"<<lwt<<endl;
 	ofs3<<"#log_ptau\n"<<0<<endl;
-	ofs3<<"#t_Pplus\n"<<t_Pplus<<endl;
+	//ofs3<<"#t_Pplus\n"<<t_Pplus<<endl;
 	//ofs3<<"#log_Ntermyear\n"<<log_Ntermyear<<endl;
 	ofs3<<"#dend\n"<<999<<endl;
 	if( debug )	cout<<"parameters output"<<endl;
@@ -300,9 +303,9 @@ FUNCTION trans_parms
 	wt 	 = mfexp( log_wt );
 	
 	if( !varon ) wt = mfexp( lwt ); 		// if variation mode is not on, set wt=lwt (0?)
-	Pplus = 1. / ( 1. + mfexp( -t_Pplus ));	// transform t_Pplus to a scale between 0 and 1 
+	//Pplus = 1. / ( 1. + mfexp( -t_Pplus ));	// transform t_Pplus to a scale between 0 and 1 
 	//Ntermyear = mfexp( log_Ntermyear ); 	//numbers at age in the terminal year
-	if( debug )	cout<<"reck "<<reck<<"\n Ro "<<Ro<<"\n wt "<<wt<<"\n Pplus\n"<<Pplus<<endl;
+	if( debug )	cout<<"reck "<<reck<<"\n Ro "<<Ro<<"\n wt "<<wt<<endl;
 
 
 FUNCTION incidence_functions
@@ -363,7 +366,7 @@ FUNCTION sim_dynamics
 	dvector r2( 1, 2 );		
 	r2.fill_randn( rnd4 );
 	double r = mfexp( log( 0.8 ) * ( 1. + r2( 1 ) * 0.1 * varon ));				//  growth rate of exploitation of 0.8 with cv=0.1
-	double k = -log( mean( Sa ));												//carrying capacity of exploitation: M=F
+	double k = -log(value( mean( Sa )));												//carrying capacity of exploitation: M=F
 	dvector Uyear( syr, eyr ); 													// vector of exploitation rates
 	dvector L50year( syr, eyr ); 												// length at 50% vulnerability
 	dvector vuln( 1, nage ); 													// vulnerability at age vector
@@ -419,20 +422,20 @@ FUNCTION sim_dynamics
 	//numbers at age
 	for( int a = 1; a <= nage; a++ ) 
 	{
-		Nat( syr, a ) = value( Ro ) * pow( Sa( a ), age( a ) - 1 );// in the first year 
+		Nat( syr, a ) = value( Ro  * pow( Sa( a ), age( a ) - 1 ));// in the first year 
 	}
 
-	Nat( syr, nage ) /= 1. - Sa( nage );// plus group in the first year
+	Nat( syr, nage ) /= value(1. - Sa( nage ));// plus group in the first year
 	eggs( syr ) = value( fec * Nat( syr ));//eggs or ssb in the first year
 	
 	for( int y = syr + 1; y <= eyr; y++ )
 	{
 		//recruitment
-		Nat( y, 1 ) = value( reca )*eggs( y - 1 )/( 1. + value( recb ) * eggs( y - 1 )) * value( wt( y - 1 ));
+		Nat( y, 1 ) = value( reca *eggs( y - 1 )/( 1. + value( recb ) * eggs( y - 1 )) * value( wt( y - 1 )));
 		//numbers at age
-		Nat( y )( 2, nage ) =++ elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y -  1 )( 1, Am1 ));
+		Nat( y )( 2, nage ) =++ value(elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y -  1 )( 1, Am1 )));
 		// plus group
-		Nat( y, nage ) += Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage ));	
+		Nat( y, nage ) += value(Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )));	
 		eggs( y ) = value( fec * Nat( y ));
 		
 		for( int b = 1; b <= nlen; b++ )
@@ -444,12 +447,13 @@ FUNCTION sim_dynamics
 		Clt( y ) = elem_prod( Nlt( y ), Ulength( y )); 
 	}
 
-	dvector r5( 1, nityr );
+	dvector r5( 1, nyt );
 	r5.fill_randn( rnd5 );		//fill the vector with normal random numbers
     double sig = 0.4;
 	
+	// parei aqui nityr nao existe mais.
 	int j,ii;
-	for(j=1;j<=nityr;j++)
+	for(j=1;j<=nyt;j++)
 	{	
 	   	ii=survyrs(j);
 	   	survB( j ) = value( sum( elem_prod( elem_prod(Nat(ii), va ), wa )));//survey biomass
@@ -565,7 +569,9 @@ FUNCTION observation_model
 	{
 		E_parm(1,nage) = Nat( syr );       // Estimated recruitment for age classess before start of collecting data 
 		for( int y = syr + 1; y <= eyr; y++ )
+		{
 			E_parm(y-syr+nage) = column( Nat, 1 )( y ); //Estimated recruitment for years in which data was collected: y-syr+nage indicates indexing from 1 to nyrs
+		}
 	}
 	if( debug )	cout<<"wt\n"<<wt<<"\n Ulength\n"<<Ulength<<"\n Uage\n"<<Uage<<"\n Nat\n"<<Nat<<"\n Nlt\n"<<Nlt<<"\n survB\t"<<survB<<"\n psurvB\t"<<psurvB<<"\n zstat\t"<<zstat<<endl;
 	
@@ -656,8 +662,8 @@ REPORT_SECTION
 	{
 		bias = elem_div( E_parm - T_parm, T_parm );
 
-				ofstream ofssra("SRA bias.txt",ios::app);
-				ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<<endl;} // outputs obj function value, minimum gradient, seed and bias values
+			ofstream ofssra("SRA bias.txt",ios::app);
+			ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<<endl;// outputs obj function value, minimum gradient, seed and bias values
 	}
 
 TOP_OF_MAIN_SECTION
