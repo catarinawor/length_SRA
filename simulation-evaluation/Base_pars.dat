@@ -1,0 +1,17 @@
+## init parameters 
+##llinf 
+80.4
+##lk 
+0.16
+##t0 
+-0.5
+##lcvl 
+0.18
+##lreck # cr = 4*h/(1-h) = 16 for h=0.8
+15
+##lRo 
+4000000
+##lwt (recdevs) 
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+#dend2
+999
