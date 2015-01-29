@@ -45,9 +45,7 @@ DATA_SECTION
 
 			if( debug )		cout<<"model initiated"<<endl;
 		}
-		//int on,opt; 
-		//if((on=option_match(ad_comm::argc,ad_comm::argv,"-mod",opt))>0) // if -mod is given
-		//	mod=2; // set it to VPA mode
+		
 	END_CALCS
 	
 
@@ -70,25 +68,14 @@ DATA_SECTION
 	init_number ahat;							// vulnerability parameter
 	init_number ghat;							// vulnerability parameter
 	init_vector va(1,nage);						// survey vulnerability
-	init_int nyt
-	init_vector survyrs(1,nyt);
+	init_int nyt;
 	init_ivector iyr(1,nyt); 					// survey counter
 	init_vector survB(1,nyt); 					// survey biomass
 
 	init_matrix Clt(syr,eyr,1,nlen);			// catch at length and year	
 
 
-	//init_vector Sa(1,nage);						// survival-at-age (assume constant across ages)
 	
-	//I'm including these on a separate file so no need to have them here.
-	//init_number ilinf;
-	//init_number ik
-	//init_number ito
-	//init_number icvl;
-	//init_number ireck
-	//init_number iRo
- 	//init_vector iwt(syr,eyr-1);
-
 	init_number cv_it;			// CV for cpue
 	init_number sigR;			// sigma R
 	init_number sigVul;
@@ -104,8 +91,6 @@ DATA_SECTION
 			cout<<"Error reading data.\n Fix it."<<endl;
 			ad_exit(1);
 		}
-
-		ad_exit(1);
 
 	END_CALCS
 	
@@ -137,8 +122,6 @@ DATA_SECTION
 	init_number lreck;				// recruitment compensation ratio
 	init_number lRo;				// average recruitment at virgin levels
 	init_vector lwt(syr,eyr-1);		//recruitment deviations
-	//init_vector tPplus(syr,eyr-1);  //plus group values
-	//init_vector lNtermyear(1,nage); //number at terminal year, only needed for VPA
 	init_number dend2;
 
 	LOCAL_CALCS
@@ -152,7 +135,10 @@ DATA_SECTION
 		{
 			cout<<"ESTIMATING WITH STOCK RECONSTRUCTION ANALYSIS (SRA)"<<endl;
 		}
+		if( debug )		cout<<"data read"<<endl;
+
 	END_CALCS
+
 
 PARAMETER_SECTION
 	init_number log_Linf(phz_growth); 		//log(linf) to be estimated in phase grow
@@ -163,7 +149,6 @@ PARAMETER_SECTION
 	init_number log_Ro;  					// average unfished recruitment - only estimated in SRA
 	
 	
-
 	//init_number log_ptau(-1); // observation error, nor estimated in thei example why?
 	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2); // recruitment deviations. only estimated inSRA
 	
@@ -215,10 +200,6 @@ PARAMETER_SECTION
 	number q;
 
 
-	
-
-
-
 PRELIMINARY_CALCS_SECTION
     
 	// if you are simulating-estimating data
@@ -253,19 +234,23 @@ PROCEDURE_SECTION
 	if( debug )			cout<<"objective function calculated"<<endl;		
 	if( autooff )		exit(1); // stops all the procedure before the estimation starts
 	
+
+
+	
 //_________________________________________
 FUNCTION gen_parms
 
 	// add variation to parameters
 	random_number_generator rnd( seed );	//cout<<"rnd"<<endl;  create random number genetrators based on seed provided
-	dvector r( 1, 4 );   					// creat a vector with 4 spaces	 to store variation in growth and recruitment parameters						
-	r.fill_randn( rnd );					//fill the vector with normal random numbers
-	dvector r2( syr, eyr-1 );					
-	r2.fill_randn( rnd );
-	dvector r3( 1, nage );						
-	r3.fill_randn( rnd  );
-	dvector r4( syr, eyr - 1 );	  			// vector to store recruitment deviations				
-	r4.fill_randn( rnd  );        			//fill the vector with normally distributed deviations
+	
+	// variation in growth and recruitment parameters
+	dvector r( 1, 4 ); 
+	//fill the vector with normal random numbers  											
+	r.fill_randn(rnd);					
+
+	// vector to store recruitment deviations
+	dvector rec_dev( syr, eyr-1 );	  							
+	rec_dev.fill_randn(rnd);        			
 	
 	double cv1 = 0.1*varon,	cv2 = 0.2*varon, cv3 = 0.4*varon; 	// cv* variation switch, if 0 no variation
 	log_Linf = lLinf * ( 1. + r( 3 ) * cv1 );  					// variation in  linfcomes from r(3)
@@ -274,10 +259,8 @@ FUNCTION gen_parms
 	log_reck = lreck * ( 1. + r( 1 ) * cv1 );  					// recruitment compensation 
 	log_Ro = lRo * ( 1. + r( 2 ) * cv2 );						// unexploited average recruitment
 	if( varon )	lwt=0.;											// if variaton is on, initialize lwt
-	log_wt = lwt + r4 * cv3;									// log_lwt= normally distributed error *cv
-	//t_Pplus = tPplus + elem_prod( tPplus, r2 ) * cv2; 			//add error to the tPplus (varies between -inf and +inf)
-	//log_Ntermyear = lNtermyear + elem_prod( lNtermyear, r3 ) * cv1;
-
+	log_wt = lwt + rec_dev * cv3;									// log_lwt= normally distributed error *cv
+	
 	ofstream ofs3( "SRA.pin" ); //print real numbers to a pin file, initial guesses
 	ofs3<<"#log_Linf\n"<<log_Linf<<endl;
 	ofs3<<"#log_k\n"<<log_k<<endl;
@@ -287,14 +270,12 @@ FUNCTION gen_parms
 	ofs3<<"#log_Ro\n"<<log_Ro<<endl;
 	ofs3<<"#log_wt\n"<<lwt<<endl;
 	ofs3<<"#log_ptau\n"<<0<<endl;
-	//ofs3<<"#t_Pplus\n"<<t_Pplus<<endl;
-	//ofs3<<"#log_Ntermyear\n"<<log_Ntermyear<<endl;
 	ofs3<<"#dend\n"<<999<<endl;
 	if( debug )	cout<<"parameters output"<<endl;
 
 //_________________________________________
 FUNCTION trans_parms
-		//bbring the parameters back to normal space
+	//bring the parameters back to normal space
 	Linf = mfexp( log_Linf );
 	k 	 = mfexp( log_k );
 	cvl  = mfexp( log_cvl );
@@ -303,8 +284,6 @@ FUNCTION trans_parms
 	wt 	 = mfexp( log_wt );
 	
 	if( !varon ) wt = mfexp( lwt ); 		// if variation mode is not on, set wt=lwt (0?)
-	//Pplus = 1. / ( 1. + mfexp( -t_Pplus ));	// transform t_Pplus to a scale between 0 and 1 
-	//Ntermyear = mfexp( log_Ntermyear ); 	//numbers at age in the terminal year
 	if( debug )	cout<<"reck "<<reck<<"\n Ro "<<Ro<<"\n wt "<<wt<<endl;
 
 
@@ -333,10 +312,9 @@ FUNCTION incidence_functions
 
  	for( int a = 1; a <= nage; a++ )
 	{
-		//if( fec( a ) < 0. )	fec( a ) = 0.; //set negative numbers to 0 - no need for this, plogis doesnt go negative
 		
 		z1 = (( len - lstp * 0.5 )-value( la( a )))/value( std( a ));//calculate for each length bin the probs tof being of specific ages
-		// the "v(la)/std" is to bring the distribution back to the standard normal, and uses len as center of length bin, not it's lower limit
+
 		z2 = (( len + lstp * 0.5 )-value( la( a )))/value( std( a ));
 
 		for( int b=1; b<= nlen; b++ )
@@ -360,13 +338,14 @@ FUNCTION initialization
 //_________________________________________
 FUNCTION sim_dynamics
 	random_number_generator rnd3( seed );	//cout<<"rnd"<<endl; // overwrite rnd3 and 4 withdifferent seeds
-	random_number_generator rnd4( seed );	//cout<<"rnd"<<endl;
-	random_number_generator rnd5( seed );
 	
 	dvector r2( 1, 2 );		
-	r2.fill_randn( rnd4 );
-	double r = mfexp( log( 0.8 ) * ( 1. + r2( 1 ) * 0.1 * varon ));				//  growth rate of exploitation of 0.8 with cv=0.1
-	double k = -log(value( mean( Sa )));												//carrying capacity of exploitation: M=F
+	r2.fill_randn(rnd3);
+
+
+	double r_fishery = mfexp( log( 0.8 ) * ( 1. + r2( 1 ) * 0.1 * varon ));				//  growth rate of exploitation of 0.8 with cv=0.1
+	double k_fishery = -log(value( mean( Sa )));												//carrying capacity of exploitation: M=F
+	
 	dvector Uyear( syr, eyr ); 													// vector of exploitation rates
 	dvector L50year( syr, eyr ); 												// length at 50% vulnerability
 	dvector vuln( 1, nage ); 													// vulnerability at age vector
@@ -380,8 +359,10 @@ FUNCTION sim_dynamics
 	// exploitation rate in the first year is set to very small number
 	Uyear( syr ) = 0.001; 
 	//logistic curve for development of fishery																		
-	Uyear( syr + 1 ) = Uyear( syr ) + Uyear( syr ) * r * ( 1. - Uyear( syr ) / k ); 	
-	Uyear( syr + 2 ) = Uyear( syr + 1 ) + Uyear( syr + 1) * r * ( 1. - mean( Uyear( syr, syr + 1)) / k );
+	
+	Uyear( syr + 1 ) = Uyear( syr ) + Uyear( syr ) * r_fishery * ( 1. - Uyear( syr ) / k_fishery ); 	
+	Uyear( syr + 2 ) = Uyear( syr + 1 ) + Uyear( syr + 1) * r_fishery * ( 1. - mean( Uyear( syr, syr + 1)) / k_fishery );
+	
 	// L50 set to half of Linf
 	L50year( syr ) = value( Linf ) * 0.5; 	
 	// exploitation rate at length for the first year													
@@ -391,7 +372,7 @@ FUNCTION sim_dynamics
 	//logistic curve for development of fishery : use running 3 yr average to smooth out trajectory 
 	for( int y = syr + 3; y <= eyr; y++ )
 	{
-		Uyear( y ) = Uyear( y - 1 ) + Uyear( y - 1 ) * r * ( 1. - mean( Uyear( y - 3, y - 1 )) / k ); 
+		Uyear( y ) = Uyear( y - 1 ) + Uyear( y - 1 ) * r_fishery * ( 1. - mean( Uyear( y - 3, y - 1 )) / k_fishery ); 
 	}
 	
 	// length at 50% vulnerability declines until that last 10 years according to a logistic curve with up side on the right
@@ -447,17 +428,17 @@ FUNCTION sim_dynamics
 		Clt( y ) = elem_prod( Nlt( y ), Ulength( y )); 
 	}
 
-	dvector r5( 1, nyt );
-	r5.fill_randn( rnd5 );		//fill the vector with normal random numbers
+	//survey obs error
+	dvector surv_err( 1, nyt );
+	surv_err.fill_randn( rnd3 );		//fill the vector with normal random numbers
     double sig = 0.4;
 	
-	// parei aqui nityr nao existe mais.
 	int j,ii;
 	for(j=1;j<=nyt;j++)
 	{	
-	   	ii=survyrs(j);
-	   	survB( j ) = value( sum( elem_prod( elem_prod(Nat(ii), va ), wa )));//survey biomass
-	 	survB( j )*= mfexp(r5( j )*sig-sig*sig/2);
+	   	ii=iyr(j);
+	   	survB( j ) = value( sum( elem_prod( elem_prod(Nat((syr+ii-1)), va ), wa )));//survey biomass
+	 	survB( j )*= mfexp(surv_err( j )*sig-sig*sig/2);
 		
 	}
 	
