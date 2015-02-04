@@ -1,5 +1,7 @@
 //><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
 //Programer: Brett van Poorten
+// Modified by: Roberto Licandeo
+//				Catarina Wor
 //Date:	June 21, 2013														 
 //Purpose: length-based SRA / VPA based on Carl's spreadsheet
 //Notes: 	basic code structure taken from Rob Ahrens - thanks for that			 
@@ -8,14 +10,13 @@
 //><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
 
 DATA_SECTION
-	//int mod;										// if mod==1, do SRA; if mod==2, do VPA - given un the command line
 	// given in directions.txt
 	
 	int phz_growth;		// phase for growth parameters
 	int est;										// if est==1, estimate real data; if est==0, simulate-estimate
 	int seed;										// seed to be used in the simulations
 	int debug;										// if debug==1, only calculates the initial model run and spits out lots of numbers	
-	int simeval									   //print true and predicted recruitment deviations
+	int simeval;									   //print true and predicted recruitment deviations
 	number varon;								// if varon==1, includes variation in simulation parameters, if not, no variation
 	int autooff;								//if autooff quits after calculating objective function			
 	
@@ -23,11 +24,13 @@ DATA_SECTION
 
 	LOCAL_CALCS
 		ifstream ifsin("directions.txt");       //input stream :  read from this file
-		ifsin>>phz_growth>>est>>seed>>debug>>simeval>>varon>>autooff; // read in the following numbers
+		ifsin>>phz_growth>>est>>debug>>simeval>>varon>>autooff; // read in the following numbers
 		//mod=1;          // set SRA mode on
 		if( debug )	{ varon=0.;	autooff=1; 
-			cout<<" phz_growth\t"<<phz_growth<<"\n est\t"<<est<<"\n seed\t"<<seed<<"\n debug\t"<<debug<<"\n simeval\t"<<simeval<<"\n varon\t"<<varon<<"\n autooff\t"<<autooff<<endl; // print all these variables to the screen
+			cout<<" phz_growth\t"<<phz_growth<<"\n est\t"<<est<<"\n debug\t"<<debug<<"\n simeval\t"<<simeval<<"\n varon\t"<<varon<<"\n autooff\t"<<autooff<<endl; // print all these variables to the screen
 		}
+		
+		
 		if( est == 0 ) 
 		{	
 			//this procedure changes the seed for every simulation run
@@ -117,7 +120,7 @@ DATA_SECTION
 	!! ad_comm::change_datafile_name( "Base_pars.dat" ); // change file name to "Base_pars.dat"
 	init_number lLinf;              //read in Linf
 	init_number lk;				    // vonb k
-	init_number to;					//vonb to
+	init_number lto;					//vonb to
 	init_number lcvl;				//cv for vonb curve
 	init_number lreck;				// recruitment compensation ratio
 	init_number lRo;				// average recruitment at virgin levels
@@ -179,9 +182,16 @@ PARAMETER_SECTION
 	vector lxo(1,nage);							// unfished survivorship at age
 	vector fec(1,nage);							// age-specific fecundity - used for stock-recruit function
 	
-	//pergunta: why were these removed?? might pertain to estimation
 	vector T_parm(1,nage+eyr-syr);				// true initial age-structure and recruitment
 	vector E_parm(1,nage+eyr-syr);				// estimated initial age-structure and recruitment
+	//number T_Ro;
+	//number E_Ro;
+	//number T_kappa;
+	//number E_kappa;
+	//vector T_Ulength_fin(1,nlen);
+	//vector E_Ulength_fin(1,nlen);
+
+
 	vector bias(1,nage+eyr-syr);				// proportional bias in initial age-structure and recruitment estimates
 	
 
@@ -189,16 +199,15 @@ PARAMETER_SECTION
 	matrix P_al(1,nlen,1,nage);					// transpose of above
 	
 	
-	//pergunta: what are all these?
+	
 	matrix Nat(syr,eyr,1,nage);				//numbers at age
 	matrix Ulength(syr,eyr,1,nlen);			//harvest rate by length classes 
 	matrix Uage(syr,eyr,1,nage);			// harvest rate by age
 	matrix Nlt(syr,eyr,1,nlen);				
 	vector maxUy(syr,eyr);
 	vector muUl(1,nlen);
- 	vector psurvB(syr,eyr);
+ 	vector psurvB(1,nyt);
 	number q;
-
 
 PRELIMINARY_CALCS_SECTION
     
@@ -209,14 +218,13 @@ PRELIMINARY_CALCS_SECTION
         gen_parms();			//generate parameters with or without variation	
         if( debug )				cout<<"parameters generated"<<endl;  
         trans_parms();			//transform parameters from logspace to normal space
-        if( debug )				cout<<"parameters transformed"<<endl;
+        if( debug )				cout<<"parameters transformed"<<endl;       
         incidence_functions();	// biological processes that will not be directly estimated in the assessment
         if( debug )				cout<<"incidence functions generated"<<endl;
         initialization();		// calculate recruitment parameters
         if( debug )				cout<<"recruitment parameters calculated"<<endl;
         sim_dynamics();			//simulate new data
         if( debug )				cout<<"dynamics simulated\n START ESTIMATING!!"<<endl;
-        //exit(1);
     }
 
 PROCEDURE_SECTION
@@ -225,18 +233,24 @@ PROCEDURE_SECTION
 	fpen = 0.;
 	ssvul = 0.;
 	trans_parms();
-	if( phz_growth )	
-	{	incidence_functions();	
-	if( debug )	cout<<"incidence functions calculated"<<endl;	}
+		
+	incidence_functions();	
+	
+	
+	if( debug ){cout<<"incidence functions calculated"<<endl;	}
 	initialization();
-	if( debug )				cout<<"recruitment functions predicted"<<endl;
+	
+
+	if( debug )	{cout<<"recruitment functions predicted"<<endl;}			
+	SRA();
+	observation_model();
+
+
 	objective_function();
-	if( debug )			cout<<"objective function calculated"<<endl;		
+	if( debug )			{cout<<"objective function calculated"<<endl;}		
 	if( autooff )		exit(1); // stops all the procedure before the estimation starts
 	
 
-
-	
 //_________________________________________
 FUNCTION gen_parms
 
@@ -275,6 +289,7 @@ FUNCTION gen_parms
 
 //_________________________________________
 FUNCTION trans_parms
+	
 	//bring the parameters back to normal space
 	Linf = mfexp( log_Linf );
 	k 	 = mfexp( log_k );
@@ -294,7 +309,11 @@ FUNCTION incidence_functions
 	double zn;
 	dvar_vector std( 1, nage );
 
+	Sa = exp(-m);
+
+	la.initialize();
 	la = Linf * ( 1. - mfexp( -k * ( age - to ))); //average length at age
+	
 	std = la * cvl; // vector of proportional cds according to length at age
 	
 	lxo( 1 ) = 1.; //first age
@@ -317,6 +336,9 @@ FUNCTION incidence_functions
 
 		z2 = (( len + lstp * 0.5 )-value( la( a )))/value( std( a ));
 
+		//cout<<"z1 = "<<z1<<endl;
+		//cout<<"z2 = "<<z2<<endl;
+
 		for( int b=1; b<= nlen; b++ )
 		{
 			P_la( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b )); // calculates the proportion of being of a given age given your length
@@ -324,6 +346,8 @@ FUNCTION incidence_functions
 	}
 	
 	P_al = trans( P_la ); //transpose matrix to length by age
+
+
 	if( debug )	cout<<"la\t"<<la<<"\n wa\t"<<wa<<"\n lxo\t"<<lxo<<"\n fec\t"<<fec<<"\n len\t"<<len<<"\n P_la\n"<<P_la<<"\n P_al\n"<<P_al<<endl;
 
 FUNCTION initialization
@@ -342,53 +366,53 @@ FUNCTION sim_dynamics
 	dvector r2( 1, 2 );		
 	r2.fill_randn(rnd3);
 
-
 	double r_fishery = mfexp( log( 0.8 ) * ( 1. + r2( 1 ) * 0.1 * varon ));				//  growth rate of exploitation of 0.8 with cv=0.1
 	double k_fishery = -log(value( mean( Sa )));												//carrying capacity of exploitation: M=F
 	
-	dvector Uyear( syr, eyr ); 													// vector of exploitation rates
-	dvector L50year( syr, eyr ); 												// length at 50% vulnerability
-	dvector vuln( 1, nage ); 													// vulnerability at age vector
-	dvector eggs( syr, eyr ); 													//no of eggs produced, derived from spawning stock biomass* fecundity
-	dmatrix Ulength( syr, eyr, 1, nlen ); 										// matrix of exploitation rate at length
-	dmatrix Uage( syr, eyr, 1, nage );  										// matrix of exploitation rate at age
-	dmatrix Nat( syr, eyr, 1, nage ); 											// matrix to store numbers at age
-	dmatrix Nlt( syr, eyr, 1, nlen ); 											// matrix o store numbers at length
-	Nat.initialize(); 															// make sure that Nat is empty
+	dvector T_Uyear( syr, eyr ); 													// vector of exploitation rates
+	dvector T_L50year( syr, eyr ); 												// length at 50% vulnerability
+	dvector T_vuln( 1, nage ); 													// vulnerability at age vector
+	dvector T_eggs( syr, eyr ); 													//no of eggs produced, derived from spawning stock biomass* fecundity
+	dmatrix T_Ulength( syr, eyr, 1, nlen ); 										// matrix of exploitation rate at length
+	dmatrix T_Uage( syr, eyr, 1, nage );  										// matrix of exploitation rate at age
+	dmatrix T_Nat( syr, eyr, 1, nage ); 											// matrix to store numbers at age
+	dmatrix T_Nlt( syr, eyr, 1, nlen ); 
+	dmatrix T_Clt(syr,eyr,1,nlen);											// matrix o store numbers at length
+	T_Nat.initialize(); 															// make sure that Nat is empty
 	
 	// exploitation rate in the first year is set to very small number
-	Uyear( syr ) = 0.001; 
+	T_Uyear( syr ) = 0.001; 
 	//logistic curve for development of fishery																		
 	
-	Uyear( syr + 1 ) = Uyear( syr ) + Uyear( syr ) * r_fishery * ( 1. - Uyear( syr ) / k_fishery ); 	
-	Uyear( syr + 2 ) = Uyear( syr + 1 ) + Uyear( syr + 1) * r_fishery * ( 1. - mean( Uyear( syr, syr + 1)) / k_fishery );
+	T_Uyear( syr + 1 ) = T_Uyear( syr ) + T_Uyear( syr ) * r_fishery * ( 1. - T_Uyear( syr ) / k_fishery ); 	
+	T_Uyear( syr + 2 ) = T_Uyear( syr + 1 ) + T_Uyear( syr + 1) * r_fishery * ( 1. - mean( T_Uyear( syr, syr + 1)) / k_fishery );
 	
 	// L50 set to half of Linf
-	L50year( syr ) = value( Linf ) * 0.5; 	
+	T_L50year( syr ) = value( Linf ) * 0.5; 	
 	// exploitation rate at length for the first year													
-	Ulength( syr ) = Uyear( syr ) / ( 1. +mfexp( -1.7 * ( len - L50year( syr )) / 1.5 )); 
+	T_Ulength( syr ) = T_Uyear( syr ) / ( 1. +mfexp( -1.7 * ( len - T_L50year( syr )) / 1.5 )); 
 	//cumulative normal vulnerability with sd=1.5
 	
 	//logistic curve for development of fishery : use running 3 yr average to smooth out trajectory 
 	for( int y = syr + 3; y <= eyr; y++ )
 	{
-		Uyear( y ) = Uyear( y - 1 ) + Uyear( y - 1 ) * r_fishery * ( 1. - mean( Uyear( y - 3, y - 1 )) / k_fishery ); 
+		T_Uyear( y ) = T_Uyear( y - 1 ) + T_Uyear( y - 1 ) * r_fishery * ( 1. - mean( T_Uyear( y - 3, y - 1 )) / k_fishery ); 
 	}
 	
 	// length at 50% vulnerability declines until that last 10 years according to a logistic curve with up side on the right
 	//exploitation at length is cumulative normal approximation with sd 1.5
 	for( int y = syr + 1; y <= eyr - 10; y++ )
 	{
-		L50year( y ) = L50year( y - 1 ) - L50year( y - 1 ) * 0.1 * ( 1. - L50year( y - 1 ) / value( Linf * 0.6 ));	
-		Ulength( y ) = Uyear( y ) / ( 1. +mfexp( -1.7 * ( len - L50year( y )) / 1.5 ));
+		T_L50year( y ) = T_L50year( y - 1 ) - T_L50year( y - 1 ) * 0.1 * ( 1. - T_L50year( y - 1 ) / value( Linf * 0.6 ));	
+		T_Ulength( y ) = T_Uyear( y ) / ( 1. +mfexp( -1.7 * ( len - T_L50year( y )) / 1.5 ));
 	}
 	
 	// length at 50% vulnerability increases quickly in the last 10 years;
 	//exploitation at length is cumulative normal approximation with sd 1.5
 	for( int y = eyr - 9; y <= eyr; y++ )
 	{
-		L50year( y ) = L50year( y - 1 ) + L50year( y - 1 ) * 0.5 * ( 1. - L50year( y - 1 ) / value( Linf * 0.6 ));	
-		Ulength( y ) = Uyear( y ) / ( 1. + mfexp( -1.7 * ( len - L50year( y )) / 1.5 ));
+		T_L50year( y ) = T_L50year( y - 1 ) + T_L50year( y - 1 ) * 0.5 * ( 1. - T_L50year( y - 1 ) / value( Linf * 0.6 ));	
+		T_Ulength( y ) = T_Uyear( y ) / ( 1. + mfexp( -1.7 * ( len - T_L50year( y )) / 1.5 ));
 	}
 	
 	// exploitation at age= exploitation at length *probability of being of a given length given you are from a age class.
@@ -396,36 +420,36 @@ FUNCTION sim_dynamics
 	{
 		for( int a = 1; a <= nage; a++ )
 		{
-			Uage( y, a ) = Ulength( y ) * value( P_la( a ));				
+			T_Uage( y, a ) = T_Ulength( y ) * value( P_la( a ));				
 		}
 	}
 
 	//numbers at age
 	for( int a = 1; a <= nage; a++ ) 
 	{
-		Nat( syr, a ) = value( Ro  * pow( Sa( a ), age( a ) - 1 ));// in the first year 
+		T_Nat( syr, a ) = value( Ro  * pow( Sa( a ), age( a ) - 1 ));// in the first year 
 	}
 
-	Nat( syr, nage ) /= value(1. - Sa( nage ));// plus group in the first year
-	eggs( syr ) = value( fec * Nat( syr ));//eggs or ssb in the first year
+	T_Nat( syr, nage ) /= value(1. - Sa( nage ));// plus group in the first year
+	T_eggs( syr ) = value( fec * T_Nat( syr ));//eggs or ssb in the first year
 	
 	for( int y = syr + 1; y <= eyr; y++ )
 	{
 		//recruitment
-		Nat( y, 1 ) = value( reca *eggs( y - 1 )/( 1. + value( recb ) * eggs( y - 1 )) * value( wt( y - 1 )));
+		T_Nat( y, 1 ) = value( reca * T_eggs( y - 1 )/( 1. + value( recb ) * T_eggs( y - 1 )) * value( wt( y - 1 )));
 		//numbers at age
-		Nat( y )( 2, nage ) =++ value(elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y -  1 )( 1, Am1 )));
+		T_Nat( y )( 2, nage ) =++ value(elem_prod( elem_prod( T_Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - T_Uage( y -  1 )( 1, Am1 )));
 		// plus group
-		Nat( y, nage ) += value(Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )));	
-		eggs( y ) = value( fec * Nat( y ));
+		T_Nat( y, nage ) += value(Nat( y - 1, nage ) * Sa( nage ) * ( 1. - T_Uage( y - 1, nage )));	
+		T_eggs( y ) = value( fec * T_Nat( y ));
 		
 		for( int b = 1; b <= nlen; b++ )
 		{
 			// numbers at length bin
-			Nlt( y, b )=value( Nat( y ) * P_al( b ));
+			T_Nlt( y, b )=value( T_Nat( y ) * P_al( b ));
 		}
 		//catch at length bin
-		Clt( y ) = elem_prod( Nlt( y ), Ulength( y )); 
+		T_Clt( y ) = elem_prod( T_Nlt( y ), T_Ulength( y )); 
 	}
 
 	//survey obs error
@@ -437,28 +461,30 @@ FUNCTION sim_dynamics
 	for(j=1;j<=nyt;j++)
 	{	
 	   	ii=iyr(j);
-	   	survB( j ) = value( sum( elem_prod( elem_prod(Nat((syr+ii-1)), va ), wa )));//survey biomass
+	   	survB( j ) = value( sum( elem_prod( elem_prod(T_Nat((syr+ii-1)), va ), wa )));//survey biomass
 	 	survB( j )*= mfexp(surv_err( j )*sig-sig*sig/2);
-		
+	 	survB( j ) /=1.0e+09;	// transform to 100s of tons	
 	}
-	
-	
+
+		
 	if( simeval )	
 	{
 		// recruitment for age classess before start of collecting data
-		T_parm(1,nage) = Nat( syr ); 
+		T_parm(1,nage) = T_Nat( syr ); 
 		for( int y = syr + 1; y <= eyr; y++ )
 		{
 			// recruitment for years in which data was collected: y-syr+nage indicates indexing from 1 to nyrs
-			T_parm(y-syr+nage) = column( Nat, 1 )( y );
+			T_parm(y-syr+nage) = column( T_Nat, 1 )( y );
 		}
 	}
-	if( debug )	cout<<"L50year\t"<<L50year<<"\n Uyear\t"<<Uyear<<"\n Ulength\n"<<Ulength<<"\n Uage\n"<<Uage<<"\n Nat\n"<<Nat<<"\n Ct\n"<<Clt<<endl;
+
+	if( debug )	cout<<"L50year\t"<<T_L50year<<"\n Uyear\t"<<T_Uyear<<"\n Ulength\n"<<T_Ulength<<"\n Uage\n"<<T_Uage<<"\n Nat\n"<<T_Nat<<"\n Ct\n"<<T_Clt<<endl;
 
 //_________________________________________
 FUNCTION SRA
-	dvar_vector eggs( 1, nage ); // no of eggs produced by age class
+	dvar_vector eggs( syr, eyr ); // no of eggs produced by age class
 	dvar_matrix Upen( syr, eyr, 1, nlen ); //penalty 
+	
 	
 	// INITIAL YEAR
 	for( int a = 1; a <= nage; a++ ) 
@@ -467,15 +493,14 @@ FUNCTION SRA
 	}				
 	Nat( syr, nage ) /= 1. - Sa( nage );					//age plus group in syr
 		
-	eggs( 1 ) = fec * Nat( syr );							// eggs from syr --- why is it indexed as 1? Just because it is, no special reason
+	eggs( syr ) = fec * Nat( syr );							// eggs from syr --- why is it indexed as 1? Just because it is, no special reason
 	
 	for( int b = 1; b <= nlen; b++ )
 	{
 		Nlt( syr, b ) = Nat( syr ) * P_al( b );												// length-structure in year-1
-		Ulength( syr, b ) = Clt( syr, b ) / posfun( Nlt( syr, b ), Clt( syr, b ), fpen);	// exploitation by length, posfun is there to ensure that U is not negative and doesn't go above 1
-		
+		Ulength( syr, b ) = Clt( syr, b ) / posfun( Nlt( syr, b ), Clt( syr, b ), fpen);	// exploitation by length, posfun is there to ensure that U is not negative and doesn't go above 1		
 	}
-	
+
 	maxUy( syr ) = max( Ulength( syr ));		// maximum exploitation rate in the first year														
 	
 	for( int a = 1; a <= nage; a++ )
@@ -507,15 +532,16 @@ FUNCTION SRA
 		{
 			Uage( y, a ) = Ulength( y ) * P_la( a );										// exploitation by age
 		}
-
-		maxUy( y ) = max( Ulength( y ));													// max exploitation across lengths
+			
+		maxUy( y ) = max( Ulength( y ));
+													// max exploitation across lengths
 	}
-  
-  /*	for( int y = syr; y <= eyr; y++ )
+	
+  	for( int y = 1; y <= nyt; y++ )
 	{
-		psurvB( y ) = sum( elem_prod( elem_prod( Nat( y ), va ), wa ));
+		psurvB( y ) = sum( elem_prod( elem_prod( Nat( y+syr-1 ), va ), wa ));
 		psurvB( y ) /=1.0e+09;
-	}*/
+	}
 		
 	muUl = colsum( Ulength ) / ( eyr - syr + 1 );										// mean exploitation rate across years
 	
@@ -524,28 +550,15 @@ FUNCTION SRA
 		Upen( y ) = pow( Ulength( y ) / posfun( maxUy( y ), tiny, fpen ) - muUl, 2. );					// penalty against dramatic changes in vulnerability
 	}
 	
-	psurvB = Nat * elem_prod(wa,va);
 	ssvul = sum( Upen );
-	//cout<<"muUl\t"<<muUl<<"\n maxUy\t"<<maxUy<<"\n Upen\n"<<Upen<<"\n Uage\n"<<Uage<<"\n Clt\n"<<Clt<<"\n Nat\n"<<Nat<<endl;	exit(1);
-	//cout<<Nat<<endl;
-	//cout<<survB<<endl;
-	//int j,ii;
-	//for(j=1;j<=nityr;j++)
-	//{	
-	//  ii=survyrs(j);
-	//  psurvB( j ) = sum( elem_prod( elem_prod( Nat(ii)(1,nage), va ), wa ));
-	//}
-	//cout<<survB<<endl;
-	//	cout<<psurvB<<endl;
-	//cout<<zstat<<endl;
+	
 	
 FUNCTION observation_model
 	zstat = log( elem_div( survB, psurvB ));												// z-statistic used for calculating MLE of q
-	
+
 	zstat -= mean(zstat);	        // posterior probability distribution of q
- //	cout<<zstat<<endl;
-																		// vulnerability penalty
-	cout<<zstat<<endl;
+ 																		// vulnerability penalty
+	
 	if( simeval )	
 	{
 		E_parm(1,nage) = Nat( syr );       // Estimated recruitment for age classess before start of collecting data 
@@ -554,7 +567,7 @@ FUNCTION observation_model
 			E_parm(y-syr+nage) = column( Nat, 1 )( y ); //Estimated recruitment for years in which data was collected: y-syr+nage indicates indexing from 1 to nyrs
 		}
 	}
-	if( debug )	cout<<"wt\n"<<wt<<"\n Ulength\n"<<Ulength<<"\n Uage\n"<<Uage<<"\n Nat\n"<<Nat<<"\n Nlt\n"<<Nlt<<"\n survB\t"<<survB<<"\n psurvB\t"<<psurvB<<"\n zstat\t"<<zstat<<endl;
+
 	
 //_________________________________________
 
@@ -588,63 +601,68 @@ FUNCTION objective_function
 	nll = sum(lvec) + sum(pvec)*use_prior;
 
 
-	
-	//if( debug )	cout<<"sig "<<sig<<"\t pvec "<<pvec<<"\t var(wt) "<<var(wt)<<"\t fpen "<<fpen<<"\t ssvul "<<ssvul<<"\t nll "<<nll<<endl;
-	//exit(1);
-	
 
-REPORT_SECTION
-	
-	report<<"Ro\n"<<Ro<<endl;
-	report<<"bo\n"<<Eo<<endl;
-	report<<"kappa\n"<<reck<<endl;
-	dvariable h = value(reck/(4.+reck));
-	REPORT(h);
-	REPORT(Linf);
-	REPORT(k);
-	REPORT(cvl);
- 	REPORT(wt);
-	REPORT(reca);
-	REPORT(recb);
-	REPORT(psurvB);
-	REPORT(survB);
-	report<<"yt\n"<<survB<<endl;
-	report<<"bt\n"<<Nat*wa<<endl;
-	dvar_vector wl = alw * pow( len, blw );
-	REPORT(wl);
-	REPORT(muUl);
-	REPORT(maxUy);
-// 	REPORT(Nat);
-	report<<"N\n"<<Nat<<endl;
-	REPORT(Ulength);
-	REPORT(Uage);
-	REPORT(Clt);
-	REPORT(Nlt);
- 	dvector sbt=value(Nat.sub(syr,eyr)*fec);
- 	REPORT(sbt);
-	double depletion = sbt(eyr)/sbt(syr);
-	REPORT(depletion);
- 	ivector yr(syr,eyr);
-	yr.fill_seqadd(syr,1); 
-	report<<"yr\n"<<yr<<endl;
-	report<<"iyr\n"<<iyr<<endl;
+REPORT_SECTION	
 
-	REPORT(age);
-	REPORT(len);
-	REPORT(q);
-	REPORT(Sa);
-	REPORT(vul);
-	REPORT(la);
-	REPORT(va);
-	REPORT(wa);
-
-
-	if( simeval )
+	if( !simeval )
 	{
+		report<<"Ro\n"<<Ro<<endl;
+		report<<"bo\n"<<Eo<<endl;
+		report<<"kappa\n"<<reck<<endl;
+		dvariable h = value(reck/(4.+reck));
+		REPORT(h);
+		REPORT(Linf);
+		REPORT(k);
+		REPORT(cvl);
+ 		REPORT(wt);
+		REPORT(reca);
+		REPORT(recb);
+		REPORT(psurvB);
+		REPORT(survB);
+		report<<"yt\n"<<survB<<endl;
+		report<<"bt\n"<<Nat*wa<<endl;
+		dvar_vector wl = alw * pow( len, blw );
+		REPORT(wl);
+		REPORT(muUl);
+		REPORT(maxUy);
+		// 	REPORT(Nat);
+		report<<"N\n"<<Nat<<endl;
+		REPORT(Ulength);
+		REPORT(Uage);
+		REPORT(Clt);
+		REPORT(Nlt);
+ 		dvector sbt=value(Nat.sub(syr,eyr)*fec);
+ 		REPORT(sbt);
+		double depletion = sbt(eyr)/sbt(syr);
+		REPORT(depletion);
+ 		ivector yr(syr,eyr);
+		yr.fill_seqadd(syr,1); 
+		report<<"yr\n"<<yr<<endl;
+		report<<"iyr\n"<<iyr<<endl;
+
+		REPORT(age);
+		REPORT(len);
+		REPORT(q);
+		REPORT(Sa);
+		REPORT(vul);
+		REPORT(la);
+		REPORT(va);
+		REPORT(wa);
+	}else{
+
+		if(last_phase()){
+
+
 		bias = elem_div( E_parm - T_parm, T_parm );
 
-			ofstream ofssra("SRA bias.txt",ios::app);
-			ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<<endl;// outputs obj function value, minimum gradient, seed and bias values
+		ofstream ofssra("SRA_bias.txt",ios::app);
+
+		cout<< "got here"<< endl;
+		cout<< "BIAS= "<<bias<< endl;
+
+		// outputs obj function value, minimum gradient, seed and bias values
+		ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<<endl;
+		}
 	}
 
 TOP_OF_MAIN_SECTION
