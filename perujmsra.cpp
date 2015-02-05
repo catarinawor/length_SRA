@@ -6,7 +6,7 @@
 	#define REPORT(object) report << #object "\n" << object << endl;
 	#include <admodel.h>
 	#include <time.h>
-	#include <contrib.h>//IF you have ADMB-11
+	//#include <contrib.h>//IF you have ADMB-11
 	//#include<stats.cxx>//If you have ADMB-10 and make sure stats.cxx is in your working directory
 	//#include<MyLikelihoods.cpp>
 	time_t start,finish;
@@ -205,7 +205,11 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
 void model_parameters::preliminary_calculations(void)
 {
 
+#if defined(USE_ADPVM)
+
   admaster_slave_variable_interface(*this);
+
+#endif
 }
 
 void model_parameters::userfunction(void)
