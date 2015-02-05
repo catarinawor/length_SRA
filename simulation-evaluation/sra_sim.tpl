@@ -14,13 +14,12 @@ DATA_SECTION
 	
 	int phz_growth;		// phase for growth parameters
 	int est;										// if est==1, estimate real data; if est==0, simulate-estimate
-	int seed;										// seed to be used in the simulations
 	int debug;										// if debug==1, only calculates the initial model run and spits out lots of numbers	
-	int simeval;									   //print true and predicted recruitment deviations
-	number varon;								// if varon==1, includes variation in simulation parameters, if not, no variation
-	int autooff;								//if autooff quits after calculating objective function			
+	int simeval;						  		    //print true and predicted recruitment deviations
+	int varon;										// if varon==1, includes variation in simulation parameters, if not, no variation
+	int autooff;									//if autooff quits after calculating objective function			
 	
-	int tempmod;
+	int seed;										// seed to be used in the simulations
 
 	LOCAL_CALCS
 		ifstream ifsin("directions.txt");       //input stream :  read from this file
@@ -58,11 +57,11 @@ DATA_SECTION
 	init_int nage;								// number of age-classes
 	init_int nlen;								// number of length-bins (assume start at 0)
 	init_int lstp;								// width of length-bins
-	//init_int nityr;                           //numbers of years for which a survey is available
+
 	init_int SR;								// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker
 	init_number m;								// natural mortality
 	init_number alw;							// multiplier for length-weight relationship
-	init_number blw;							// multiplier for length-weight relationship							// multiplier for length-weight relationship
+	init_number blw;							// exponent for length-weight relationship
 	init_number wmat;							// initial weight at maturity
 	
 
@@ -71,7 +70,7 @@ DATA_SECTION
 	init_number ahat;							// vulnerability parameter
 	init_number ghat;							// vulnerability parameter
 	init_vector va(1,nage);						// survey vulnerability
-	init_int nyt;
+	init_int nyt;								// number of years for which survey is available
 	init_ivector iyr(1,nyt); 					// survey counter
 	init_vector survB(1,nyt); 					// survey biomass
 
@@ -81,8 +80,8 @@ DATA_SECTION
 	
 	init_number cv_it;			// CV for cpue
 	init_number sigR;			// sigma R
-	init_number sigVul;
-	init_int 	phz_reck;		// phase for reck
+	init_number sigVul;			// sd for vulnerability
+	init_int 	phz_reck;		// phase for reck estimation
 	init_int 	use_prior;		// add priors to the likehoods ? (1 or 0)
 
 
@@ -100,19 +99,17 @@ DATA_SECTION
 
 	//simulation counters
 	int iter;
-	!! iter=0;
-	int sim;                    // simulation switch
-
-	vector age(1,nage);			// ages
-	vector len(1,nlen);		    // initial length of each length bin
 	int Am1;					// maximum age minus 1
+	vector age(1,nage);			// ages
+	vector len(1,nlen);		    // initial length of each length bin	
 	number tiny;				//small number used for penalize likelihoods	
 	
 	LOC_CALCS
-		age.fill_seqadd( 1, 1 );  // fill in the age vector
-		len.fill_seqadd( lstp, lstp ); //fill in length bins,  this case 1 by one
-		Am1=nage-1;        // set AM1 to nage-1
-		tiny=1.e-20;       // set tiny
+		age.fill_seqadd( 1, 1 ); 		 // fill in the age vector
+		len.fill_seqadd( lstp, lstp ); 	 //fill in length bins in  this case by lstp unit intervals
+		Am1=nage-1;        				 // set AM1 to nage-1
+		tiny=1.e-20; 
+	 	iter=0;                    // set tiny
 	END_CALCS
 	
 
@@ -120,7 +117,7 @@ DATA_SECTION
 	!! ad_comm::change_datafile_name( "Base_pars.dat" ); // change file name to "Base_pars.dat"
 	init_number lLinf;              //read in Linf
 	init_number lk;				    // vonb k
-	init_number lto;					//vonb to
+	init_number lto;				//vonb to
 	init_number lcvl;				//cv for vonb curve
 	init_number lreck;				// recruitment compensation ratio
 	init_number lRo;				// average recruitment at virgin levels
@@ -146,18 +143,13 @@ DATA_SECTION
 PARAMETER_SECTION
 	init_number log_Linf(phz_growth); 		//log(linf) to be estimated in phase grow
 	init_number log_k(phz_growth); 			// log(k), estimated in phase grow
-	init_number to(phz_growth);				// to. to be estimated in phase grow
+	init_number to(phz_growth);				// to to be estimated in phase grow
 	init_number log_cvl(phz_growth);  		// cv at length
 	init_number log_reck(phz_reck); 		// Goodyear compensation ratio only estimated in SRA
 	init_number log_Ro;  					// average unfished recruitment - only estimated in SRA
 	
 	
-	//init_number log_ptau(-1); // observation error, nor estimated in thei example why?
-	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2); // recruitment deviations. only estimated inSRA
-	
-	!! log_wt = log(lwt);
-
-	//init_vector t_Pplus(syr,eyr-1,phz2);// vector of plus group at a year, proportion that survived within the group transformed to vary between +-inf
+	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2); // recruitment deviations. only estimated in SRA
 	
 	objective_function_value nll;
 	
@@ -213,8 +205,7 @@ PRELIMINARY_CALCS_SECTION
     
 	// if you are simulating-estimating data
 	if( est==0 )
-    {
-        sim=1;					//turn the simulation mode on	
+    {	
         gen_parms();			//generate parameters with or without variation	
         if( debug )				cout<<"parameters generated"<<endl;  
         trans_parms();			//transform parameters from logspace to normal space
@@ -229,7 +220,6 @@ PRELIMINARY_CALCS_SECTION
 
 PROCEDURE_SECTION
 	
-	sim = 0;
 	fpen = 0.;
 	ssvul = 0.;
 	trans_parms();
@@ -275,7 +265,7 @@ FUNCTION gen_parms
 	if( varon )	lwt=0.;											// if variaton is on, initialize lwt
 	log_wt = lwt + rec_dev * cv3;									// log_lwt= normally distributed error *cv
 	
-	ofstream ofs3( "SRA.pin" ); //print real numbers to a pin file, initial guesses
+	ofstream ofs3( "sra_sim.pin" ); //print real numbers to a pin file, initial guesses
 	ofs3<<"#log_Linf\n"<<log_Linf<<endl;
 	ofs3<<"#log_k\n"<<log_k<<endl;
 	ofs3<<"#to\n"<<to<<endl;
@@ -283,8 +273,6 @@ FUNCTION gen_parms
 	ofs3<<"#log_reck\n"<<log_reck<<endl;
 	ofs3<<"#log_Ro\n"<<log_Ro<<endl;
 	ofs3<<"#log_wt\n"<<lwt<<endl;
-	ofs3<<"#log_ptau\n"<<0<<endl;
-	ofs3<<"#dend\n"<<999<<endl;
 	if( debug )	cout<<"parameters output"<<endl;
 
 //_________________________________________
@@ -554,6 +542,11 @@ FUNCTION SRA
 	
 	
 FUNCTION observation_model
+	
+	//cout<<"survB = "<<survB<<endl;
+	//cout<<"psurvB = "<<psurvB<<endl;
+	//exit(1);
+
 	zstat = log( elem_div( survB, psurvB ));												// z-statistic used for calculating MLE of q
 
 	zstat -= mean(zstat);	        // posterior probability distribution of q
@@ -577,9 +570,9 @@ FUNCTION objective_function
 	lvec.initialize();
 
 	lvec(1)=dnorm(zstat,cv_it);
-	lvec(2)=dnorm(wt,sigR);dvar_vector 
+	lvec(2)=dnorm(wt,sigR);
 
-	pvec(1,4);
+	dvar_vector pvec(1,4);
 	pvec.initialize();
 
 	if(active(log_reck))
@@ -652,13 +645,15 @@ REPORT_SECTION
 
 		if(last_phase()){
 
+		iter += 1;
+
 
 		bias = elem_div( E_parm - T_parm, T_parm );
 
 		ofstream ofssra("SRA_bias.txt",ios::app);
 
-		cout<< "got here"<< endl;
-		cout<< "BIAS= "<<bias<< endl;
+		//cout<< "got here"<< endl;
+		//cout<< "BIAS= "<<bias<< endl;
 
 		// outputs obj function value, minimum gradient, seed and bias values
 		ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<<endl;
