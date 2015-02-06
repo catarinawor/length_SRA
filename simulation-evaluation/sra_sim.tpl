@@ -64,7 +64,6 @@ DATA_SECTION
 	init_number blw;							// exponent for length-weight relationship
 	init_number wmat;							// initial weight at maturity
 	
-
 	init_number mat50;							// maturity parameter
 	init_number matsd;							// maturity parameter
 	init_number ahat;							// vulnerability parameter
@@ -75,8 +74,6 @@ DATA_SECTION
 	init_vector survB(1,nyt); 					// survey biomass
 
 	init_matrix Clt(syr,eyr,1,nlen);			// catch at length and year	
-
-
 	
 	init_number cv_it;			// CV for cpue
 	init_number sigR;			// sigma R
@@ -97,8 +94,7 @@ DATA_SECTION
 	END_CALCS
 	
 
-	//simulation counters
-	int iter;
+	int iter;					//simulation counters
 	int Am1;					// maximum age minus 1
 	vector age(1,nage);			// ages
 	vector len(1,nlen);		    // initial length of each length bin	
@@ -113,12 +109,12 @@ DATA_SECTION
 	END_CALCS
 	
 
-	// import "true" parameter values
+	// import "true" parameter values in log space
 	!! ad_comm::change_datafile_name( "Base_pars.dat" ); // change file name to "Base_pars.dat"
-	init_number lLinf;              //read in Linf
-	init_number lk;				    // vonb k
-	init_number lto;				//vonb to
-	init_number lcvl;				//cv for vonb curve
+	init_number lLinf;              // log of Linf
+	init_number lk;				    // log of vonb k
+	init_number lto;				// vonb to
+	init_number lcvl;				// log  for vonb curve
 	init_number lreck;				// recruitment compensation ratio
 	init_number lRo;				// average recruitment at virgin levels
 	init_vector lwt(syr,eyr-1);		//recruitment deviations
@@ -176,21 +172,21 @@ PARAMETER_SECTION
 	
 	vector T_parm(1,nage+eyr-syr);				// true initial age-structure and recruitment
 	vector E_parm(1,nage+eyr-syr);				// estimated initial age-structure and recruitment
-	//number T_Ro;
-	//number E_Ro;
-	//number T_kappa;
-	//number E_kappa;
-	//vector T_Ulength_fin(1,nlen);
-	//vector E_Ulength_fin(1,nlen);
-
+	number T_Ro;
+	number E_Ro;
+	number T_kappa;
+	number E_kappa;
+	vector T_Ulength_fin(1,nlen);
+	vector E_Ulength_fin(1,nlen);
 
 	vector bias(1,nage+eyr-syr);				// proportional bias in initial age-structure and recruitment estimates
-	
+	vector biasUlength_fin(1,nlen);
+	number biasRo;
+	number biaskappa;
+
 
 	matrix P_la(1,nage,1,nlen);					// probability of being in a length bin given that you are at a given age age
-	matrix P_al(1,nlen,1,nage);					// transpose of above
-	
-	
+	matrix P_al(1,nlen,1,nage);					// transpose of above	
 	
 	matrix Nat(syr,eyr,1,nage);				//numbers at age
 	matrix Ulength(syr,eyr,1,nlen);			//harvest rate by length classes 
@@ -324,9 +320,6 @@ FUNCTION incidence_functions
 
 		z2 = (( len + lstp * 0.5 )-value( la( a )))/value( std( a ));
 
-		//cout<<"z1 = "<<z1<<endl;
-		//cout<<"z2 = "<<z2<<endl;
-
 		for( int b=1; b<= nlen; b++ )
 		{
 			P_la( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b )); // calculates the proportion of being of a given age given your length
@@ -459,6 +452,11 @@ FUNCTION sim_dynamics
 	{
 		// recruitment for age classess before start of collecting data
 		T_parm(1,nage) = T_Nat( syr ); 
+		T_Ro = Ro;
+		T_kappa = reck;
+		T_Ulength_fin(1,nlen) = T_Ulength(syr);
+
+
 		for( int y = syr + 1; y <= eyr; y++ )
 		{
 			// recruitment for years in which data was collected: y-syr+nage indicates indexing from 1 to nyrs
@@ -508,6 +506,8 @@ FUNCTION SRA
 
 		Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 )), tiny, fpen );		// age-distribution post-recruitment
 		Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen);
+		
+
 		eggs( y ) = fec * Nat( y );																// eggs in year-y
 		
 		for( int b = 1; b <= nlen; b++ )
@@ -555,6 +555,10 @@ FUNCTION observation_model
 	if( simeval )	
 	{
 		E_parm(1,nage) = Nat( syr );       // Estimated recruitment for age classess before start of collecting data 
+		E_Ro = Ro;
+		E_kappa = reck;
+		E_Ulength_fin(1,nlen) = Ulength(syr);
+
 		for( int y = syr + 1; y <= eyr; y++ )
 		{
 			E_parm(y-syr+nage) = column( Nat, 1 )( y ); //Estimated recruitment for years in which data was collected: y-syr+nage indicates indexing from 1 to nyrs
@@ -649,14 +653,18 @@ REPORT_SECTION
 
 
 		bias = elem_div( E_parm - T_parm, T_parm );
+		biasRo = (E_Ro- T_Ro)/ T_Ro;
+		biaskappa = (E_kappa- T_kappa)/ T_kappa;
+		biasUlength_fin = elem_div( E_Ulength_fin - T_Ulength_fin, T_Ulength_fin );
 
 		ofstream ofssra("SRA_bias.txt",ios::app);
 
-		//cout<< "got here"<< endl;
-		//cout<< "BIAS= "<<bias<< endl;
+	
 
 		// outputs obj function value, minimum gradient, seed and bias values
-		ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<<endl;
+		ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<<"\t"<< biasRo<<"\t"<< biaskappa<<"\t"<< biasUlength_fin <<endl;
+		//ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<< biasRo<< biaskappa<< biasUlength_fin <<endl;
+		
 		}
 	}
 
