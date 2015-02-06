@@ -13,7 +13,6 @@ DATA_SECTION
 	// given in directions.txt
 	
 	int phz_growth;		// phase for growth parameters
-	int est;										// if est==1, estimate real data; if est==0, simulate-estimate
 	int debug;										// if debug==1, only calculates the initial model run and spits out lots of numbers	
 	int simeval;						  		    //print true and predicted recruitment deviations
 	int varon;										// if varon==1, includes variation in simulation parameters, if not, no variation
@@ -26,7 +25,7 @@ DATA_SECTION
 		ifsin>>phz_growth>>est>>debug>>simeval>>varon>>autooff; // read in the following numbers
 		//mod=1;          // set SRA mode on
 		if( debug )	{ varon=0.;	autooff=1; 
-			cout<<" phz_growth\t"<<phz_growth<<"\n est\t"<<est<<"\n debug\t"<<debug<<"\n simeval\t"<<simeval<<"\n varon\t"<<varon<<"\n autooff\t"<<autooff<<endl; // print all these variables to the screen
+			cout<<" phz_growth\t"<<phz_growth<<"\n debug\t"<<debug<<"\n simeval\t"<<simeval<<"\n varon\t"<<varon<<"\n autooff\t"<<autooff<<endl; // print all these variables to the screen
 		}
 		
 		
@@ -137,6 +136,7 @@ DATA_SECTION
 
 
 PARAMETER_SECTION
+	
 	init_number log_Linf(phz_growth); 		//log(linf) to be estimated in phase grow
 	init_number log_k(phz_growth); 			// log(k), estimated in phase grow
 	init_number to(phz_growth);				// to to be estimated in phase grow
@@ -170,6 +170,19 @@ PARAMETER_SECTION
 	vector lxo(1,nage);							// unfished survivorship at age
 	vector fec(1,nage);							// age-specific fecundity - used for stock-recruit function
 	
+	matrix P_la(1,nage,1,nlen);					// probability of being in a length bin given that you are at a given age age
+	matrix P_al(1,nlen,1,nage);					// transpose of above	
+	
+	matrix Nat(syr,eyr,1,nage);				//numbers at age
+	matrix Ulength(syr,eyr,1,nlen);			//harvest rate by length classes 
+	matrix Uage(syr,eyr,1,nage);			// harvest rate by age
+	matrix Nlt(syr,eyr,1,nlen);				
+	vector maxUy(syr,eyr);
+	vector muUl(1,nlen);
+ 	vector psurvB(1,nyt);
+	number q;
+
+	// performance measure storage objects
 	vector T_parm(1,nage+eyr-syr);				// true initial age-structure and recruitment
 	vector E_parm(1,nage+eyr-syr);				// estimated initial age-structure and recruitment
 	number T_Ro;
@@ -185,22 +198,10 @@ PARAMETER_SECTION
 	number biaskappa;
 
 
-	matrix P_la(1,nage,1,nlen);					// probability of being in a length bin given that you are at a given age age
-	matrix P_al(1,nlen,1,nage);					// transpose of above	
-	
-	matrix Nat(syr,eyr,1,nage);				//numbers at age
-	matrix Ulength(syr,eyr,1,nlen);			//harvest rate by length classes 
-	matrix Uage(syr,eyr,1,nage);			// harvest rate by age
-	matrix Nlt(syr,eyr,1,nlen);				
-	vector maxUy(syr,eyr);
-	vector muUl(1,nlen);
- 	vector psurvB(1,nyt);
-	number q;
-
 PRELIMINARY_CALCS_SECTION
     
 	// if you are simulating-estimating data
-	if( est==0 )
+	if( simeval )
     {	
         gen_parms();			//generate parameters with or without variation	
         if( debug )				cout<<"parameters generated"<<endl;  
@@ -221,10 +222,7 @@ PROCEDURE_SECTION
 	trans_parms();
 		
 	incidence_functions();	
-	
-	
 	if( debug ){cout<<"incidence functions calculated"<<endl;	}
-	initialization();
 	
 
 	if( debug )	{cout<<"recruitment functions predicted"<<endl;}			
@@ -245,6 +243,7 @@ FUNCTION gen_parms
 	
 	// variation in growth and recruitment parameters
 	dvector r( 1, 4 ); 
+	
 	//fill the vector with normal random numbers  											
 	r.fill_randn(rnd);					
 
@@ -253,11 +252,11 @@ FUNCTION gen_parms
 	rec_dev.fill_randn(rnd);        			
 	
 	double cv1 = 0.1*varon,	cv2 = 0.2*varon, cv3 = 0.4*varon; 	// cv* variation switch, if 0 no variation
-	log_Linf = lLinf * ( 1. + r( 3 ) * cv1 );  					// variation in  linfcomes from r(3)
-	log_k = lk * ( 1. + r( 4 ) * cv1 );		   					// variation in k comes from r(4)
+	log_Linf = lLinf + r( 3 ) * cv1;  					// variation in  linfcomes from r(3)
+	log_k = lk + r( 4 ) * cv1 ;		   					// variation in k comes from r(4)
 	log_cvl = lcvl;                            					// cv remains the same
-	log_reck = lreck * ( 1. + r( 1 ) * cv1 );  					// recruitment compensation 
-	log_Ro = lRo * ( 1. + r( 2 ) * cv2 );						// unexploited average recruitment
+	log_reck = lreck + r( 1 ) * cv1 ;  					// recruitment compensation 
+	log_Ro = lRo + r( 2 ) * cv2 ;						// unexploited average recruitment
 	if( varon )	lwt=0.;											// if variaton is on, initialize lwt
 	log_wt = lwt + rec_dev * cv3;									// log_lwt= normally distributed error *cv
 	
@@ -287,6 +286,7 @@ FUNCTION trans_parms
 
 
 FUNCTION incidence_functions
+	
 	//  biological processes that will not be directly estimated in the assessment
 	dvector z1( 1, nlen ); 
 	dvector z2( 1, nlen );
@@ -331,7 +331,6 @@ FUNCTION incidence_functions
 
 	if( debug )	cout<<"la\t"<<la<<"\n wa\t"<<wa<<"\n lxo\t"<<lxo<<"\n fec\t"<<fec<<"\n len\t"<<len<<"\n P_la\n"<<P_la<<"\n P_al\n"<<P_al<<endl;
 
-FUNCTION initialization
 	Eo = Ro * sum( elem_prod( lxo, fec )); // calculate the number of eggs at a virgin level
 	reca = reck * Ro / Eo; // parameter a of the BH recruitment function	
 	
@@ -348,31 +347,32 @@ FUNCTION sim_dynamics
 	r2.fill_randn(rnd3);
 
 	double r_fishery = mfexp( log( 0.8 ) * ( 1. + r2( 1 ) * 0.1 * varon ));				//  growth rate of exploitation of 0.8 with cv=0.1
-	double k_fishery = -log(value( mean( Sa )));												//carrying capacity of exploitation: M=F
+	double k_fishery = -log(value( mean( Sa )));										//carrying capacity of exploitation: M=F
 	
-	dvector T_Uyear( syr, eyr ); 													// vector of exploitation rates
-	dvector T_L50year( syr, eyr ); 												// length at 50% vulnerability
-	dvector T_vuln( 1, nage ); 													// vulnerability at age vector
-	dvector T_eggs( syr, eyr ); 													//no of eggs produced, derived from spawning stock biomass* fecundity
-	dmatrix T_Ulength( syr, eyr, 1, nlen ); 										// matrix of exploitation rate at length
-	dmatrix T_Uage( syr, eyr, 1, nage );  										// matrix of exploitation rate at age
-	dmatrix T_Nat( syr, eyr, 1, nage ); 											// matrix to store numbers at age
-	dmatrix T_Nlt( syr, eyr, 1, nlen ); 
-	dmatrix T_Clt(syr,eyr,1,nlen);											// matrix o store numbers at length
-	T_Nat.initialize(); 															// make sure that Nat is empty
+	dvector T_Uyear( syr, eyr ); 														// vector of exploitation rates
+	dvector T_L50year( syr, eyr ); 														// length at 50% vulnerability
+	dvector T_vuln( 1, nage ); 															// vulnerability at age vector
+	dvector T_eggs( syr, eyr ); 														//no of eggs produced, derived from spawning stock biomass* fecundity
+	dmatrix T_Ulength( syr, eyr, 1, nlen ); 											// matrix of exploitation rate at length
+	dmatrix T_Uage( syr, eyr, 1, nage );  												// matrix of exploitation rate at age
+	dmatrix T_Nat( syr, eyr, 1, nage ); 												// matrix to store numbers at age
+	dmatrix T_Nlt( syr, eyr, 1, nlen ); 												//matrix of numbers at length classes
+	dmatrix T_Clt(syr,eyr,1,nlen);														// matrix o store numbers at length
+	T_Nat.initialize(); 																// make sure that Nat is empty
 	
 	// exploitation rate in the first year is set to very small number
 	T_Uyear( syr ) = 0.001; 
-	//logistic curve for development of fishery																		
 	
+	//logistic curve for development of fishery	3-step average being used as a smoothing function																		
 	T_Uyear( syr + 1 ) = T_Uyear( syr ) + T_Uyear( syr ) * r_fishery * ( 1. - T_Uyear( syr ) / k_fishery ); 	
 	T_Uyear( syr + 2 ) = T_Uyear( syr + 1 ) + T_Uyear( syr + 1) * r_fishery * ( 1. - mean( T_Uyear( syr, syr + 1)) / k_fishery );
 	
-	// L50 set to half of Linf
-	T_L50year( syr ) = value( Linf ) * 0.5; 	
-	// exploitation rate at length for the first year													
+	// L50  (selectivity) set to half of Linf
+	T_L50year( syr ) = value( Linf ) * 0.5;
+
+	// exploitation rate at length for the first year	u*vul ate length -- cumulative normal vulnerability with sd=1.5												
 	T_Ulength( syr ) = T_Uyear( syr ) / ( 1. +mfexp( -1.7 * ( len - T_L50year( syr )) / 1.5 )); 
-	//cumulative normal vulnerability with sd=1.5
+	
 	
 	//logistic curve for development of fishery : use running 3 yr average to smooth out trajectory 
 	for( int y = syr + 3; y <= eyr; y++ )
@@ -468,9 +468,8 @@ FUNCTION sim_dynamics
 
 //_________________________________________
 FUNCTION SRA
-	dvar_vector eggs( syr, eyr ); // no of eggs produced by age class
-	dvar_matrix Upen( syr, eyr, 1, nlen ); //penalty 
-	
+	dvar_vector eggs( syr, eyr ); // no of eggs produced
+	dvar_matrix Upen( syr, eyr, 1, nlen ); 
 	
 	// INITIAL YEAR
 	for( int a = 1; a <= nage; a++ ) 
@@ -651,7 +650,6 @@ REPORT_SECTION
 
 		iter += 1;
 
-
 		bias = elem_div( E_parm - T_parm, T_parm );
 		biasRo = (E_Ro- T_Ro)/ T_Ro;
 		biaskappa = (E_kappa- T_kappa)/ T_kappa;
@@ -659,11 +657,8 @@ REPORT_SECTION
 
 		ofstream ofssra("SRA_bias.txt",ios::app);
 
-	
-
 		// outputs obj function value, minimum gradient, seed and bias values
 		ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<<"\t"<< biasRo<<"\t"<< biaskappa<<"\t"<< biasUlength_fin <<endl;
-		//ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<< biasRo<< biaskappa<< biasUlength_fin <<endl;
 		
 		}
 	}
