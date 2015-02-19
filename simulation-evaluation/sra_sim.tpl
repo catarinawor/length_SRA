@@ -12,9 +12,9 @@
 DATA_SECTION
 	// given in directions.txt
 	
-	int phz_growth;		// phase for growth parameters
+	int phz_growth;									// phase for growth parameters
 	int debug;										// if debug==1, only calculates the initial model run and spits out lots of numbers	
-	int simeval;						  		    //print true and predicted recruitment deviations
+	int simeval;						  		    // if simeval== 1 print true and predicted recruitment deviations
 	int varon;										// if varon==1, includes variation in simulation parameters, if not, no variation
 	int autooff;									//if autooff quits after calculating objective function			
 	
@@ -22,14 +22,14 @@ DATA_SECTION
 
 	LOCAL_CALCS
 		ifstream ifsin("directions.txt");       //input stream :  read from this file
-		ifsin>>phz_growth>>est>>debug>>simeval>>varon>>autooff; // read in the following numbers
+		ifsin>>phz_growth>>debug>>simeval>>varon>>autooff; // read in the following numbers
 		//mod=1;          // set SRA mode on
 		if( debug )	{ varon=0.;	autooff=1; 
 			cout<<" phz_growth\t"<<phz_growth<<"\n debug\t"<<debug<<"\n simeval\t"<<simeval<<"\n varon\t"<<varon<<"\n autooff\t"<<autooff<<endl; // print all these variables to the screen
 		}
 		
 		
-		if( est == 0 ) 
+		if( simeval ) 
 		{	
 			//this procedure changes the seed for every simulation run
 			ifstream ifs( "seed.txt" ); // if this file is available
@@ -126,10 +126,6 @@ DATA_SECTION
 			cout<<dend2<<endl;
 			ad_exit(1);
 		}
-		if( !simeval )
-		{
-			cout<<"ESTIMATING WITH STOCK RECONSTRUCTION ANALYSIS (SRA)"<<endl;
-		}
 		if( debug )		cout<<"data read"<<endl;
 
 	END_CALCS
@@ -137,14 +133,13 @@ DATA_SECTION
 
 PARAMETER_SECTION
 	
-	init_number log_Linf(phz_growth); 		//log(linf) to be estimated in phase grow
+	init_number log_Linf(phz_growth); 		// log(linf) to be estimated in phase grow
 	init_number log_k(phz_growth); 			// log(k), estimated in phase grow
 	init_number to(phz_growth);				// to to be estimated in phase grow
 	init_number log_cvl(phz_growth);  		// cv at length
-	init_number log_reck(phz_reck); 		// Goodyear compensation ratio only estimated in SRA
+	init_bounded_number log_reck(1,6,phz_reck); 		// Goodyear compensation ratio only estimated in SRA
 	init_number log_Ro;  					// average unfished recruitment - only estimated in SRA
-	
-	
+		
 	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2); // recruitment deviations. only estimated in SRA
 	
 	objective_function_value nll;
@@ -157,7 +152,7 @@ PARAMETER_SECTION
 	number Ro;									// unfished recruitment
 	number ssvul								//stores penalty for dramatic changes in vulnerability
 	vector zstat(1,nyt);						// posterior probability distribution of q
-	vector wt(syr,eyr-1);						// recruitment anomolies
+	vector wt(syr,eyr-1);						// recruitment anomalies
 	
 	vector Sa(1,nage);		// survival-at-age (assume constant across ages)
  	vector vul(1,nage);		// age-specific vulnerabilities
@@ -180,7 +175,7 @@ PARAMETER_SECTION
 	vector maxUy(syr,eyr);
 	vector muUl(1,nlen);
  	vector psurvB(1,nyt);
-	number q;
+	number q;		
 
 	// performance measure storage objects
 	vector T_parm(1,nage+eyr-syr);				// true initial age-structure and recruitment
@@ -209,8 +204,6 @@ PRELIMINARY_CALCS_SECTION
         if( debug )				cout<<"parameters transformed"<<endl;       
         incidence_functions();	// biological processes that will not be directly estimated in the assessment
         if( debug )				cout<<"incidence functions generated"<<endl;
-        initialization();		// calculate recruitment parameters
-        if( debug )				cout<<"recruitment parameters calculated"<<endl;
         sim_dynamics();			//simulate new data
         if( debug )				cout<<"dynamics simulated\n START ESTIMATING!!"<<endl;
     }
@@ -223,11 +216,12 @@ PROCEDURE_SECTION
 		
 	incidence_functions();	
 	if( debug ){cout<<"incidence functions calculated"<<endl;	}
-	
-
-	if( debug )	{cout<<"recruitment functions predicted"<<endl;}			
+		
 	SRA();
+	if( debug ){cout<<"SRA calculated"<<endl;	}
+	
 	observation_model();
+	if( debug ){cout<<"observation model calculated"<<endl;	}
 
 
 	objective_function();
@@ -257,8 +251,7 @@ FUNCTION gen_parms
 	log_cvl = lcvl;                            					// cv remains the same
 	log_reck = lreck + r( 1 ) * cv1 ;  					// recruitment compensation 
 	log_Ro = lRo + r( 2 ) * cv2 ;						// unexploited average recruitment
-	if( varon )	lwt=0.;											// if variaton is on, initialize lwt
-	log_wt = lwt + rec_dev * cv3;									// log_lwt= normally distributed error *cv
+	log_wt += rec_dev * cv3;									// log_lwt= normally distributed error *cv
 	
 	ofstream ofs3( "sra_sim.pin" ); //print real numbers to a pin file, initial guesses
 	ofs3<<"#log_Linf\n"<<log_Linf<<endl;
@@ -267,7 +260,7 @@ FUNCTION gen_parms
 	ofs3<<"#log_cvl\n"<<log_cvl<<endl;
 	ofs3<<"#log_reck\n"<<log_reck<<endl;
 	ofs3<<"#log_Ro\n"<<log_Ro<<endl;
-	ofs3<<"#log_wt\n"<<lwt<<endl;
+	ofs3<<"#log_wt\n"<<log_wt<<endl;
 	if( debug )	cout<<"parameters output"<<endl;
 
 //_________________________________________
@@ -277,11 +270,11 @@ FUNCTION trans_parms
 	Linf = mfexp( log_Linf );
 	k 	 = mfexp( log_k );
 	cvl  = mfexp( log_cvl );
-	reck = mfexp( log_reck ) + 1.;
+	reck = mfexp( log_reck );
 	Ro 	 = mfexp( log_Ro );
 	wt 	 = mfexp( log_wt );
 	
-	if( !varon ) wt = mfexp( lwt ); 		// if variation mode is not on, set wt=lwt (0?)
+	
 	if( debug )	cout<<"reck "<<reck<<"\n Ro "<<Ro<<"\n wt "<<wt<<endl;
 
 
@@ -337,7 +330,7 @@ FUNCTION incidence_functions
 	if( SR )	recb = ( reck - 1. ) / Eo; // 
 	else		recb = log( reck ) / Eo;
 	
-	if( debug )	cout<<"Eo\t"<<Eo<<"\n reca\t"<<reca<<"\n recb\t"<<recb<<endl;
+	if( debug )	cout<<"Eo\t"<<Eo<<"\n reca\t"<<reca<<"\n recb\t"<<recb<<"\n reck\t"<<reck<<endl;
 
 //_________________________________________
 FUNCTION sim_dynamics
@@ -371,7 +364,7 @@ FUNCTION sim_dynamics
 	T_L50year( syr ) = value( Linf ) * 0.5;
 
 	// exploitation rate at length for the first year	u*vul ate length -- cumulative normal vulnerability with sd=1.5												
-	T_Ulength( syr ) = T_Uyear( syr ) / ( 1. +mfexp( -1.7 * ( len - T_L50year( syr )) / 1.5 )); 
+	T_Ulength( syr ) = T_Uyear( syr ) / ( 1. + mfexp( -1.7 * ( len - T_L50year( syr )) / 1.5 )); 
 	
 	
 	//logistic curve for development of fishery : use running 3 yr average to smooth out trajectory 
@@ -417,7 +410,7 @@ FUNCTION sim_dynamics
 	for( int y = syr + 1; y <= eyr; y++ )
 	{
 		//recruitment
-		T_Nat( y, 1 ) = value( reca * T_eggs( y - 1 )/( 1. + value( recb ) * T_eggs( y - 1 )) * value( wt( y - 1 )));
+		T_Nat( y, 1 ) = value( reca * T_eggs( y - 1 )/( 1. + value( recb ) * T_eggs( y - 1 )) *  wt( y - 1 ));
 		//numbers at age
 		T_Nat( y )( 2, nage ) =++ value(elem_prod( elem_prod( T_Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - T_Uage( y -  1 )( 1, Am1 )));
 		// plus group
@@ -443,13 +436,11 @@ FUNCTION sim_dynamics
 	{	
 	   	ii=iyr(j);
 	   	survB( j ) = value( sum( elem_prod( elem_prod(T_Nat((syr+ii-1)), va ), wa )));//survey biomass
-	 	survB( j )*= mfexp(surv_err( j )*sig-sig*sig/2);
+	 	if(varon == 1) {survB( j )*= mfexp(surv_err( j )*sig-sig*sig/2);}
 	 	survB( j ) /=1.0e+09;	// transform to 100s of tons	
 	}
 
-		
-	if( simeval )	
-	{
+
 		// recruitment for age classess before start of collecting data
 		T_parm(1,nage) = T_Nat( syr ); 
 		T_Ro = Ro;
@@ -462,7 +453,7 @@ FUNCTION sim_dynamics
 			// recruitment for years in which data was collected: y-syr+nage indicates indexing from 1 to nyrs
 			T_parm(y-syr+nage) = column( T_Nat, 1 )( y );
 		}
-	}
+
 
 	if( debug )	cout<<"L50year\t"<<T_L50year<<"\n Uyear\t"<<T_Uyear<<"\n Ulength\n"<<T_Ulength<<"\n Uage\n"<<T_Uage<<"\n Nat\n"<<T_Nat<<"\n Ct\n"<<T_Clt<<endl;
 
@@ -542,28 +533,26 @@ FUNCTION SRA
 	
 FUNCTION observation_model
 	
-	//cout<<"survB = "<<survB<<endl;
-	//cout<<"psurvB = "<<psurvB<<endl;
-	//exit(1);
 
 	zstat = log( elem_div( survB, psurvB ));												// z-statistic used for calculating MLE of q
 
 	zstat -= mean(zstat);	        // posterior probability distribution of q
  																		// vulnerability penalty
-	
-	if( simeval )	
+	if(last_phase())
 	{
-		E_parm(1,nage) = Nat( syr );       // Estimated recruitment for age classess before start of collecting data 
-		E_Ro = Ro;
-		E_kappa = reck;
-		E_Ulength_fin(1,nlen) = Ulength(syr);
-
-		for( int y = syr + 1; y <= eyr; y++ )
+		if( simeval )	
 		{
-			E_parm(y-syr+nage) = column( Nat, 1 )( y ); //Estimated recruitment for years in which data was collected: y-syr+nage indicates indexing from 1 to nyrs
+			E_parm(1,nage) = Nat( syr );       // Estimated recruitment for age classess before start of collecting data 
+			E_Ro = Ro;
+			E_kappa = reck;
+			E_Ulength_fin(1,nlen) = Ulength(syr);
+
+			for( int y = syr + 1; y <= eyr; y++ )
+			{
+				E_parm(y-syr+nage) = column( Nat, 1 )( y ); //Estimated recruitment for years in which data was collected: y-syr+nage indicates indexing from 1 to nyrs
+			}
 		}
 	}
-
 	
 //_________________________________________
 
@@ -621,7 +610,7 @@ REPORT_SECTION
 		REPORT(wl);
 		REPORT(muUl);
 		REPORT(maxUy);
-		// 	REPORT(Nat);
+		
 		report<<"N\n"<<Nat<<endl;
 		REPORT(Ulength);
 		REPORT(Uage);
@@ -660,6 +649,12 @@ REPORT_SECTION
 		// outputs obj function value, minimum gradient, seed and bias values
 		ofssra<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<bias<<"\t"<< biasRo<<"\t"<< biaskappa<<"\t"<< biasUlength_fin <<endl;
 		
+		ofstream ofspar("SRA_param.txt",ios::app);
+
+		// outputs obj function value, minimum gradient, seed and bias values
+		ofspar<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<E_parm<<"\t"<<T_parm<<"\t"<<E_Ro<<"\t"<<T_Ro<<"\t"<<E_kappa<<"\t"<<T_kappa<<"\t"<< E_Ulength_fin<<"\t"<< T_Ulength_fin <<endl;
+		
+
 		}
 	}
 
