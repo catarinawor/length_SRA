@@ -9,7 +9,7 @@
 setwd("/Users/catarinawor/Documents/length_SRA/simulation-evaluation")
 #source("read.admb.R")
 
-run.Simulation=function(N=5)
+run.Simulation=function(N=1)
 {
 	for(i in 1:N){
 	arg = paste("./sra_sim") 
@@ -28,11 +28,12 @@ SRApar=read.table("SRA_param.txt")
 
 
 lab=c("convergence","seed",rep("Recbias",34+8-1),"biasRo","biaskappa",rep("biasUlength_fin",50))
-labpar=c("convergence","seed",rep("E_Rec",(34+8-1)),rep("T_Rec",(34+8-1)),"E_Ro","T_Ro","E_kappa","T_kappa",rep("E_Ulength_fin",50),rep("T_Ulength_fin",50))
+labpar=c("convergence","seed",rep("E_Rec",(34+8-1)),rep("T_Rec",(34+8-1)),"E_Ro","T_Ro","E_kappa",
+	"T_kappa",rep("E_Ulength_fin",50),rep("T_Ulength_fin",50),rep("E_Umax",34),rep("T_Umax",34))
 
 
-convSRA<-SRA[SRA[,1]<1e-4,]
-convSRApar<-SRApar[SRApar[,1]<1e-4,]
+convSRA<-SRA[SRA[,1]<1e-1,]
+convSRApar<-SRApar[SRApar[,1]<1e-1,]
 
 dim(convSRA)
 dim(convSRApar)
@@ -66,8 +67,16 @@ abline(h=0,lwd=3,col="red")
 
 convSRApar[labpar=="T_kappa"]
 convSRApar[labpar=="E_kappa"]
+
+
+
+
 convSRApar[labpar=="T_Ro"]
 convSRApar[labpar=="E_Ro"]
 
+#plot(1:50,as.vector(convSRApar[labpar=="T_Ulength_fin"]))
+
+plot(1:34,as.vector(convSRApar[labpar=="T_Umax"][1,]),ylim=c(0,2))
+lines(1:34,as.vector(convSRApar[labpar=="E_Umax"][1,]),lwd=2)
 
 

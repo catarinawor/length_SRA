@@ -137,7 +137,7 @@ PARAMETER_SECTION
 	init_number log_k(phz_growth); 			// log(k), estimated in phase grow
 	init_number to(phz_growth);				// to to be estimated in phase grow
 	init_number log_cvl(phz_growth);  		// cv at length
-	init_bounded_number log_reck(1,6,phz_reck); 		// Goodyear compensation ratio only estimated in SRA
+	init_number log_reck(phz_reck); 		// Goodyear compensation ratio only estimated in SRA
 	init_number log_Ro;  					// average unfished recruitment - only estimated in SRA
 		
 	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2); // recruitment deviations. only estimated in SRA
@@ -186,6 +186,8 @@ PARAMETER_SECTION
 	number E_kappa;
 	vector T_Ulength_fin(1,nlen);
 	vector E_Ulength_fin(1,nlen);
+	vector T_Umax(syr,eyr); 
+	vector E_Umax(syr,eyr); 
 
 	vector bias(1,nage+eyr-syr);				// proportional bias in initial age-structure and recruitment estimates
 	vector biasUlength_fin(1,nlen);
@@ -340,7 +342,10 @@ FUNCTION sim_dynamics
 	r2.fill_randn(rnd3);
 
 	double r_fishery = mfexp( log( 0.8 ) * ( 1. + r2( 1 ) * 0.1 * varon ));				//  growth rate of exploitation of 0.8 with cv=0.1
-	double k_fishery = -log(value( mean( Sa )));										//carrying capacity of exploitation: M=F
+	double r_fisheryII = mfexp( log( 0.9 ) * ( 1. + r2( 1 ) * 0.1 * varon ));
+	double k_fishery = -log(1.5*value( mean( Sa )));
+	double k_fisheryII = -log(value( mean( Sa )));	
+	double LTau;									//carrying capacity of exploitation: 2M=F
 	
 	dvector T_Uyear( syr, eyr ); 														// vector of exploitation rates
 	dvector T_L50year( syr, eyr ); 														// length at 50% vulnerability
@@ -351,10 +356,12 @@ FUNCTION sim_dynamics
 	dmatrix T_Nat( syr, eyr, 1, nage ); 												// matrix to store numbers at age
 	dmatrix T_Nlt( syr, eyr, 1, nlen ); 												//matrix of numbers at length classes
 	dmatrix T_Clt(syr,eyr,1,nlen);														// matrix o store numbers at length
-	T_Nat.initialize(); 																// make sure that Nat is empty
+	T_Nat.initialize(); 
+
+	LTau=0.01;																// make sure that Nat is empty
 	
-	// exploitation rate in the first year is set to very small number
-	T_Uyear( syr ) = 0.001; 
+	// exploitation rate in the first year is set to  small number
+	T_Uyear( syr ) = 0.01; 
 	
 	//logistic curve for development of fishery	3-step average being used as a smoothing function																		
 	T_Uyear( syr + 1 ) = T_Uyear( syr ) + T_Uyear( syr ) * r_fishery * ( 1. - T_Uyear( syr ) / k_fishery ); 	
@@ -368,9 +375,15 @@ FUNCTION sim_dynamics
 	
 	
 	//logistic curve for development of fishery : use running 3 yr average to smooth out trajectory 
-	for( int y = syr + 3; y <= eyr; y++ )
+	for( int y = syr + 3; y <= eyr-10; y++ )
+	{
+		T_Uyear( y ) = T_Uyear( y - 1 ) + T_Uyear( y - 1 ) * r_fisheryII * ( 1. - mean( T_Uyear( y - 3, y - 1 )) / k_fisheryII ); 
+	}
+
+	for( int y = eyr - 9; y <= eyr; y++ )
 	{
 		T_Uyear( y ) = T_Uyear( y - 1 ) + T_Uyear( y - 1 ) * r_fishery * ( 1. - mean( T_Uyear( y - 3, y - 1 )) / k_fishery ); 
+		
 	}
 	
 	// length at 50% vulnerability declines until that last 10 years according to a logistic curve with up side on the right
@@ -424,7 +437,13 @@ FUNCTION sim_dynamics
 		}
 		//catch at length bin
 		T_Clt( y ) = elem_prod( T_Nlt( y ), T_Ulength( y )); 
+		Clt( y ) = T_Clt( y );
+		//Clt( y ) = rmvlogistic(T_Clt( y ),LTau,seed);
 	}
+
+	//cout<<"T_Clt is "<< T_Clt<< endl;
+	//cout<<"Clt is "<< Clt<< endl;
+	//exit(1);
 
 	//survey obs error
 	dvector surv_err( 1, nyt );
@@ -446,6 +465,7 @@ FUNCTION sim_dynamics
 		T_Ro = Ro;
 		T_kappa = reck;
 		T_Ulength_fin(1,nlen) = T_Ulength(syr);
+		T_Umax = T_Uyear;
 
 
 		for( int y = syr + 1; y <= eyr; y++ )
@@ -546,6 +566,7 @@ FUNCTION observation_model
 			E_Ro = Ro;
 			E_kappa = reck;
 			E_Ulength_fin(1,nlen) = Ulength(syr);
+			E_Umax = maxUy;
 
 			for( int y = syr + 1; y <= eyr; y++ )
 			{
@@ -564,26 +585,26 @@ FUNCTION objective_function
 	lvec(1)=dnorm(zstat,cv_it);
 	lvec(2)=dnorm(wt,sigR);
 
-	dvar_vector pvec(1,4);
-	pvec.initialize();
+	//dvar_vector pvec(1,4);
+	//pvec.initialize();
 
-	if(active(log_reck))
-	{  
- 		dvariable h=reck/(4.+reck);	
-		pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
-   	}
+	//if(active(log_reck))
+	//{  
+ 	//	dvariable h=reck/(4.+reck);	
+	//	pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
+   	//}
 
-   	if(last_phase())
-	{
-		pvec(2)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function
-	}
-	else
-	{
-		pvec(3)=100.*norm2(log_wt); 	// assume deviations are at their normal mle analytical estimator  (obs-pred)^2
-	}
-	
-	pvec(4) = ssvul/sigVul;
-	nll = sum(lvec) + sum(pvec)*use_prior;
+   	//if(last_phase())
+	//{
+	//	pvec(2)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function
+	//}
+	//else
+	//{
+	//	pvec(3)=100.*norm2(log_wt); 	// assume deviations are at their normal mle analytical estimator  (obs-pred)^2
+	//}
+	//
+	//pvec(4) = ssvul/sigVul;
+	nll = sum(lvec); //+ sum(pvec)*use_prior;
 
 
 
@@ -652,7 +673,7 @@ REPORT_SECTION
 		ofstream ofspar("SRA_param.txt",ios::app);
 
 		// outputs obj function value, minimum gradient, seed and bias values
-		ofspar<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<E_parm<<"\t"<<T_parm<<"\t"<<E_Ro<<"\t"<<T_Ro<<"\t"<<E_kappa<<"\t"<<T_kappa<<"\t"<< E_Ulength_fin<<"\t"<< T_Ulength_fin <<endl;
+		ofspar<<objective_function_value::pobjfun->gmax<<"\t"<<seed-12<<"\t"<<E_parm<<"\t"<<T_parm<<"\t"<<E_Ro<<"\t"<<T_Ro<<"\t"<<E_kappa<<"\t"<<T_kappa<<"\t"<< E_Ulength_fin<<"\t"<< T_Ulength_fin<<"\t"<<E_Umax <<"\t"<<T_Umax<<endl;
 		
 
 		}
