@@ -20,7 +20,7 @@ DATA_SECTION
 	
 	int seed;										// seed to be used in the simulations
 
-	LOCAL_CALCS
+	LOC_CALCS
 		ifstream ifsin("directions.txt");       //input stream :  read from this file
 		ifsin>>phz_growth>>debug>>simeval>>varon>>autooff; // read in the following numbers
 		//mod=1;          // set SRA mode on
@@ -83,7 +83,7 @@ DATA_SECTION
 
 	init_int dend;							// eof
 	
-	LOCAL_CALCS	
+	LOC_CALCS	
 		if( dend != 999 )
 		{
 			cout<<"Error reading data.\n Fix it."<<endl;
@@ -117,12 +117,14 @@ DATA_SECTION
 	init_number lreck;				// recruitment compensation ratio
 	init_number lRo;				// average recruitment at virgin levels
 	init_vector lwt(syr,eyr-1);		//recruitment deviations
+	init_vector ft(syr,eyr);		// true ft
 	init_number dend2;
 
 	LOCAL_CALCS
 		if( dend2 != 999 )
 		{
 			cout<<"Error reading base parameters.\n Fix it."<<endl;
+			cout<<ft<<endl;
 			cout<<dend2<<endl;
 			ad_exit(1);
 		}
@@ -137,7 +139,7 @@ PARAMETER_SECTION
 	init_number log_k(phz_growth); 			// log(k), estimated in phase grow
 	init_number to(phz_growth);				// to to be estimated in phase grow
 	init_number log_cvl(phz_growth);  		// cv at length
-	init_number log_reck(phz_reck); 		// Goodyear compensation ratio only estimated in SRA
+	init_bounded_number log_reck(1.6,2.3,phz_reck); 		// Goodyear compensation ratio only estimated in SRA
 	init_number log_Ro;  					// average unfished recruitment - only estimated in SRA
 		
 	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2); // recruitment deviations. only estimated in SRA
@@ -361,50 +363,53 @@ FUNCTION sim_dynamics
 	LTau=0.01;																// make sure that Nat is empty
 	
 	// exploitation rate in the first year is set to  small number
-	T_Uyear( syr ) = 0.01; 
+	//T_Uyear( syr ) = 0.01; 
 	
+	T_Uyear( syr,eyr ) = exp(-ft); 
+
 	//logistic curve for development of fishery	3-step average being used as a smoothing function																		
-	T_Uyear( syr + 1 ) = T_Uyear( syr ) + T_Uyear( syr ) * r_fishery * ( 1. - T_Uyear( syr ) / k_fishery ); 	
-	T_Uyear( syr + 2 ) = T_Uyear( syr + 1 ) + T_Uyear( syr + 1) * r_fishery * ( 1. - mean( T_Uyear( syr, syr + 1)) / k_fishery );
+	//T_Uyear( syr + 1 ) = T_Uyear( syr ) + T_Uyear( syr ) * r_fishery * ( 1. - T_Uyear( syr ) / k_fishery ); 	
+	//T_Uyear( syr + 2 ) = T_Uyear( syr + 1 ) + T_Uyear( syr + 1) * r_fishery * ( 1. - mean( T_Uyear( syr, syr + 1)) / k_fishery );
 	
 	// L50  (selectivity) set to half of Linf
-	T_L50year( syr ) = value( Linf ) * 0.5;
+	T_L50year( syr,eyr ) = value( Linf ) * 0.5;
 
-	// exploitation rate at length for the first year	u*vul ate length -- cumulative normal vulnerability with sd=1.5												
-	T_Ulength( syr ) = T_Uyear( syr ) / ( 1. + mfexp( -1.7 * ( len - T_L50year( syr )) / 1.5 )); 
 	
 	
 	//logistic curve for development of fishery : use running 3 yr average to smooth out trajectory 
-	for( int y = syr + 3; y <= eyr-10; y++ )
-	{
-		T_Uyear( y ) = T_Uyear( y - 1 ) + T_Uyear( y - 1 ) * r_fisheryII * ( 1. - mean( T_Uyear( y - 3, y - 1 )) / k_fisheryII ); 
-	}
+	//for( int y = syr + 3; y <= eyr-10; y++ )
+	//{
+	//	T_Uyear( y ) = T_Uyear( y - 1 ) + T_Uyear( y - 1 ) * r_fisheryII * ( 1. - mean( T_Uyear( y - 3, y - 1 )) / k_fisheryII ); 
+	//}
 
-	for( int y = eyr - 9; y <= eyr; y++ )
-	{
-		T_Uyear( y ) = T_Uyear( y - 1 ) + T_Uyear( y - 1 ) * r_fishery * ( 1. - mean( T_Uyear( y - 3, y - 1 )) / k_fishery ); 
-		
-	}
+	//for( int y = eyr - 9; y <= eyr; y++ )
+	//{
+	//	T_Uyear( y ) = T_Uyear( y - 1 ) + T_Uyear( y - 1 ) * r_fishery * ( 1. - mean( T_Uyear( y - 3, y - 1 )) / k_fishery ); 
+	//	
+	//}
 	
 	// length at 50% vulnerability declines until that last 10 years according to a logistic curve with up side on the right
 	//exploitation at length is cumulative normal approximation with sd 1.5
-	for( int y = syr + 1; y <= eyr - 10; y++ )
-	{
-		T_L50year( y ) = T_L50year( y - 1 ) - T_L50year( y - 1 ) * 0.1 * ( 1. - T_L50year( y - 1 ) / value( Linf * 0.6 ));	
-		T_Ulength( y ) = T_Uyear( y ) / ( 1. +mfexp( -1.7 * ( len - T_L50year( y )) / 1.5 ));
-	}
+	//for( int y = syr + 1; y <= eyr - 10; y++ )
+	//{
+	//	T_L50year( y ) = T_L50year( y - 1 ) - T_L50year( y - 1 ) * 0.1 * ( 1. - T_L50year( y - 1 ) / value( Linf * 0.6 ));	
+	//	T_Ulength( y ) = T_Uyear( y ) / ( 1. +mfexp( -1.7 * ( len - T_L50year( y )) / 1.5 ));
+	//}
 	
 	// length at 50% vulnerability increases quickly in the last 10 years;
 	//exploitation at length is cumulative normal approximation with sd 1.5
-	for( int y = eyr - 9; y <= eyr; y++ )
-	{
-		T_L50year( y ) = T_L50year( y - 1 ) + T_L50year( y - 1 ) * 0.5 * ( 1. - T_L50year( y - 1 ) / value( Linf * 0.6 ));	
-		T_Ulength( y ) = T_Uyear( y ) / ( 1. + mfexp( -1.7 * ( len - T_L50year( y )) / 1.5 ));
-	}
+	//for( int y = eyr - 9; y <= eyr; y++ )
+	//{
+	//	T_L50year( y ) = T_L50year( y - 1 ) + T_L50year( y - 1 ) * 0.5 * ( 1. - T_L50year( y - 1 ) / value( Linf * 0.6 ));	
+	//	T_Ulength( y ) = T_Uyear( y ) / ( 1. + mfexp( -1.7 * ( len - T_L50year( y )) / 1.5 ));
+	//}
 	
 	// exploitation at age= exploitation at length *probability of being of a given length given you are from a age class.
 	for( int y = syr; y <= eyr; y++ )
 	{
+		// exploitation rate at length for the first year	u*vul ate length -- cumulative normal vulnerability with sd=1.5												
+
+		T_Ulength( y ) = T_Uyear(y) /( 1. + mfexp( -1.7 * ( len - T_L50year( y )) / 1.5 )); 
 		for( int a = 1; a <= nage; a++ )
 		{
 			T_Uage( y, a ) = T_Ulength( y ) * value( P_la( a ));				
@@ -441,9 +446,6 @@ FUNCTION sim_dynamics
 		//Clt( y ) = rmvlogistic(T_Clt( y ),LTau,seed);
 	}
 
-	//cout<<"T_Clt is "<< T_Clt<< endl;
-	//cout<<"Clt is "<< Clt<< endl;
-	//exit(1);
 
 	//survey obs error
 	dvector surv_err( 1, nyt );
@@ -476,6 +478,10 @@ FUNCTION sim_dynamics
 
 
 	if( debug )	cout<<"L50year\t"<<T_L50year<<"\n Uyear\t"<<T_Uyear<<"\n Ulength\n"<<T_Ulength<<"\n Uage\n"<<T_Uage<<"\n Nat\n"<<T_Nat<<"\n Ct\n"<<T_Clt<<endl;
+
+
+
+
 
 //_________________________________________
 FUNCTION SRA
