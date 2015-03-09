@@ -27,9 +27,9 @@ SRApar=read.table("SRA_param.txt")
 
 
 
-lab=c("convergence","seed",rep("Recbias",34+8-1),"biasRo","biaskappa",rep("biasUlength_fin",50))
-labpar=c("convergence","seed",rep("E_Rec",(34+8-1)),rep("T_Rec",(34+8-1)),"E_Ro","T_Ro","E_kappa",
-	"T_kappa",rep("E_Ulength_fin",50),rep("T_Ulength_fin",50),rep("E_Umax",34),rep("T_Umax",34))
+lab=c("convergence","seed",rep("Recbias",38+12-1),"biasRo","biaskappa",rep("biasUlength_fin",77))
+labpar=c("convergence","seed",rep("E_Rec",(38+12-1)),rep("T_Rec",(38+12-1)),"E_Ro","T_Ro","E_kappa",
+	"T_kappa",rep("E_Ulength_fin",77),rep("T_Ulength_fin",77),rep("E_Umax",38),rep("T_Umax",38))
 
 
 convSRA<-SRA[SRA[,1]<1e-1,]
@@ -41,13 +41,13 @@ dim(convSRApar)
 
 
 par(mfrow=c(2,2))
-boxplot(convSRA[,lab=="Recbias"]*100, main="RecDev")
+boxplot(convSRA[,lab=="Recbias"], main="RecDev")
 abline(h=0,lwd=3,col="red")
-boxplot(convSRA[,lab=="biasRo"]*100, main="Ro")
+boxplot(convSRA[,lab=="biasRo"], main="Ro")
 abline(h=0,lwd=3,col="red")
-boxplot(convSRA[,lab=="biaskappa"]*100, main="kappa")
+boxplot(convSRA[,lab=="biaskappa"], main="kappa")
 abline(h=0,lwd=3,col="red")
-boxplot(convSRA[,lab=="biasUlength_fin"]*100, main="Ul(eyr)")
+boxplot(convSRA[,lab=="biasUlength_fin"], main="Ul(eyr)")
 abline(h=0,lwd=3,col="red")
 
 
