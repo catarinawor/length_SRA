@@ -24,31 +24,31 @@ nsim = 1
 #   source("SEASM_16.R")
 # }
 
+### Commented out this section since we are not looking at VPA (at least for now)
+##if (Sys.info()["nodename"] =="sager") setwd("~/Dropbox/MS_jurel/simVPA")
+##
+##datafilename = "Sim_SCAM_1ageold.csv"
+##simJMdata =  read.csv(datafilename, header=T, sep=";", dec=".")
+##minAgeVul = 6
+##maxAgeVul = 12
+##minage = 1; maxage = 12
+##age = minage:maxage
+##selName = "va"
+##noTVsel = 1 # So, select va for yr 1
+##newagecomp <- simJMdata[,paste0("a",age)]
+##
+##true_va = simJMdata[noTVsel, paste0(selName,age)]
+##true_cal = simJMdata[,paste0("l",lbins)]
+### true_cat = simJMdata[,paste0("truecat",paste0(".a",age))]
+##true_ssb = simJMdata[,"true_ssb"]
+##obs_yt   = simJMdata[,"true_allyt"]
+##true_ct  = simJMdata[,"true_ct"]
+##true_Ft2 = simJMdata[,"true_Ft"]
+##true_rt = simJMdata[,"true_rt"]
+##
 
-if (Sys.info()["nodename"] =="sager") setwd("~/Dropbox/MS_jurel/simVPA")
 
-datafilename = "Sim_SCAM_1ageold.csv"
-simJMdata =  read.csv(datafilename, header=T, sep=";", dec=".")
-minAgeVul = 6
-maxAgeVul = 12
-minage = 1; maxage = 12
-age = minage:maxage
-selName = "va"
-noTVsel = 1 # So, select va for yr 1
-newagecomp <- simJMdata[,paste0("a",age)]
-
-true_va = simJMdata[noTVsel, paste0(selName,age)]
-true_cal = simJMdata[,paste0("l",lbins)]
-# true_cat = simJMdata[,paste0("truecat",paste0(".a",age))]
-true_ssb = simJMdata[,"true_ssb"]
-obs_yt   = simJMdata[,"true_allyt"]
-true_ct  = simJMdata[,"true_ct"]
-true_Ft2 = simJMdata[,"true_Ft"]
-true_rt = simJMdata[,"true_rt"]
-
-
-
-if (Sys.info()["nodename"] =="sager") setwd("~/Dropbox/MS_sra/simsra")
+#if (Sys.info()["nodename"] =="sager") setwd("~/Dropbox/MS_sra/simsra")
 
 require(PBSmodelling)
 source("read.admb.R")
@@ -57,7 +57,7 @@ source("read.admb.R")
 Est_Tpl = "jmsra"
 Sim_Tpl = "simsra"
 
-system(paste('./',Sim_Tpl,' -ind ',Sim_Tpl,'.dat',sep=""), wait = TRUE)
+system(paste('./',simsra,' -ind ',simsra,'.dat',sep=""), wait = TRUE)
 input = read.rep("true_data_lsra.rep")
 true_ct = input$true_ct
 true_ut = input$true_ut
