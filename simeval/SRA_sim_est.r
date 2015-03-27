@@ -1,4 +1,4 @@
-#Roberto smells funny
+#Roberto smells funny. Really really funny
 rm(list=ls()); gc(); #options("scipen"=100, "digits"=3)
 
 seeds = seq(2+9, by=1, length=1000)
