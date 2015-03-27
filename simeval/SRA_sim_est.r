@@ -49,6 +49,8 @@ nsim = 1
 
 
 #if (Sys.info()["nodename"] =="sager") setwd("~/Dropbox/MS_sra/simsra")
+setwd("/Users/catarinawor/Documents/length_SRA/simeval/")
+
 
 require(PBSmodelling)
 source("read.admb.R")
@@ -57,7 +59,7 @@ source("read.admb.R")
 Est_Tpl = "jmsra"
 Sim_Tpl = "simsra"
 
-system(paste('./',simsra,' -ind ',simsra,'.dat',sep=""), wait = TRUE)
+system(paste('./',Sim_Tpl,' -ind ',Sim_Tpl,'.dat',sep=""), wait = TRUE)
 input = read.rep("true_data_lsra.rep")
 true_ct = input$true_ct
 true_ut = input$true_ut
