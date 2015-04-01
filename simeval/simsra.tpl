@@ -9,59 +9,50 @@
 
 DATA_SECTION
 
-	// Read in model variables and true parameter values
 	init_int seed;
-	init_int syr;
-	init_int eyr;
-	init_int nage;
-	init_int nlen;
-	init_int lstp;
+	int syr;
+	int eyr;
+	int nage;
+	int nlen;
+	int lstp;
 	
-	init_number sigR;
-	init_number tau;
-	init_number m;
-	init_number ahat;
-	init_number ghat;
-	init_number Linf;
-	init_number k;
-	init_number to;
-	init_number cvl;
-	init_number alw;
-	init_number blw;
-	init_number Ro;
-	init_number reck;
-	init_number q;
-	
-	init_vector ft(syr,eyr);
-
-	init_int dend;
-
-	LOC_CALCS		
-		if( dend != 999 )
-		{
-			cout<<"Error reading OM input data.\n Fix it."<<endl;
-			cout<< "dend = "<<dend<<endl;
-			ad_exit(1);
-		}
-
+	LOC_CALCS
+		syr = 1;
+		eyr = 38;
+		nage = 12;
+		nlen = 77;
+		lstp = 1;
 	END_CALCS
 	
-	
-	
-	number Eo;
+	init_vector ft(syr,eyr);
+	number sigR;
+	number tau;
+	number m;
+	number ahat;
+	number ghat;
+	number Linf;
+	number k;
+	number to;
+	number cvl;
+	number alw;
+	number blw;
 	number reca;
 	number recb;
-	number ssb0;
-	number test;
+	number Eo;
+	number Ro;
+	number reck;
 	number Am1;
 	number phie;
-	
-	
-	
+	number ssb0;
+	number test;
+	number q;
+
 	vector wt(syr,eyr);
 	vector eps(syr,eyr);
+// 	vector ft(syr,eyr); 
 	vector age(1,nage);
 	vector vbt(syr,eyr);
+// 	vector sbt(syr,eyr
 	vector ct(syr,eyr);
 	vector bt(syr,eyr);
 	
@@ -74,7 +65,7 @@ DATA_SECTION
 	vector la(1,nage);
 	vector Sa(1,nage);
 	vector iwt(syr,eyr-1);
-	vector iyr(1,eyr);
+	vector iyr(1,eyr)
 	vector z1(1,nlen);
 	vector z2(1,nlen);
 	vector std(1,nage);
@@ -89,7 +80,19 @@ DATA_SECTION
 	matrix cal(syr,eyr,1,nlen);
 	
 	LOC_CALCS
-		
+		sigR = 0.2;
+		tau = 0.1;
+		ahat = 3.643583;
+		ghat = 1.143614	;
+		m = 0.23;
+		to = 0;
+		cvl = 0.09;
+		alw = 0.0000238;
+		blw = 2.7671;
+		Ro = 2000;
+		Linf = 76.464;
+		k = 0.09;
+		reck = 7.111111;
 		random_number_generator rng(seed);
 		wt.fill_randn(rng);
 		wt*=sigR;
@@ -98,28 +101,34 @@ DATA_SECTION
 		age.fill_seqadd(1,1);
 		len.fill_seqadd(lstp,lstp);
 		Am1=nage-1;
+		q=1;
+		iwt =1;
 		iyr.fill_seqadd(1,1);
 		
 	END_CALCS
 	
 PARAMETER_SECTION
 	objective_function_value no_f; 
-
-PRELIMINARY_CALCS_SECTION	  
- 	
-	incidence_functions();
-	output_data();
-	output_true();
-	exit(1);
-	
+	  
+ 	LOC_CALCS
+		incidence_functions();
+		output_data();
+		output_true();
+		exit(1);
+	END_CALCS
 
 PROCEDURE_SECTION
 
 FUNCTION incidence_functions
-
+	
+	//  biological processes that will not be directly estimated in the assessment
+	z1(1,nlen); 
+	z2(1,nlen);
+	std(1,nage);
 
 	Sa = exp(-m);
- 	la.initialize();
+
+// 	la.initialize();
 	la = Linf*(1.-exp(-k*(age-to))); //average length at age
 
 	std = la * cvl; 
@@ -198,7 +207,7 @@ FUNCTION incidence_functions
 
 	  
 FUNCTION output_data
-	ofstream ofs("jmsra.dat");
+	ofstream ofs("perujmsra.dat");
 	ofs<<"# syr " << endl << syr <<endl;
 	ofs<<"# eyr " << endl << eyr <<endl;
 	ofs<<"# nage "<< endl << nage <<endl;
@@ -241,3 +250,4 @@ FUNCTION output_true
 	ofs<<"true_ut" << endl << ft <<endl;
 	ofs<<"true_Nat" << endl << Nat.sub(syr,eyr) <<endl;
 	ofs<<"true_cal" << endl << cal.sub(syr,eyr) <<endl;
+	
