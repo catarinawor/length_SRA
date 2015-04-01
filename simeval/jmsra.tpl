@@ -1,7 +1,8 @@
 //><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
 //Programer: Brett van Poorten
-//Date:	June 21, 2013; Update: 8 july 2014 
-//Purpose: length-based SRA / VPA based on Carl's spreadsheet
+//Modified by: Roberto Licandeo and Catarina Wor
+//Date:	June 21, 2013;  Update: March 2015
+//Purpose: length-based SRA based on Carl's spreadsheet
 //Notes: 	basic code structure taken from Rob Ahrens - thanks for that			 
 //><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
 	
