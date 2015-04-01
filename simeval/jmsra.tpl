@@ -142,17 +142,14 @@ PRELIMINARY_CALCS_SECTION
 
 
 PROCEDURE_SECTION
-    
-    trans_parms();
+        trans_parms();
 	incidence_functions();
-    initialization();
+        initialization();
 	SRA();
 	observation_model();
 	objective_function();
 
 FUNCTION trans_parms
-	
-	//Bring parameters from log to normal space
 	Linf = mfexp( log_Linf );
 	k = mfexp( log_k );
 	cvl = mfexp( log_cvl );
@@ -161,8 +158,6 @@ FUNCTION trans_parms
 	wt = mfexp( log_wt );
 	
 FUNCTION incidence_functions
-	
-	
 	dvector z1( 1, nlen );
 	dvector z2( 1, nlen );
 	double zn;
@@ -174,165 +169,124 @@ FUNCTION incidence_functions
 	Sa = exp(-m);
 	
 	lxo( 1 ) = 1.;
-	for( int a = 2; a <= nage; a++ ) 
-	{
+	for( int a = 2; a <= nage; a++ )
 		lxo( a ) = lxo( 1 ) * pow( Sa( a - 1 ), age( a - 1 ));
-	}	
-	//=====================================================================================
-	//pergunta: 
-	// is it Sa(Am1) or Sa(nage)??
 		lxo( nage ) /= 1. - Sa( Am1 );
-	//=====================================================================================
 	
-		wa = alw * pow( la, blw );
-		fec = elem_prod(wa,plogis(age,mat50,matsd));
-		vul = plogis(age,ahat,ghat);
+//	wa = alw * pow( la, 3. );
+//	fec = wa - wmat;
+
+	wa = alw * pow( la, blw );
+	fec=elem_prod(wa,plogis(age,mat50,matsd));
+	vul = plogis(age,ahat,ghat);
  	
  	for( int a = 1; a <= nage; a++ )
 	{
-		//=====================================================================================
-		// //pergunta: Unnecessary?
-		// I am not sure this is a good idea, since fec is a global variable admb is keeping track 
-		// of its resulting derivatives and if statements can lead to non continuous and non differentiable
-		// outcomes
-		// also not sure if plogis would ever go negative. 
-		//if( fec( a ) < 0. )	fec( a ) = 0.;
-		//=====================================================================================
-		
-		// Calculate the integral for proportion age at each length
+		if( fec( a ) < 0. )	fec( a ) = 0.;
 		z1 = (( len - lstp * 0.5 )-value( la( a )))/value( std( a ));
 		z2 = (( len + lstp * 0.5 )-value( la( a )))/value( std( a ));
 		for( int b=1; b<= nlen; b++ )
-		{
-			P_la( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
-		}
-		
+		P_la( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
 	}
 	
-	P_al = trans( P_la );	
+	P_al = trans( P_la );
+	
+//  	cout<<"la\t"<<la<<"\n wa\t"<<wa<<"\n lxo\t"<<lxo<<"\n fec\t"<<fec<<"\n len\t"<<len<<"\n P_la\n"<<P_la<<"\n P_al\n"<<P_al<<endl;
+// 	exit(1);
 	
 FUNCTION initialization
 
-	dvariable phie = lxo * fec;
+	dvariable phie = sum( elem_prod( lxo, fec ));
 	reca = reck/phie;
 	recb = (reck - 1.)/(Ro*phie); 
-
+	
+// 	Eo = Ro * sum( elem_prod( lxo, fec ));
+// 	reca = reck * Ro / Eo;
+// 	if( SR==1 )		recb =( reck - 1. ) / Eo;
+// 	else			recb = log( reck ) / Eo*/;
 
 FUNCTION SRA
-
-	//=====================================================================================
-	//pergunta:
-	//matrix of deviations from prior values of U?
+// 	dvar_vector maxUy( syr, eyr );
+// 	dvar_vector muUl( 1, nlen );
 	dvar_matrix Upen( syr, eyr, 1, nlen );
-	//=====================================================================================
+// 	dvar_matrix Nat( syr, eyr, 1, nage );
+//	dvar_matrix Nlt( syr, eyr, 1, nlen );
+//	dvar_matrix Uage( syr, eyr, 1, nage );
+//	dvar_matrix Ulength( syr, eyr, 1, nlen );
 	
-	// INITIAL YEAR (no fishing assumed)
+	// INITIAL YEAR
 	for( int a = 1; a <= nage; a++ )
-	{
 		Nat( syr, a ) = Ro * pow( Sa( a ), age( a ) - 1. );	// initial age-structure
-	}		
-	Nat( syr, nage ) /= 1. - Sa( nage );
+		Nat( syr, nage ) /= 1. - Sa( nage );
 	
 	
 	for( int b = 1; b <= nlen; b++ )
 	{
-		// length-structure in year-1
-		Nlt( syr, b ) = Nat( syr ) * P_al( b );	
-		// exploitation by length		
-		Ulength( syr, b ) = Clt( syr, b ) / posfun( Nlt( syr, b ), Clt( syr, b ), fpen);	
+		Nlt( syr, b ) = Nat( syr ) * P_al( b );			// length-structure in year-1
+		Ulength( syr, b ) = Clt( syr, b ) / posfun( Nlt( syr, b ), Clt( syr, b ), fpen);	// exploitation by length
+// 		cout<<"by year\t"<<Clt(syr,b)<<"\t"<<Nlt(syr,b)<<"\t"<<Ulength(syr,b)<<endl;
 	}
 	
-	// exploitation rate for fully recruited age class
 	maxUy( syr ) = max( Ulength( syr ));
 
-
 	for( int a = 1; a <= nage; a++ )
-	{
-		// exploitation by age
-		Uage( syr, a ) = Ulength( syr ) * P_la( a );		
-	}
+		Uage( syr, a ) = Ulength( syr ) * P_la( a );		// exploitation by age
 
 	// SUBSEQUENT YEARS
 	for( int y = syr + 1; y <= eyr; y++ )
 	{
 	  
-		dvariable sbt = fec * Nat(y - 1);				// eggs in year-y
+	dvariable sbt = fec * Nat(y - 1);				// eggs in year-y
 	  
-	  	//=====================================================================================
-		//pergunta:
-		// the recruitment options were excluded from the calculations od reca and recb in the
-		//initialization function, should they be excluded from here too?
-		
-		//if( SR ==1 )
-		Nat( y, 1 ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// B-H recruitment
-		//else
-		//Nat( y, 1 ) = reca * sbt * mfexp( - recb * sbt) * wt( y - 1 );
-		//=====================================================================================
-		
-
-		// age-distribution post-recruitment
-		//=====================================================================================
-		//pergunta:
-		// this is very confusing should we use always Am1 or just stick with nage -1
-		// And why is the plus group being calculated in three lines?
-		// Do we need posfun if we are always calculating positive numbers (Nat) by proportions? Can Uage be ever greater than 1?
-		Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 )), tiny, fpen );
-		Nat( y, nage ) = posfun( Nat( y - 1, nage -1 ) * Sa( nage ) * ( 1. - Uage( y - 1, nage -1)), tiny, fpen); //  += CHECK THE PLUS GROUP
-		Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen); //  += CHECK THE PLUS GROUP
-		//=====================================================================================
+	if( SR ==1 )
+	Nat( y, 1 ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// recruitment
+	else
+	Nat( y, 1 ) = reca * sbt * mfexp( - recb * sbt) * wt( y - 1 );
 	
-		for( int b = 1; b <= nlen; b++ )
-		{
-			// length-distribution by year
-			Nlt( y, b ) = Nat( y ) * P_al( b );	
+	// age-distribution post-recruitment
+	Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 )), tiny, fpen );
+	Nat( y, nage ) = posfun( Nat( y - 1, nage -1 ) * Sa( nage ) * ( 1. - Uage( y - 1, nage -1)), tiny, fpen); //  += CHECK THE PLUS GROUP
+	Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen); //  += CHECK THE PLUS GROUP
 
-			// exploitation by length										
-			Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	
-		}
 	
-		for( int a = 1; a <= nage; a++ )
-		{
-			// exploitation by age
-			Uage( y, a ) = Ulength( y ) * P_la( a );			
-		}
-		// max exploitation (fully selected) across lengths
-		maxUy( y ) = max( Ulength( y ));	
-		//=====================================================================================
-		//pergunta:
-		// should we use mean? Dave fournier says it's more stable... never quite understood why.			
-		// maxUy( y ) = mean( Ulength( y ));	// max exploitation across lengths (mean also works)
-		//=====================================================================================
+	for( int b = 1; b <= nlen; b++ )
+	{
+	Nlt( y, b ) = Nat( y ) * P_al( b );						// length-distribution
+	Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	// exploitation by length
+	}
+	
+	for( int a = 1; a <= nage; a++ )
+	Uage( y, a ) = Ulength( y ) * P_la( a );			// exploitation by age
+	maxUy( y ) = max( Ulength( y ));				// max exploitation across lengths
+// 	maxUy( y ) = mean( Ulength( y ));	// max exploitation across lengths (mean also works)
+
 	}
 
-		for( int b = 1; b <= nlen; b++ )
-		{ 
-			//  exploitation rate relative to fully recruited U(expected value?) at length over al years
-			muUl(b) = sum(elem_div( column(Ulength,b),maxUy ) ) / size_count(maxUy);		
-		}
-		
-		for( int y = syr; y <= eyr; y++ )
-		{
-			//=====================================================================================
-			//pergunta:
-			// penalty against dramatic changes in vulnerability??
-			Upen( y ) = pow( Ulength( y ) / posfun( maxUy( y ), tiny, fpen ) - muUl, 2. );	
-			//=====================================================================================	
-		}
-		ssvul = sum( Upen );				// vulnerability penalty
-
-	//=====================================================================================
-	//pergunta:	
-	// survey has no selectivity??
-	// 	psurvB = Nat * elem_prod(wa,va);
+	for( int b = 1; b <= nlen; b++ )
+	{
+	muUl(b) = sum(elem_div( column(Ulength,b),maxUy ) ) / size_count(maxUy);		// mean exploitation rate across years
+	}
+	
+// 	}
+	
+	for( int y = syr; y <= eyr; y++ )
+	Upen( y ) = pow( Ulength( y ) / posfun( maxUy( y ), tiny, fpen ) - muUl, 2. );		// penalty against dramatic changes in vulnerability
+ 	ssvul = sum( Upen );									// vulnerability penalty
+	
+// 	psurvB = Nat * elem_prod(wa,va);
 	psurvB = Nat * wa;
-	//=====================================================================================
 
+// 	cout<<"Nat\n"<<Nat<<"\n Nlt\n"<<Nlt<<"\n Ulength\n"<<Ulength<<"\n Uage\n"<<Uage<<"\n Upen\n"<<Upen<<endl;
+// 	cout<<"muUl\n"<<muUl<<"\n maxUy\n"<<maxUy<<"\n ssvul\n"<<ssvul<<"\n P_al\n"<<P_al<<endl;
+// 	exit(1);
 
 FUNCTION observation_model
-
-	zstat=log(survB)-log(psurvB(iyr));		
+// 	cout<<psurvB(iyr)<<"\n"<<psurvB<<"\n"<<survB <<endl;
+// 	exit(1);
+	zstat=log(survB)-log(psurvB(iyr));		// posterior probability distribution of q
+//	zstat = log( elem_div( survB, psurvB ));
 	q=mfexp(mean(zstat));
- 	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
+ 	zstat -= mean(zstat);				// z-statistic used for calculating MLE of q
  
 	
 FUNCTION objective_function 
@@ -348,30 +302,20 @@ FUNCTION objective_function
 	
 	if(active(log_reck))
 	{  
- 		dvariable h=reck/(4.+reck);	
- 		// beta a=1 and b=1 --> flat
-		pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
+ 	dvariable h=reck/(4.+reck);	
+	pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
    	}
 	
 	if(last_phase())
 	{
-		//=====================================================================================
-		//pergunta:
-		//Why are pvec 2 and 3 included in the likelihood?
-		pvec(2)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function
-		//=====================================================================================
+	pvec(2)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function
 	}
 	else
 	{
-		pvec(3)=100.*norm2(log_wt); 	
+	pvec(3)=100.*norm2(log_wt); 	// assume deviations are at their normal mle analytical estimator  (obs-pred)^2
 	}
 	
-	//=====================================================================================
-	//pergunta:
-	// I am not sure about what kind of penalty this is
 	pvec(4) = ssvul/sigVul;
-	//=====================================================================================
-	
 	nll = sum(lvec) + sum(pvec)*use_prior;
 
 
