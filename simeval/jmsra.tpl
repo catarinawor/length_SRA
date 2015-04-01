@@ -5,50 +5,45 @@
 //Purpose: length-based SRA based on Carl's spreadsheet
 //Notes: 	basic code structure taken from Rob Ahrens - thanks for that			 
 //><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
-	
+
 DATA_SECTION
-
-	// model inputs and available data	
-	init_int syr;						// start year of survey data
-	init_int eyr;						// end year of survey data
-	init_int nage;						// number of age-classes
-	init_int nlen;						// number of length-bins (assume start at 0)
-	init_int lstp;						// width of length-bins
-	init_int SR;						// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker
-	init_number m;						// natural mortality
-	init_number alw;					// multiplier for length-weight relationship
-	init_number blw;					// multiplier for length-weight relationship
-	init_number wmat;					// initial weight at maturity
-	init_number mat50;					// maturity parameter
-	init_number matsd;					// maturity parameter
-	init_number ahat;					// vulnerability parameter
-	init_number ghat;					// vulnerability parameter (sd)
-	init_vector va(1,nage);				// survey vulnerability
-	init_int nyt						// number of survey observations
-	init_ivector iyr(1,nyt); 			// iyr(syr,nyr)
-	init_vector survB(1,nyt);       	// yt(syr,nyr)
+	init_int syr;				// start year of survey data
+	init_int eyr;				// end year of survey data
+	init_int nage;				// number of age-classes
+	init_int nlen;				// number of length-bins (assume start at 0)
+	init_int lstp;				// width of length-bins
+	init_int SR;				// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker
+	init_number m;			// natural mortality
+	init_number alw;			// multiplier for length-weight relationship
+	init_number blw;		// multiplier for length-weight relationship
+	init_number wmat;			// initial weight at maturity
+	init_number mat50;		// maturity parameter
+	init_number matsd;		// maturity parameter
+	init_number ahat;		// vulnerability parameter
+	init_number ghat;		// vulnerability parameter
+	init_vector va(1,nage);			// survey vulnerability
+	init_int nyt
+	init_ivector iyr(1,nyt); // iyr(syr,nyr)
+	init_vector survB(1,nyt);  // yt(syr,nyr)
+// 	init_vector survB(syr,eyr);		// survey biomass
 	init_matrix Clt(syr,eyr,1,nlen);	// catch at length and year
-
-	//known growth and recruitment parameters	
-	init_number ilinf; 					// Linf for VB growth curve
-	init_number ik; 					// growth rate parameter fro VB growth curve
-	init_number to; 					// time of length 0 for VB growth curve
-	init_number icvl;					// coefficient of variantion for age at length curve
-	init_number ireck;					// recruitment compensation ratio		
-	init_number iRo; 					// Avearge unfished recruitment
- 	init_vector iwt(syr,eyr-1);         // Recruitment deviations
-
-	init_number cv_it;					// CV for survey
-
-	//=====================================================================================
-	// pergunta: not sure about the biological meaning of this parameter or about its significance as a prior
-	init_number sigR;					// sigma for recruitment deviations, fixed?	
-	init_number sigVul;					// sigma for prior on average U??
-	//=====================================================================================
+// !! 	cout<<iyr<<"\n"<<survB<<endl;
+// !! 	exit(1);
 	
-	init_int phz_reck;					// phase for estimating reck
-	init_int phz_growth;				// phase for growth parameters
-	init_int use_prior;					// add priors to the likehoods ? (1 or 0)
+	init_number ilinf;
+	init_number ik
+	init_number to
+	init_number icvl;
+	init_number ireck
+	init_number iRo
+ 	init_vector iwt(syr,eyr-1);
+
+	init_number cv_it;		// CV for cpue
+	init_number sigR;		// sigma R
+	init_number sigVul;
+	init_int phz_reck;		// phaze for reck
+	init_int phz_growth;		// phaze for growth parameters
+	init_int use_prior;		// add priors to the likehoods ? (1 or 0)
 
 	init_int dend;
 	
@@ -63,80 +58,74 @@ DATA_SECTION
 
 	END_CALCS
 	
-	vector age(1,nage);					// ages
-	vector len(1,nlen);					// middle length of each length bin
-	int Am1;							// maximum age minus 1
-	number tiny;						// very small number to be used in the fpen function
+	vector age(1,nage);			// ages
+	vector len(1,nlen);			// middle length of each length bin
+	int Am1;				// maximum age minus 1
+	number tiny;
 	
 	LOC_CALCS
-		// FILL IN SEQUENCE VECTORS
 		age.fill_seqadd( 1, 1 );
 		len.fill_seqadd( lstp, lstp );
 		Am1=nage-1;
 		tiny=1.e-20;
 	END_CALCS
 
+//	!! cout<<"ilinf\t"<<ilinf<<"\n ik\t"<<ik<<"\n icvl\t"<<icvl<<"\n iRo\t"<<iRo<<"\n ireck\t"<<ireck<<"\n lstp\t"<<lstp<<"\n Sa\t"<<Sa<<endl;
+//	!! exit(1);
 
 PARAMETER_SECTION
-	init_number log_Ro(1);				//Log of average unfished recruitment
-	init_number log_Linf(phz_growth);	//log of l infinity
-	init_number log_k(phz_growth);		//log of k from VB
-	init_number log_cvl(phz_growth);	// log of coefficient of variantion for age at length curve
-	init_number log_reck(phz_reck);		// log of recruitment compensation ratio
+	init_number log_Ro(1);
+	init_number log_Linf(phz_growth);
+	init_number log_k(phz_growth);
+	init_number log_cvl(phz_growth);	
+//	init_bounded_number log_Linf(1.09,2.48,-1)
+//	init_bounded_number log_k(-4.6,-0.69,-1)
+// 	init_bounded_number log_cvl(-4.60,-0.91,-3);
+	init_number log_reck(phz_reck);
 
-	// set growth parameters to true values
+	
 	!! log_Linf=log(ilinf);
 	!! log_k=log(ik);
 	!! log_cvl=log(icvl);
 	!! log_reck=log(ireck);
 	!! log_Ro=log(iRo);
 
-	// log of recruitment deviation
-	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2);  
+	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2);
+
  	!! log_wt = log(iwt);
+
 
 	objective_function_value nll;
 	
-	number fpen;						// penalty to be added to likelihood when posfun is used
-	number Linf;						// von Bertalanffy asymptotic length (estimated - based on log_linf)
-	number k;							// von Bertalanffy metabolic parameter (estimated - based on log_k)
-	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
-	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
-	number Ro;							// unfished recruitment (estimated - based on log_Ro)
-	
-	//=====================================================================================
-	//pergunta: unsure about the meaning of ssvul is it the average deviation from max U at length?
+	number fpen;
+	number Linf;					// von Bertalanffy asymptotic length
+	number k;					// von Bertalanffy metabolic parameter
+	number cvl;					// coefficient of variation in length at age
+	number reck;					// Goodyear recruitment compensation parameter
+	number Ro;					// unfished recruitment
 	number ssvul;
-	//=====================================================================================
-	
-	number Eo;							// unfished egg deposition
-	number reca;						// alpha of stock-recruit relationship
-	number recb;						// beta of stock-recruit relationship
-	number q;							// catchability coefficient (based on zstat)
-				
-	vector zstat(1,nyt);				// MLE of q
-	vector wt(syr,eyr-1);				// recruitment anomalies
-	vector Sa(1,nage);					// survival-at-age (assume constant across ages)
- 	vector vul(1,nage);					// age-specific vulnerabilities
-	vector la(1,nage);					// length-at-age
-	vector wa(1,nage);					// weight-at-age
-	vector lxo(1,nage);					// unfished survivorship at age
-	vector fec(1,nage);					// age-specific fecundity - used for stock-recruit function
-	
-	//=====================================================================================
-	//pergunta: Related to all questions above, need better definitions of these quantities
-	vector maxUy(syr,eyr);				// maximum U over length classes for each year?
-	vector muUl(1,nlen);				// expected value for U for each length class??
-	//=====================================================================================
- 	
- 	vector psurvB(syr,eyr);				// predicted survey biomass
-	
-	matrix Nlt(syr,eyr,1,nlen); 		// Matrix of numbers at length class
-	matrix P_la(1,nage,1,nlen);			// proportion of individual of each age at a given length class
+// 	vector zstat(syr,eyr);				// posterior probability distribution of q
+	vector zstat(1,nyt);	
+	vector wt(syr,eyr-1);				// recruitment anomolies
+	vector Sa(1,nage);		// survival-at-age (assume constant across ages)
+ 	vector vul(1,nage);		// age-specific vulnerabilities
+	number Eo;					// unfished egg deposition
+	number reca;					// alpha of stock-recruit relationship
+	number recb;					// beta of stock-recruit relationship
+	vector la(1,nage);				// length-at-age
+	vector wa(1,nage);				// weight-at-age
+	vector lxo(1,nage);				// unfished survivorship at age
+	vector fec(1,nage);				// age-specific fecundity - used for stock-recruit function
+	matrix P_la(1,nage,1,nlen);			// probability of being length at age
 	matrix P_al(1,nlen,1,nage);			// transpose of above
-	matrix Nat(syr,eyr,1,nage);			// Numbers of individuals at age
-	matrix Ulength(syr,eyr,1,nlen); 	// U (explitation rate) for each length class
-	matrix Uage(syr,eyr,1,nage);		// U (explitation rate) for each age
+	matrix Nat(syr,eyr,1,nage);
+	matrix Ulength(syr,eyr,1,nlen);
+	matrix Uage(syr,eyr,1,nage);
+	vector maxUy(syr,eyr);
+	vector muUl(1,nlen);
+ 	vector psurvB(syr,eyr);
+	number q;
+	matrix Nlt(syr,eyr,1,nlen);
 
 PRELIMINARY_CALCS_SECTION
 
@@ -157,6 +146,9 @@ FUNCTION trans_parms
 	Ro = mfexp( log_Ro );
 	wt = mfexp( log_wt );
 	
+// 	cout<<"Linf\t"<<Linf<<"\n k\t"<<k<<"\n cvl\t"<<cvl<<"\n reck\t"<<reck<<"\n Ro\t"<<Ro<<"\n wt\n"<<wt<< endl;
+// 	exit(1);
+
 FUNCTION incidence_functions
 	dvector z1( 1, nlen );
 	dvector z2( 1, nlen );
