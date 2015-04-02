@@ -250,4 +250,3 @@ FUNCTION output_true
 	ofs<<"true_ut" << endl << ft <<endl;
 	ofs<<"true_Nat" << endl << Nat.sub(syr,eyr) <<endl;
 	ofs<<"true_cal" << endl << cal.sub(syr,eyr) <<endl;
-	
