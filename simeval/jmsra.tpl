@@ -178,12 +178,8 @@ FUNCTION incidence_functions
 	{
 		lxo( a ) = lxo( 1 ) * pow( Sa( a - 1 ), age( a - 1 ));
 	}	
-	//=====================================================================================
-	//pergunta: 
-	// is it Sa(Am1) or Sa(nage)??
-		lxo( nage ) /= 1. - Sa( Am1 );
-	// RL: lxo(nage) / (1. - exp(m)) or lxo( nage ) /= lxo(nage) / (1. - Sa)	
-	//=====================================================================================
+		lxo( nage ) /= 1. - Sa( nage );
+	
 	
 		wa = alw * pow( la, blw );
 		fec = elem_prod(wa,plogis(age,mat50,matsd));
@@ -191,15 +187,6 @@ FUNCTION incidence_functions
  	
  	for( int a = 1; a <= nage; a++ )
 	{
-		//=====================================================================================
-		// //pergunta: Unnecessary?
-		// I am not sure this is a good idea, since fec is a global variable admb is keeping track 
-		// of its resulting derivatives and if statements can lead to non continuous and non differentiable
-		// outcomes
-		// also not sure if plogis would ever go negative. 
-		//if( fec( a ) < 0. )	fec( a ) = 0.;
-		// RL: yes I agree. it is better remove this if( fec( a ) < 0. )	fec( a ) = 0.;
-		//=====================================================================================
 		
 		// Calculate the integral for proportion age at each length
 		z1 = (( len - lstp * 0.5 )-value( la( a )))/value( std( a ));
@@ -260,17 +247,9 @@ FUNCTION SRA
 	  
 		dvariable sbt = fec * Nat(y - 1);				// eggs in year-y
 	  
-	  	//=====================================================================================
-		//pergunta:
-		// the recruitment options were excluded from the calculations od reca and recb in the
-		//initialization function, should they be excluded from here too?
-		// RL: no realty..me need to include the ricker function as well..if that you mean ..
-		
-		//if( SR ==1 )
+	  	
 		Nat( y, 1 ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// B-H recruitment
-		//else
-		//Nat( y, 1 ) = reca * sbt * mfexp( - recb * sbt) * wt( y - 1 );
-		//=====================================================================================
+		
 		
 
 		// age-distribution post-recruitment
@@ -283,6 +262,9 @@ FUNCTION SRA
 		// RL: the plus group is calculated in 3 lines just because it is clear to see the two components of the plus group...you can just use two lines but the equation is too long
 		// RL: Uage can't go greater that 1..or negative of course. because we are simulated data, it is possible that some trials go greater than 1, so better include a penalty or something..
 		Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 )), tiny, fpen );
+		
+
+
 		Nat( y, nage ) = posfun( Nat( y - 1, nage -1 ) * Sa( nage ) * ( 1. - Uage( y - 1, nage -1)), tiny, fpen); //  += CHECK THE PLUS GROUP
 		Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen); //  += CHECK THE PLUS GROUP
 		//=====================================================================================
@@ -351,7 +333,7 @@ FUNCTION objective_function
 	lvec(1)=dnorm(zstat,cv_it);
 	lvec(2)=dnorm(wt,sigR);
 
-	dvar_vector pvec(1,4);
+	dvar_vector pvec(1,3);
 	pvec.initialize();
 	
 	if(active(log_reck))
@@ -372,13 +354,13 @@ FUNCTION objective_function
 	}
 	else
 	{
-		pvec(3)=100.*norm2(log_wt); 	
+		pvec(2)=100.*norm2(log_wt); 	
 	}
 	
 	//=====================================================================================
 	//pergunta:
 	// I am not sure about what kind of penalty this is
-	pvec(4) = ssvul/sigVul;
+	pvec(3) = ssvul/sigVul;
 	// RL: see commment above
 	//=====================================================================================
 	
