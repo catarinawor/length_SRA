@@ -45,7 +45,8 @@ DATA_SECTION
 	vector vbt(syr,eyr);
 // 	vector sbt(syr,eyr
 	vector ct(syr,eyr);
-	vector bt(syr,eyr);
+	vector bt(syr,eyr);	
+	vector ssbt(syr,eyr);
 	
 	vector len(1,nlen);
 	vector va(1,nage);
@@ -131,7 +132,7 @@ FUNCTION incidence_functions
 		lxo(a) = lxo(1)*pow(Sa(a-1),age(a-1)); // proportion of individuals at age surviving M only
 	}
 	
-	lxo(nage) /= 1.-Sa(Am1); // age plus group
+	lxo(nage) /= 1.-Sa(nage); // age plus group
 	
 	wa = alw * pow(la,blw); //weight at age
 	fec = elem_prod(wa,plogis(age,2.448848,0.568183)); // wight at age-weight at 50% maturity
@@ -190,6 +191,7 @@ FUNCTION incidence_functions
 	  {
 	  vbt = q * Nat.sub(syr,eyr)*elem_prod(wa,va) * exp(eps(i)); // cpue
 	  bt = Nat.sub(syr,eyr)* wa * exp(eps(i)); // survey
+	  ssbt = Nat.sub(syr,eyr) * fec;
 	   }
 
 	  ct = cat*wa;
@@ -198,7 +200,7 @@ FUNCTION incidence_functions
 
 	  
 FUNCTION output_data
-	ofstream ofs("perujmsra.dat");
+	ofstream ofs("jmsra.dat");
 	ofs<<"# syr " << endl << syr <<endl;
 	ofs<<"# eyr " << endl << eyr <<endl;
 	ofs<<"# nage "<< endl << nage <<endl;
