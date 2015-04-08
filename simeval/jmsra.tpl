@@ -24,7 +24,7 @@ DATA_SECTION
 	init_number ghat;					// vulnerability parameter (sd)
 	init_vector va(1,nage);				// survey vulnerability
 	init_int nyt						// number of survey observations
-	init_ivector iyr(1,nyt); 			// iyr(syr,nyr)
+	init_vector iyr(1,nyt); 			// iyr(syr,nyr)
 	init_vector survB(1,nyt);       	// yt(syr,nyr)
 	init_matrix Clt(syr,eyr,1,nlen);	// catch at length and year
 
@@ -57,6 +57,7 @@ DATA_SECTION
 		if( dend != 999 )
 		{
 			cout<<"Error reading data.\n Fix it."<<endl;
+			cout<< "dend is:"<<dend<<endl;
 			ad_exit(1);
 		}
 
@@ -250,7 +251,6 @@ FUNCTION SRA
 	  	
 		Nat( y, 1 ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// B-H recruitment
 		
-		
 
 		// age-distribution post-recruitment
 		//=====================================================================================
@@ -315,12 +315,19 @@ FUNCTION SRA
 	// survey has no selectivity?? // RL: I was assuming a acoustic survey. When I included the va, the modelo produced and positive bias por the cpue/index of abundance. we need to look at this issue
 	// 	psurvB = Nat * elem_prod(wa,va);
 	psurvB = Nat * wa;
+
+	
 	//=====================================================================================
 
 
 FUNCTION observation_model
 
-	zstat=log(survB)-log(psurvB(iyr));		
+	for(int i=1; i <= nyt; i++  )
+	{
+		zstat(i)=log(survB(i))-log(psurvB(iyr(i)));
+	}
+			
+	
 	q=mfexp(mean(zstat));
  	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
  
