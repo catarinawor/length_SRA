@@ -1,49 +1,68 @@
+//><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
+//Programer: Roberto Licandeo and Catraina Wor
+//Date:	June 21, 2013; Update: 8 july 2014 
+//Purpose: length-based SRA / VPA based on Carl's spreadsheet
+//Notes: 	basic code structure taken from Rob Ahrens - thanks for that			 
+//><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
+
 DATA_SECTION
 
-	init_int seed;
-	int syr;
-	int eyr;
-	int nage;
-	int nlen;
-	int lstp;
-	
+	int seed;
+
 	LOC_CALCS
-		syr = 1;
-		eyr = 38;
-		nage = 12;
-		nlen = 77;
-		lstp = 1;
+		ifstream ifs( "seed.txt" ); // if this file is available
+		ifs>>seed; //read in the seed
+		seed += 10; // add 10 to the seed?
+		ofstream ofs( "seed.txt" ); //put out to seed.txt
+		ofs<<seed<<endl; //the new value of the seed
 	END_CALCS
+
+	init_int syr;
+	init_int eyr;
+	init_int nage;
+	init_int nlen;
+	init_int lstp;
 	
+	init_number sigR;
+	init_number tau;
+	init_number m;
+	init_number ahat;
+	init_number ghat;
+	init_number Linf;
+	init_number k;
+	init_number to;
+	init_number cvl;
+	init_number alw;
+	init_number blw;	
+	init_number reck;
+	init_number Ro;
+	init_number q;
+
 	init_vector ft(syr,eyr);
-	number sigR;
-	number tau;
-	number m;
-	number ahat;
-	number ghat;
-	number Linf;
-	number k;
-	number to;
-	number cvl;
-	number alw;
-	number blw;
+
+	init_int dend;
+
+		LOCAL_CALCS
+		if( dend != 999 )
+		{
+			cout<<"Error reading true values.\n Fix it."<<endl;
+			cout<< dend <<endl;
+			ad_exit(1);
+		}
+	END_CALCS
+
 	number reca;
 	number recb;
-	number Eo;
-	number Ro;
-	number reck;
+	number Eo;	
 	number Am1;
 	number phie;
 	number ssb0;
 	number test;
-	number q;
-
+	
 	vector wt(syr,eyr);
 	vector eps(syr,eyr);
-// 	vector ft(syr,eyr); 
 	vector age(1,nage);
 	vector vbt(syr,eyr);
-// 	vector sbt(syr,eyr
 	vector ct(syr,eyr);
 	vector bt(syr,eyr);	
 	vector ssbt(syr,eyr);
@@ -57,7 +76,7 @@ DATA_SECTION
 	vector la(1,nage);
 	vector Sa(1,nage);
 	vector iwt(syr,eyr-1);
-	vector iyr(1,eyr)
+	vector iyr(1,eyr);
 	vector z1(1,nlen);
 	vector z2(1,nlen);
 	vector std(1,nage);
@@ -72,19 +91,6 @@ DATA_SECTION
 	matrix cal(syr,eyr,1,nlen);
 	
 	LOC_CALCS
-		sigR = 0.2;
-		tau = 0.1;
-		ahat = 3.643583;
-		ghat = 1.143614	;
-		m = 0.23;
-		to = 0;
-		cvl = 0.09;
-		alw = 0.0000238;
-		blw = 2.7671;
-		Ro = 2000;
-		Linf = 76.464;
-		k = 0.09;
-		reck = 7.111111;
 		random_number_generator rng(seed);
 		wt.fill_randn(rng);
 		wt*=sigR;
@@ -93,21 +99,19 @@ DATA_SECTION
 		age.fill_seqadd(1,1);
 		len.fill_seqadd(lstp,lstp);
 		Am1=nage-1;
-		q=1;
-		iwt =1;
-		iyr.fill_seqadd(1,1);
-		
+		iyr.fill_seqadd(1,1);		
 	END_CALCS
 	
 PARAMETER_SECTION
 	objective_function_value no_f; 
-	  
- 	LOC_CALCS
-		incidence_functions();
-		output_data();
-		output_true();
-		exit(1);
-	END_CALCS
+
+PRELIMINARY_CALCS_SECTION	  
+ 	
+	incidence_functions();
+	output_data();
+	output_true();
+	exit(1);
+	
 
 PROCEDURE_SECTION
 
