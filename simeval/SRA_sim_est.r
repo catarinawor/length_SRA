@@ -1,172 +1,3 @@
-
-rm(list=ls()); gc(); #options("scipen"=100, "digits"=3)
-
-nsim = 10
-
-#if (Sys.info()["nodename"] =="sager") setwd("~/Dropbox/MS_sra/simsra")
-setwd("/Users/catarinawor/Documents/length_SRA/simeval/")
-
-
-require(PBSmodelling)
-source("read.admb.R")
-
-
-Est_Tpl = "jmsra"
-Sim_Tpl = "simsra"
-
-system(paste('./',Sim_Tpl,' -ind ',Sim_Tpl,'.dat',sep=""), wait = TRUE)
-input = read.rep("true_data_lsra.rep")
-true_ct = input$true_ct
-true_ut = input$true_ut
-true_nat = input$true_Nat
-true_cal = input$true_cal
-true_rt = true_nat[,1]
-
-system(paste('./',Est_Tpl,' -ind ',Est_Tpl,'.dat',sep=""), wait = TRUE)
-out = read.admb(Est_Tpl)
-names(out)
-out$depletion
-
-minAgeVul = 6
-maxAgeVul = length(out$age)
-minage = 1; maxage = 12
-age = minage:maxage
-nage = maxAgeVul
-
- #pdflabel = paste("simF",".pdf",sep="_")
- #pdf(file=pdflabel) 
-
-
- par(mfcol=c(3,3),mar=c(4,4,1,1),oma=c(1,1,1,3), las=1, cex=0.7)
-
-#plot(out$yr,out$vt, xlab="Year", ylab="SSB /1e5", ylim=c(0,max(out$vbt)),pch=19)
-#lines(out$yr,out$sbt, type="l", col="red", lwd=3)
-#legend("topright", c("Observed", "Predicted"), lty=c(-1, 1), pch=c(19, -1), col=c(1,"red"), lwd=c(-1,3),bty="n")
-
-plot(out$len,out$muUl ,pch=19, ylab="selectivity", xlim=c(range(out$len)), ylim=c(0,max(out$muUl)*1.1), xlab="length bin")
-
-
-## Survey/Fishery time series
-plot(out$yr,out$survB, xlab="Year", ylab="Relative abundance", ylim=c(0,max(out$survB)),pch=19)
-idyt  <- which(out$yr %in% out$iyr)
-lines(out$iyr, out$bt[idyt]*out$q, col="red", lwd=3)
-legend("topright", c("Observed", "Predicted"), lty=c(-1, 1), pch=c(19, -1), col=c(1,"red"), lwd=c(-1,3),bty="n")
-
-plot(out$yr,true_ct, xlab="Year", ylab="Catch", ylim=c(0,max(true_ct)), pch=19)
-lines(out$yr, out$yield, col="red",lwd=3)
-legend("topright", c("Observed", "Predicted"), lty=c(-1, 1), pch=c(19, -1), col=c(1,"red"), lwd=c(-1,3),bty="n")
-
-Uhat =  apply(out$Uage[,minAgeVul:(nage-1)],1,mean)
-
-plot(out$yr,true_ut, xlab="Year", ylab="Fishing Mortality", ylim=c(0,max(true_ut*1.5)), pch=19)
-lines(out$yr, Uhat, lwd=3, col="red")
-legend("topright", c("Observed", "Predicted"), lty=c(-1, 1), pch=c(19, -1), col=c(1,"red"), lwd=c(-1,3),bty="n")
-
-plot(out$yr, true_rt, xlab="Year", ylab="Recruits 1 year-old / 1e7",pch=19, type="b", ylim=c(0,max(true_rt*1.1)))
-lines(out$yr, out$N[,1], col="red", lwd=3)
-legend("topright", c("Observed", "Predicted"), lty=c(-1, 1), pch=c(19, -1), col=c(1,"red"), lwd=c(-1,3),bty="n")
-
-## Stock recruitment
-
-
-  div = 1#1e7
-  nyr = length(out$yr)
-  st=seq(0, max(out$sbt), length=100)
-  rt=(out$reca*st)/(1+out$recb*st)
-  plot(out$sbt,out$N[1:nyr,1]/div,xlim=c(0,max(out$sbt)/div),ylim=c(0,max(out$N[1:nyr,1]/div)), 
-       xlab="Spawning biomass/1e7", ylab="Age-1 recruits / 1e7",pch=19)
-  lines(st/div, rt/div, type="l",lwd=3,col="red")
-
-
-
-#pdf(file="length_comps_PERU_1980_2013.pdf") 
-
-# ptrue_nat = prop.table(as.matrix(true_cal), 1)
-# 
-# propltcomps <- ptrue_nat
-# yrs <- 1975:2012
-# nbins = length(age)
-# yrslt <- length(yrs)
-# ## years with label
-# argyrs <- c(1987,2000,2012)
-# ## label for bars
-# xlabel = 1:nage
-# ## set number of labels for each bar (1 means each bar has a label)
-# ibar = 1
-# labelname = "age (years)"
-# phat <- prop.table(as.matrix(out$Nlt), 1)
-# 
-# #x11()
-# par(mfcol=c(13,3),mar=c(0,2,1,0),oma=c(4,3,1,0), las=0.7)
-# 
-# for (j in 1:(yrslt)) {
-#   
-#   ## put xlabel on argyrs
-#   index <- which(yrs %in% argyrs)
-#   xarg <- rep(0,length(yrs))
-#   xarg[index] = yrs[index]
-#   ## index for xlabel in sequence
-#   isodd <- which(xlabel %% ibar != 0)
-#   xlabel[isodd] <- NA
-#   vsarg <- rep(0,length(yrs))
-#   
-#   if(xarg[j]!=0) arg = xlabel else arg = rep(NA,nbins-1)
-#   if(xarg[j]!=0) Xarg = labelname else Xarg = NA
-#   
-#   barplot(propltcomps[j,], main=yrs[1]-1+j , names.arg = F, cex.axis=0.8, ylim=c(0,max(propltcomps)))
-#   #          , legend.text=vsarg,args.legend = list(x = "topright", bty="n",bg = "n"))
-#    xx <- barplot(propltcomps[1,],plot=F)
-#   lines(xx, phat[j,], lwd=1.5, col="red")
-#   axis(1, xx, labels=arg ,col.axis=1,tick=F, las=2, line=-0.5, cex.axis=0.85)
-#   mtext(Xarg, 1, line=1.5, col="black", cex=0.75)
-# }
-
-
-
-# dev.off()
-
-
-ptrue_nat = prop.table(as.matrix(true_cal), 1)
-
-propltcomps <- ptrue_nat
-yrs <- 1975:2013
-nbins = dim(out$Nlt)[2]
-yrslt <- dim(out$Nlt)[1]
-## years with label
-argyrs <- c(1987,2000,2012)
-## label for bars
-xlabel = 1:dim(out$Nlt)[2]
-## set number of labels for each bar (1 means each bar has a label)
-ibar = 2
-labelname = "length bins (cm)"
-phat <- prop.table(as.matrix(out$Nlt*out$Ulength), 1)
-
-#x11()
-par(mfcol=c(13,3),mar=c(0,2,1,0),oma=c(4,3,1,0), las=0.7)
-
-for (j in 1:(yrslt)) {
-  
-  ## put xlabel on argyrs
-  index <- which(yrs %in% argyrs)
-  xarg <- rep(0,length(yrs))
-  xarg[index] = yrs[index]
-  ## index for xlabel in sequence
-  isodd <- which(xlabel %% ibar != 0)
-  xlabel[isodd] <- NA
-  vsarg <- rep(0,length(yrs))
-  
-  if(xarg[j]!=0) arg = xlabel else arg = rep(NA,nbins-1)
-  if(xarg[j]!=0) Xarg = labelname else Xarg = NA
-  
-  barplot(propltcomps[j,], main=yrs[1]-1+j , names.arg = F, cex.axis=0.8, ylim=c(0,max(propltcomps)))
-  #          , legend.text=vsarg,args.legend = list(x = "topright", bty="n",bg = "n"))
-  xx <- barplot(propltcomps[1,],plot=F)
-  lines(xx, phat[j,], lwd=1.5, col="red")
-  axis(1, xx, labels=arg ,col.axis=1,tick=F, las=2, line=-0.5, cex.axis=0.85)
-  mtext(Xarg, 1, line=1.5, col="black", cex=0.75)
-}
-
-
 #===================================================================================
 
 
@@ -191,7 +22,7 @@ maxgrad_h = NULL
 hat_h = NULL
 ire_h = NULL
 re_h = NULL
-nsim = 50
+nsim = 100
 
 
 for(s in 1:nsim) {
@@ -209,7 +40,7 @@ for(s in 1:nsim) {
 ## run simulator
 system(paste('./',Sim_Tpl,' -ind ',Sim_Tpl,'.dat',sep=""), wait = TRUE)
 input = read.rep("true_data_lsra.rep")
-names(input)
+#names(input)
 true_Ro = input$true_Ro
 true_reck = input$true_reck
 true_ct = input$true_ct
@@ -221,7 +52,7 @@ true_cal = input$true_cal
 true_sbt = input$true_sbt
 true_depl = input$true_depl
 true_rt = true_nat[,1]
-
+true_q = input$true_q
 ## run estimator
 system(paste('./',Est_Tpl,' -ind ',Est_Tpl,'.dat',sep=""), wait = TRUE)
 out_cr = read.admb(Est_Tpl)
@@ -231,8 +62,8 @@ out_cr = read.admb(Est_Tpl)
 ## save sim-est outputs
 maxgrad_cr <- rbind(maxgrad_cr, out_cr$fit$maxgrad)
 ##print(A$fit$std)
-truePars = c(true_Ro,true_reck,true_depl[length(true_depl)],true_utend)
-ihat_cr = c(out_cr$Ro,out_cr$kappa,out_cr$depletion,out_cr$maxUy[length(out_cr$maxUy)])
+truePars = c(true_Ro,true_reck,true_depl[length(true_depl)],true_utend,true_q) #need to output q in SRasim
+ihat_cr = c(out_cr$Ro,out_cr$kappa,out_cr$depletion,out_cr$maxUy[length(out_cr$maxUy)],out_cr$q)
 temp_ire_cr = (ihat_cr - truePars) / truePars
 ire_cr <- rbind(ire_cr, temp_ire_cr)
 
@@ -252,7 +83,7 @@ if(s==nsim) { cat("# Valid Sim=", length(valid_grad_cr)) }
 
 plot_re = function(itheta,ivalid,h_cr,legend=T)  {
   
-  colnames(itheta) = c("ro","kappa","Depletion","Uend")
+  colnames(itheta) = c("ro","kappa","Depletion","Uend", "q")
   boxplot(itheta[ivalid,], ylim=c(-0.7,0.7), ylab="relative error", las=1)
   validSim = length(ivalid)
   abline(h=0)
@@ -272,7 +103,7 @@ plot_re = function(itheta,ivalid,h_cr,legend=T)  {
 
 #pdf(file=pdflabel) 
 
-par(mfcol=c(2,2),mar=c(4,1,1,1),oma=c(0,2,2.5,0), las=1)
+par(mfcol=c(1,1),mar=c(4,1,1,1),oma=c(0,2,2.5,0), las=1)
 
 plot_re(ire_cr,valid_cr,"CR",T)
 
