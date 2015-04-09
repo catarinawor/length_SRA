@@ -40,11 +40,8 @@ DATA_SECTION
 
 	init_number cv_it;					// CV for survey
 
-	//=====================================================================================
-	// pergunta: not sure about the biological meaning of this parameter or about its significance as a prior
 	init_number sigR;					// sigma for recruitment deviations, fixed? RL: yes, it is better fix this parameter than using the Error in Variable (EIV) approach. otherwise the likelihoods are going to be more complicated and messy 
-	init_number sigVul;					// sigma for prior on average U?? RL: nop, it is the parameter control the variability for the vulnerability. low values means that the vul doesn't change much over time...I guess
-	//=====================================================================================
+	init_number sigVul;					// RL: it is the parameter control the variability for the vulnerability. low values means that the vul doesn't change much over time...I guess
 	
 	init_int phz_reck;					// phase for estimating reck
 	init_int phz_growth;				// phase for growth parameters
@@ -105,11 +102,8 @@ PARAMETER_SECTION
 	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
 	
-	//=====================================================================================
-	//pergunta: unsure about the meaning of ssvul is it the average deviation from max U at length?
-	number ssvul;
-	// it is the sum sq devs for the length vul desviations (mean va(L) - va(L,t))^2..something like that
-	//=====================================================================================
+	
+	number ssvul; 						// it is the sum sq devs for the length vul deviations (mean va(L) - va(L,t))^2
 	
 	number Eo;							// unfished egg deposition
 	number reca;						// alpha of stock-recruit relationship
@@ -125,12 +119,10 @@ PARAMETER_SECTION
 	vector lxo(1,nage);					// unfished survivorship at age
 	vector fec(1,nage);					// age-specific fecundity - used for stock-recruit function
 	
-	//=====================================================================================
-	//pergunta: Related to all questions above, need better definitions of these quantities
-	vector maxUy(syr,eyr);				// maximum U over length classes for each year?, RL: yes
-	vector muUl(1,nlen);				// expected value for U for each length class??. RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
-	//=====================================================================================
- 	
+	
+	vector maxUy(syr,eyr);				// maximum U over length classes for each year?
+	vector muUl(1,nlen);				// RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
+	
  	vector psurvB(syr,eyr);				// predicted survey biomass
 	
 	matrix Nlt(syr,eyr,1,nlen); 		// Matrix of numbers at length class
@@ -211,11 +203,8 @@ FUNCTION initialization
 
 FUNCTION SRA
 
-	//=====================================================================================
-	//pergunta:
-	//matrix of deviations from prior values of U? // RL: nop, these are the devs for the vul penalty  
+	// RL: these are the devs for the vul penalty  
 	dvar_matrix Upen( syr, eyr, 1, nlen );
-	//=====================================================================================
 	
 	// INITIAL YEAR (no fishing assumed)
 	for( int a = 1; a <= nage; a++ )
@@ -263,10 +252,7 @@ FUNCTION SRA
 		// RL: the plus group is calculated in 3 lines just because it is clear to see the two components of the plus group...you can just use two lines but the equation is too long
 		// RL: Uage can't go greater that 1..or negative of course. because we are simulated data, it is possible that some trials go greater than 1, so better include a penalty or something..
 		Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 )), tiny, fpen );
-		
-
-
-		Nat( y, nage ) = posfun( Nat( y - 1, nage -1 ) * Sa( nage ) * ( 1. - Uage( y - 1, nage -1)), tiny, fpen); //  += CHECK THE PLUS GROUP
+		Nat( y, nage ) = posfun( Nat( y - 1, Am1 ) * Sa( nage ) * ( 1. - Uage( y - 1, Am1)), tiny, fpen); //  += CHECK THE PLUS GROUP
 		Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen); //  += CHECK THE PLUS GROUP
 		//=====================================================================================
 	
@@ -286,12 +272,6 @@ FUNCTION SRA
 		}
 		// max exploitation (fully selected) across lengths
 		maxUy( y ) = max( Ulength( y ));	
-		//=====================================================================================
-		//pergunta:
-		// should we use mean? Dave fournier says it's more stable... never quite understood why.			
-		// maxUy( y ) = mean( Ulength( y ));	// max exploitation across lengths (mean also works)
-		// RL: we can try and see if it produces similar results. But for me look like the mean is going to overestimate the exploitaron rate for the fully selected fish.
-		//=====================================================================================
 	}
 
 		for( int b = 1; b <= nlen; b++ )
@@ -303,19 +283,16 @@ FUNCTION SRA
 		
 		for( int y = syr; y <= eyr; y++ )
 		{
-			//=====================================================================================
-			//pergunta:
-			// penalty against dramatic changes in vulnerability?? RL: yes 
+			// penalty against dramatic changes in vulnerability?? 
 			Upen( y ) = pow( Ulength( y ) / posfun( maxUy( y ), tiny, fpen ) - muUl, 2. );	
-			//=====================================================================================	
 		}
 		ssvul = sum( Upen );				// vulnerability penalty
 
 	//=====================================================================================
 	//pergunta:	
 	// survey has no selectivity?? // RL: I was assuming a acoustic survey. When I included the va, the modelo produced and positive bias por the cpue/index of abundance. we need to look at this issue
-	// 	psurvB = Nat * elem_prod(wa,va);
-	psurvB = Nat * wa;
+	 	psurvB = Nat * elem_prod(wa,va);
+	//psurvB = Nat * wa;
 
 	
 	//=====================================================================================
@@ -353,12 +330,8 @@ FUNCTION objective_function
 	
 	if(last_phase())
 	{
-		//=====================================================================================
-		//pergunta:
-		//Why are pvec 2 and 3 included in the likelihood?
-		pvec(2)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function RL: yes, it is wrong, it should be pvec 2
-		// RL: these penalty are only to keep the rev devs in "decent" parameter space, especielly when the starting values very far way of the global soluction
-		//=====================================================================================
+		
+		pvec(2)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function
 	}
 	else
 	{
