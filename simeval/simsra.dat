@@ -10,6 +10,10 @@
 1
 #niyr
 38
+#proc_err
+0
+#obs_err
+0
 #sigR;
 0.2;
 #tau;
