@@ -227,8 +227,8 @@ FUNCTION output_data
 	ofs<<"# wt "<< endl << exp(iwt) <<endl;
 	ofs<<"# cv_it " << endl << tau <<endl;
 	ofs<<"# sigR " << endl << sigR <<endl;
-	ofs<<"# sigVul " << endl << 0.2 <<endl;
-	ofs<<"# phz_reck "<< endl << -2 <<endl;
+	ofs<<"# sigVul " << endl << 0.4 <<endl;
+	ofs<<"# phz_reck "<< endl << 2 <<endl;
 	ofs<<"# phz_growth  "<< endl << -4  <<endl;
 	ofs<<"# use_prior  "<< endl << 1 <<endl;
 	ofs<<"# dend " << endl << 999 <<endl;
@@ -245,7 +245,7 @@ FUNCTION output_true
 	ofs<<"true_reck" << endl << reck <<endl;
 	ofs<<"true_sbt" << endl << sbt <<endl;
 	ofs<<"true_depl" << endl << depl <<endl;
-	
+	ofs<<"true_q" << endl << q <<endl;	
 
 
 
