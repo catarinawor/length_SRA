@@ -1,48 +1,54 @@
 //><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
 //Programer: Brett van Poorten
-//Date:	June 21, 2013; Update: 8 july 2014 
-//Purpose: length-based SRA / VPA based on Carl's spreadsheet
+//Modified by: Roberto Licandeo and Catarina Wor
+//Date:	June 21, 2013;  Update: March 2015
+//Purpose: length-based SRA based on Carl's spreadsheet
 //Notes: 	basic code structure taken from Rob Ahrens - thanks for that			 
 //><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
-
-DATA_SECTION
-	init_int syr;				// start year of survey data
-	init_int eyr;				// end year of survey data
-	init_int nage;				// number of age-classes
-	init_int nlen;				// number of length-bins (assume start at 0)
-	init_int lstp;				// width of length-bins
-	init_int SR;				// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker
-	init_number m;			// natural mortality
-	init_number alw;			// multiplier for length-weight relationship
-	init_number blw;		// multiplier for length-weight relationship
-	init_number wmat;			// initial weight at maturity
-	init_number mat50;		// maturity parameter
-	init_number matsd;		// maturity parameter
-	init_number ahat;		// vulnerability parameter
-	init_number ghat;		// vulnerability parameter
-	init_vector va(1,nage);			// survey vulnerability
-	init_int nyt
-	init_ivector iyr(1,nyt); // iyr(syr,nyr)
-	init_vector survB(1,nyt);  // yt(syr,nyr)
-// 	init_vector survB(syr,eyr);		// survey biomass
-	init_matrix Clt(syr,eyr,1,nlen);	// catch at length and year
-// !! 	cout<<iyr<<"\n"<<survB<<endl;
-// !! 	exit(1);
 	
-	init_number ilinf;
-	init_number ik
-	init_number to
-	init_number icvl;
-	init_number ireck
-	init_number iRo
- 	init_vector iwt(syr,eyr-1);
+DATA_SECTION
 
-	init_number cv_it;		// CV for cpue
-	init_number sigR;		// sigma R
-	init_number sigVul;
-	init_int phz_reck;		// phaze for reck
-	init_int phz_growth;		// phaze for growth parameters
-	init_int use_prior;		// add priors to the likehoods ? (1 or 0)
+	// model inputs and available data	
+	init_int syr;						// start year of survey data
+	init_int eyr;						// end year of survey data
+	init_int nage;						// number of age-classes
+	init_int nlen;						// number of length-bins (assume start at 0)
+	init_int lstp;						// width of length-bins
+	init_int SR;						// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker
+	init_number m;						// natural mortality
+	init_number alw;					// multiplier for length-weight relationship
+	init_number blw;					// multiplier for length-weight relationship
+	init_number wmat;					// initial weight at maturity
+	init_number mat50;					// maturity parameter
+	init_number matsd;					// maturity parameter
+	init_number ahat;					// vulnerability parameter
+	init_number ghat;					// vulnerability parameter (sd)
+	init_vector va(1,nage);				// survey vulnerability
+	init_int nyt						// number of survey observations
+	init_vector iyr(1,nyt); 			// iyr(syr,nyr)
+	init_vector survB(1,nyt);       	// yt(syr,nyr)
+	init_matrix Clt(syr,eyr,1,nlen);	// catch at length and year
+
+	//known growth and recruitment parameters	
+	init_number ilinf; 					// Linf for VB growth curve
+	init_number ik; 					// growth rate parameter fro VB growth curve
+	init_number to; 					// time of length 0 for VB growth curve
+	init_number icvl;					// coefficient of variantion for age at length curve
+	init_number ireck;					// recruitment compensation ratio		
+	init_number iRo; 					// Avearge unfished recruitment
+ 	init_vector iwt(syr,eyr-1);         // Recruitment deviations
+
+	init_number cv_it;					// CV for survey
+
+	//=====================================================================================
+	// pergunta: not sure about the biological meaning of this parameter or about its significance as a prior
+	init_number sigR;					// sigma for recruitment deviations, fixed? RL: yes, it is better fix this parameter than using the Error in Variable (EIV) approach. otherwise the likelihoods are going to be more complicated and messy 
+	init_number sigVul;					// sigma for prior on average U?? RL: nop, it is the parameter control the variability for the vulnerability. low values means that the vul doesn't change much over time...I guess
+	//=====================================================================================
+	
+	init_int phz_reck;					// phase for estimating reck
+	init_int phz_growth;				// phase for growth parameters
+	init_int use_prior;					// add priors to the likehoods ? (1 or 0)
 
 	init_int dend;
 	
@@ -52,92 +58,103 @@ DATA_SECTION
 		if( dend != 999 )
 		{
 			cout<<"Error reading data.\n Fix it."<<endl;
+			cout<< "dend is:"<<dend<<endl;
 			ad_exit(1);
 		}
 
 	END_CALCS
 	
-	vector age(1,nage);			// ages
-	vector len(1,nlen);			// middle length of each length bin
-	int Am1;				// maximum age minus 1
-	number tiny;
+	vector age(1,nage);					// ages
+	vector len(1,nlen);					// middle length of each length bin
+	int Am1;							// maximum age minus 1
+	number tiny;						// very small number to be used in the fpen function
 	
 	LOC_CALCS
+		// FILL IN SEQUENCE VECTORS
 		age.fill_seqadd( 1, 1 );
 		len.fill_seqadd( lstp, lstp );
 		Am1=nage-1;
 		tiny=1.e-20;
 	END_CALCS
 
-//	!! cout<<"ilinf\t"<<ilinf<<"\n ik\t"<<ik<<"\n icvl\t"<<icvl<<"\n iRo\t"<<iRo<<"\n ireck\t"<<ireck<<"\n lstp\t"<<lstp<<"\n Sa\t"<<Sa<<endl;
-//	!! exit(1);
 
 PARAMETER_SECTION
-	init_number log_Ro(1);
-	init_number log_Linf(phz_growth);
-	init_number log_k(phz_growth);
-	init_number log_cvl(phz_growth);	
-//	init_bounded_number log_Linf(1.09,2.48,-1)
-//	init_bounded_number log_k(-4.6,-0.69,-1)
-// 	init_bounded_number log_cvl(-4.60,-0.91,-3);
-	init_number log_reck(phz_reck);
+	init_number log_Ro(1);				//Log of average unfished recruitment
+	init_number log_Linf(phz_growth);	//log of l infinity
+	init_number log_k(phz_growth);		//log of k from VB
+	init_number log_cvl(phz_growth);	// log of coefficient of variantion for age at length curve
+	init_number log_reck(phz_reck);		// log of recruitment compensation ratio
 
-	
+	// set growth parameters to true values
 	!! log_Linf=log(ilinf);
 	!! log_k=log(ik);
 	!! log_cvl=log(icvl);
 	!! log_reck=log(ireck);
 	!! log_Ro=log(iRo);
 
-	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2);
-
+	// log of recruitment deviation
+	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2);  
  	!! log_wt = log(iwt);
-
 
 	objective_function_value nll;
 	
-	number fpen;
-	number Linf;					// von Bertalanffy asymptotic length
-	number k;					// von Bertalanffy metabolic parameter
-	number cvl;					// coefficient of variation in length at age
-	number reck;					// Goodyear recruitment compensation parameter
-	number Ro;					// unfished recruitment
+	number fpen;						// penalty to be added to likelihood when posfun is used
+	number Linf;						// von Bertalanffy asymptotic length (estimated - based on log_linf)
+	number k;							// von Bertalanffy metabolic parameter (estimated - based on log_k)
+	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
+	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
+	number Ro;							// unfished recruitment (estimated - based on log_Ro)
+	
+	//=====================================================================================
+	//pergunta: unsure about the meaning of ssvul is it the average deviation from max U at length?
 	number ssvul;
-// 	vector zstat(syr,eyr);				// posterior probability distribution of q
-	vector zstat(1,nyt);	
-	vector wt(syr,eyr-1);				// recruitment anomolies
-	vector Sa(1,nage);		// survival-at-age (assume constant across ages)
- 	vector vul(1,nage);		// age-specific vulnerabilities
-	number Eo;					// unfished egg deposition
-	number reca;					// alpha of stock-recruit relationship
-	number recb;					// beta of stock-recruit relationship
-	vector la(1,nage);				// length-at-age
-	vector wa(1,nage);				// weight-at-age
-	vector lxo(1,nage);				// unfished survivorship at age
-	vector fec(1,nage);				// age-specific fecundity - used for stock-recruit function
-	matrix P_la(1,nage,1,nlen);			// probability of being length at age
+	// it is the sum sq devs for the length vul desviations (mean va(L) - va(L,t))^2..something like that
+	//=====================================================================================
+	
+	number Eo;							// unfished egg deposition
+	number reca;						// alpha of stock-recruit relationship
+	number recb;						// beta of stock-recruit relationship
+	number q;							// catchability coefficient (based on zstat)
+				
+	vector zstat(1,nyt);				// MLE of q
+	vector wt(syr,eyr-1);				// recruitment anomalies
+	vector Sa(1,nage);					// survival-at-age (assume constant across ages)
+ 	vector vul(1,nage);					// age-specific vulnerabilities
+	vector la(1,nage);					// length-at-age
+	vector wa(1,nage);					// weight-at-age
+	vector lxo(1,nage);					// unfished survivorship at age
+	vector fec(1,nage);					// age-specific fecundity - used for stock-recruit function
+	
+	//=====================================================================================
+	//pergunta: Related to all questions above, need better definitions of these quantities
+	vector maxUy(syr,eyr);				// maximum U over length classes for each year?, RL: yes
+	vector muUl(1,nlen);				// expected value for U for each length class??. RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
+	//=====================================================================================
+ 	
+ 	vector psurvB(syr,eyr);				// predicted survey biomass
+	
+	matrix Nlt(syr,eyr,1,nlen); 		// Matrix of numbers at length class
+	matrix P_la(1,nage,1,nlen);			// proportion of individual of each age at a given length class
 	matrix P_al(1,nlen,1,nage);			// transpose of above
-	matrix Nat(syr,eyr,1,nage);
-	matrix Ulength(syr,eyr,1,nlen);
-	matrix Uage(syr,eyr,1,nage);
-	vector maxUy(syr,eyr);
-	vector muUl(1,nlen);
- 	vector psurvB(syr,eyr);
-	number q;
-	matrix Nlt(syr,eyr,1,nlen);
+	matrix Nat(syr,eyr,1,nage);			// Numbers of individuals at age
+	matrix Ulength(syr,eyr,1,nlen); 	// U (explitation rate) for each length class
+	matrix Uage(syr,eyr,1,nage);		// U (explitation rate) for each age
 
 PRELIMINARY_CALCS_SECTION
 
 
 PROCEDURE_SECTION
-        trans_parms();
+    
+    trans_parms();
 	incidence_functions();
-        initialization();
+    initialization();
 	SRA();
 	observation_model();
 	objective_function();
 
 FUNCTION trans_parms
+	
+	//Bring parameters from log to normal space
 	Linf = mfexp( log_Linf );
 	k = mfexp( log_k );
 	cvl = mfexp( log_cvl );
@@ -145,10 +162,9 @@ FUNCTION trans_parms
 	Ro = mfexp( log_Ro );
 	wt = mfexp( log_wt );
 	
-// 	cout<<"Linf\t"<<Linf<<"\n k\t"<<k<<"\n cvl\t"<<cvl<<"\n reck\t"<<reck<<"\n Ro\t"<<Ro<<"\n wt\n"<<wt<< endl;
-// 	exit(1);
-
 FUNCTION incidence_functions
+	
+	
 	dvector z1( 1, nlen );
 	dvector z2( 1, nlen );
 	double zn;
@@ -160,124 +176,161 @@ FUNCTION incidence_functions
 	Sa = exp(-m);
 	
 	lxo( 1 ) = 1.;
-	for( int a = 2; a <= nage; a++ )
+	for( int a = 2; a <= nage; a++ ) 
+	{
 		lxo( a ) = lxo( 1 ) * pow( Sa( a - 1 ), age( a - 1 ));
-		lxo( nage ) /= 1. - Sa( Am1 );
+	}	
+		lxo( nage ) /= 1. - Sa( nage );
 	
-//	wa = alw * pow( la, 3. );
-//	fec = wa - wmat;
-
-	wa = alw * pow( la, blw );
-	fec=elem_prod(wa,plogis(age,mat50,matsd));
-	vul = plogis(age,ahat,ghat);
+	
+		wa = alw * pow( la, blw );
+		fec = elem_prod(wa,plogis(age,mat50,matsd));
+		vul = plogis(age,ahat,ghat);
  	
  	for( int a = 1; a <= nage; a++ )
 	{
-		if( fec( a ) < 0. )	fec( a ) = 0.;
+		
+		// Calculate the integral for proportion age at each length
 		z1 = (( len - lstp * 0.5 )-value( la( a )))/value( std( a ));
 		z2 = (( len + lstp * 0.5 )-value( la( a )))/value( std( a ));
 		for( int b=1; b<= nlen; b++ )
-		P_la( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
+		{
+			P_la( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
+		}
+		
 	}
 	
-	P_al = trans( P_la );
-	
-//  	cout<<"la\t"<<la<<"\n wa\t"<<wa<<"\n lxo\t"<<lxo<<"\n fec\t"<<fec<<"\n len\t"<<len<<"\n P_la\n"<<P_la<<"\n P_al\n"<<P_al<<endl;
-// 	exit(1);
+	P_al = trans( P_la );	
 	
 FUNCTION initialization
 
-	dvariable phie = sum( elem_prod( lxo, fec ));
+	dvariable phie = lxo * fec;
 	reca = reck/phie;
 	recb = (reck - 1.)/(Ro*phie); 
-	
-// 	Eo = Ro * sum( elem_prod( lxo, fec ));
-// 	reca = reck * Ro / Eo;
-// 	if( SR==1 )		recb =( reck - 1. ) / Eo;
-// 	else			recb = log( reck ) / Eo*/;
+
 
 FUNCTION SRA
-// 	dvar_vector maxUy( syr, eyr );
-// 	dvar_vector muUl( 1, nlen );
+
+	//=====================================================================================
+	//pergunta:
+	//matrix of deviations from prior values of U? // RL: nop, these are the devs for the vul penalty  
 	dvar_matrix Upen( syr, eyr, 1, nlen );
-// 	dvar_matrix Nat( syr, eyr, 1, nage );
-//	dvar_matrix Nlt( syr, eyr, 1, nlen );
-//	dvar_matrix Uage( syr, eyr, 1, nage );
-//	dvar_matrix Ulength( syr, eyr, 1, nlen );
+	//=====================================================================================
 	
-	// INITIAL YEAR
+	// INITIAL YEAR (no fishing assumed)
 	for( int a = 1; a <= nage; a++ )
+	{
 		Nat( syr, a ) = Ro * pow( Sa( a ), age( a ) - 1. );	// initial age-structure
-		Nat( syr, nage ) /= 1. - Sa( nage );
+	}		
+	Nat( syr, nage ) /= 1. - Sa( nage );
 	
 	
 	for( int b = 1; b <= nlen; b++ )
 	{
-		Nlt( syr, b ) = Nat( syr ) * P_al( b );			// length-structure in year-1
-		Ulength( syr, b ) = Clt( syr, b ) / posfun( Nlt( syr, b ), Clt( syr, b ), fpen);	// exploitation by length
-// 		cout<<"by year\t"<<Clt(syr,b)<<"\t"<<Nlt(syr,b)<<"\t"<<Ulength(syr,b)<<endl;
+		// length-structure in year-1
+		Nlt( syr, b ) = Nat( syr ) * P_al( b );	
+		// exploitation by length		
+		Ulength( syr, b ) = Clt( syr, b ) / posfun( Nlt( syr, b ), Clt( syr, b ), fpen);	
 	}
 	
+	// exploitation rate for fully recruited age class
 	maxUy( syr ) = max( Ulength( syr ));
 
+
 	for( int a = 1; a <= nage; a++ )
-		Uage( syr, a ) = Ulength( syr ) * P_la( a );		// exploitation by age
+	{
+		// exploitation by age
+		Uage( syr, a ) = Ulength( syr ) * P_la( a );		
+	}
 
 	// SUBSEQUENT YEARS
 	for( int y = syr + 1; y <= eyr; y++ )
 	{
 	  
-	dvariable sbt = fec * Nat(y - 1);				// eggs in year-y
+		dvariable sbt = fec * Nat(y - 1);				// eggs in year-y
 	  
-	if( SR ==1 )
-	Nat( y, 1 ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// recruitment
-	else
-	Nat( y, 1 ) = reca * sbt * mfexp( - recb * sbt) * wt( y - 1 );
-	
-	// age-distribution post-recruitment
-	Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 )), tiny, fpen );
-	Nat( y, nage ) = posfun( Nat( y - 1, nage -1 ) * Sa( nage ) * ( 1. - Uage( y - 1, nage -1)), tiny, fpen); //  += CHECK THE PLUS GROUP
-	Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen); //  += CHECK THE PLUS GROUP
+	  	
+		Nat( y, 1 ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// B-H recruitment
+		
 
-	
-	for( int b = 1; b <= nlen; b++ )
-	{
-	Nlt( y, b ) = Nat( y ) * P_al( b );						// length-distribution
-	Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	// exploitation by length
-	}
-	
-	for( int a = 1; a <= nage; a++ )
-	Uage( y, a ) = Ulength( y ) * P_la( a );			// exploitation by age
-	maxUy( y ) = max( Ulength( y ));				// max exploitation across lengths
-// 	maxUy( y ) = mean( Ulength( y ));	// max exploitation across lengths (mean also works)
+		// age-distribution post-recruitment
+		//=====================================================================================
+		//pergunta:
+		// this is very confusing should we use always Am1 or just stick with nage -1
+		// And why is the plus group being calculated in three lines?
+		// Do we need posfun if we are always calculating positive numbers (Nat) by proportions? Can Uage be ever greater than 1?
+		// RL: yes I agree. we should put -1 or am1..whatever you think is better/clear
+		// RL: the plus group is calculated in 3 lines just because it is clear to see the two components of the plus group...you can just use two lines but the equation is too long
+		// RL: Uage can't go greater that 1..or negative of course. because we are simulated data, it is possible that some trials go greater than 1, so better include a penalty or something..
+		Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 )), tiny, fpen );
+		
 
+
+		Nat( y, nage ) = posfun( Nat( y - 1, nage -1 ) * Sa( nage ) * ( 1. - Uage( y - 1, nage -1)), tiny, fpen); //  += CHECK THE PLUS GROUP
+		Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen); //  += CHECK THE PLUS GROUP
+		//=====================================================================================
+	
+		for( int b = 1; b <= nlen; b++ )
+		{
+			// length-distribution by year
+			Nlt( y, b ) = Nat( y ) * P_al( b );	
+
+			// exploitation by length										
+			Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	
+		}
+	
+		for( int a = 1; a <= nage; a++ )
+		{
+			// exploitation by age
+			Uage( y, a ) = Ulength( y ) * P_la( a );			
+		}
+		// max exploitation (fully selected) across lengths
+		maxUy( y ) = max( Ulength( y ));	
+		//=====================================================================================
+		//pergunta:
+		// should we use mean? Dave fournier says it's more stable... never quite understood why.			
+		// maxUy( y ) = mean( Ulength( y ));	// max exploitation across lengths (mean also works)
+		// RL: we can try and see if it produces similar results. But for me look like the mean is going to overestimate the exploitaron rate for the fully selected fish.
+		//=====================================================================================
 	}
 
-	for( int b = 1; b <= nlen; b++ )
-	{
-	muUl(b) = sum(elem_div( column(Ulength,b),maxUy ) ) / size_count(maxUy);		// mean exploitation rate across years
-	}
-	
-// 	}
-	
-	for( int y = syr; y <= eyr; y++ )
-	Upen( y ) = pow( Ulength( y ) / posfun( maxUy( y ), tiny, fpen ) - muUl, 2. );		// penalty against dramatic changes in vulnerability
- 	ssvul = sum( Upen );									// vulnerability penalty
-	
-// 	psurvB = Nat * elem_prod(wa,va);
+		for( int b = 1; b <= nlen; b++ )
+		{ 
+			//  exploitation rate relative to fully recruited U(expected value?) at length over al years
+			// RL: It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
+			muUl(b) = sum(elem_div( column(Ulength,b),maxUy ) ) / size_count(maxUy);		
+		}
+		
+		for( int y = syr; y <= eyr; y++ )
+		{
+			//=====================================================================================
+			//pergunta:
+			// penalty against dramatic changes in vulnerability?? RL: yes 
+			Upen( y ) = pow( Ulength( y ) / posfun( maxUy( y ), tiny, fpen ) - muUl, 2. );	
+			//=====================================================================================	
+		}
+		ssvul = sum( Upen );				// vulnerability penalty
+
+	//=====================================================================================
+	//pergunta:	
+	// survey has no selectivity?? // RL: I was assuming a acoustic survey. When I included the va, the modelo produced and positive bias por the cpue/index of abundance. we need to look at this issue
+	// 	psurvB = Nat * elem_prod(wa,va);
 	psurvB = Nat * wa;
 
-// 	cout<<"Nat\n"<<Nat<<"\n Nlt\n"<<Nlt<<"\n Ulength\n"<<Ulength<<"\n Uage\n"<<Uage<<"\n Upen\n"<<Upen<<endl;
-// 	cout<<"muUl\n"<<muUl<<"\n maxUy\n"<<maxUy<<"\n ssvul\n"<<ssvul<<"\n P_al\n"<<P_al<<endl;
-// 	exit(1);
+	
+	//=====================================================================================
+
 
 FUNCTION observation_model
-// 	cout<<psurvB(iyr)<<"\n"<<psurvB<<"\n"<<survB <<endl;
-// 	exit(1);
-	zstat=log(survB)-log(psurvB(iyr));		// posterior probability distribution of q
-//	zstat = log( elem_div( survB, psurvB ));
+
+	for(int i=1; i <= nyt; i++  )
+	{
+		zstat(i)=log(survB(i))-log(psurvB(iyr(i)));
+	}
+			
+	
 	q=mfexp(mean(zstat));
- 	zstat -= mean(zstat);				// z-statistic used for calculating MLE of q
+ 	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
  
 	
 FUNCTION objective_function 
@@ -288,25 +341,37 @@ FUNCTION objective_function
 	lvec(1)=dnorm(zstat,cv_it);
 	lvec(2)=dnorm(wt,sigR);
 
-	dvar_vector pvec(1,4);
+	dvar_vector pvec(1,3);
 	pvec.initialize();
 	
 	if(active(log_reck))
 	{  
- 	dvariable h=reck/(4.+reck);	
-	pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
+ 		dvariable h=reck/(4.+reck);	
+ 		// beta a=1 and b=1 --> flat
+		pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
    	}
 	
 	if(last_phase())
 	{
-	pvec(2)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function
+		//=====================================================================================
+		//pergunta:
+		//Why are pvec 2 and 3 included in the likelihood?
+		pvec(2)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function RL: yes, it is wrong, it should be pvec 2
+		// RL: these penalty are only to keep the rev devs in "decent" parameter space, especielly when the starting values very far way of the global soluction
+		//=====================================================================================
 	}
 	else
 	{
-	pvec(3)=100.*norm2(log_wt); 	// assume deviations are at their normal mle analytical estimator  (obs-pred)^2
+		pvec(2)=100.*norm2(log_wt); 	
 	}
 	
-	pvec(4) = ssvul/sigVul;
+	//=====================================================================================
+	//pergunta:
+	// I am not sure about what kind of penalty this is
+	pvec(3) = ssvul/sigVul;
+	// RL: see commment above
+	//=====================================================================================
+	
 	nll = sum(lvec) + sum(pvec)*use_prior;
 
 
