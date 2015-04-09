@@ -169,7 +169,7 @@ FUNCTION incidence_functions
 	lxo( 1 ) = 1.;
 	for( int a = 2; a <= nage; a++ ) 
 	{
-		lxo( a ) = lxo( 1 ) * pow( Sa( a - 1 ), age( a - 1 ));
+		lxo( a ) = lxo(a-1)*Sa(a-1);
 	}	
 		lxo( nage ) /= 1. - Sa( nage );
 	
@@ -250,9 +250,13 @@ FUNCTION SRA
 		// RL: yes I agree. we should put -1 or am1..whatever you think is better/clear
 		// RL: the plus group is calculated in 3 lines just because it is clear to see the two components of the plus group...you can just use two lines but the equation is too long
 		// RL: Uage can't go greater that 1..or negative of course. because we are simulated data, it is possible that some trials go greater than 1, so better include a penalty or something..
+		//Nat( y )( 2, nage ) =++  elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 ));
+		//Nat( y, nage ) =  Nat( y - 1, Am1 ) * Sa( nage ) * ( 1. - Uage( y - 1, Am1)); //  += CHECK THE PLUS GROUP
+		//Nat( y, nage ) +=  Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )); //  += CHECK THE PLUS GROUP
 		Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 )), tiny, fpen );
 		Nat( y, nage ) = posfun( Nat( y - 1, Am1 ) * Sa( nage ) * ( 1. - Uage( y - 1, Am1)), tiny, fpen); //  += CHECK THE PLUS GROUP
 		Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen); //  += CHECK THE PLUS GROUP
+		
 		//=====================================================================================
 	
 		for( int b = 1; b <= nlen; b++ )
@@ -304,10 +308,9 @@ FUNCTION observation_model
 		zstat(i)=log(survB(i))-log(psurvB(iyr(i)));
 	}
 			
-	
+	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
 	q=mfexp(mean(zstat));
- 	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
- 
+ 	
 	
 FUNCTION objective_function 
 

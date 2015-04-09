@@ -22,10 +22,10 @@ maxgrad_h = NULL
 hat_h = NULL
 ire_h = NULL
 re_h = NULL
-nsim = 100
+nsim = 1
 
 
-for(s in 1:nsim) {
+#for(s in 1:nsim) {
 
 ##  set seed and Ft  
 
@@ -72,30 +72,30 @@ hat_cr <- rbind(hat_cr, ihat_cr)
 valid_maxgrad_cr = which(maxgrad_cr <= 0.0001)
 valid_cr = which( hat_cr[,2] >= 2 & hat_cr[,2] <= true_reck*2)
 valid_grad_cr = which( hat_cr[,2] >= 2 & hat_cr[,2] <= true_reck*2 & maxgrad_cr <= 0.0001)
-if(s==nsim) { cat("# Valid Sim=", length(valid_grad_cr)) }
+#if(s==nsim) { cat("# Valid Sim=", length(valid_grad_cr)) }
 
 #file.remove("simsra.dat")
 
-}
+#}
 
 
 
 
-plot_re = function(itheta,ivalid,h_cr,legend=T)  {
-  
-  colnames(itheta) = c("ro","kappa","Depletion","Uend", "q")
-  boxplot(itheta[ivalid,], ylim=c(-0.7,0.7), ylab="relative error", las=1)
-  validSim = length(ivalid)
-  abline(h=0)
-  
-  if(legend == T) {
-    #mtext(side=3,line=0,paste("steepness=",h_cr," Ft=","updowm"," simSigR=",0.6," simSS=","na," trueDepl=", round(trueDepl,2),"\n",
-    #                          "simObsErr=",tau," Mt=",Mtpattern," Vul=",vapattern, " NSim=",validSim,"\n", "cvl=", l1cv," sigVul=", sigVul, 
-    #                          " SimRhoR=",round(rhoR,2)," Fmsy=",round(Fmsy,3),"x",xF," true cr/h =",round(cr,3),"/",h ))
-  }
-  else
-    mtext(side=3,line=0,paste("steepness=",h_cr," NSim=",validSim))
-}
+#plot_re = function(itheta,ivalid,h_cr,legend=T)  {
+#  
+#  colnames(itheta) = c("ro","kappa","Depletion","Uend", "q")
+#  boxplot(itheta[ivalid,], ylim=c(-0.7,0.7), ylab="relative error", las=1)
+#  validSim = length(ivalid)
+#  abline(h=0)
+#  
+#  if(legend == T) {
+#    #mtext(side=3,line=0,paste("steepness=",h_cr," Ft=","updowm"," simSigR=",0.6," simSS=","na," trueDepl=", round(trueDepl,2),"\n",
+#    #                          "simObsErr=",tau," Mt=",Mtpattern," Vul=",vapattern, " NSim=",validSim,"\n", "cvl=", l1cv," sigVul=", sigVul, 
+#    #                          " SimRhoR=",round(rhoR,2)," Fmsy=",round(Fmsy,3),"x",xF," true cr/h =",round(cr,3),"/",h ))
+#  }
+#  else
+#    mtext(side=3,line=0,paste("steepness=",h_cr," NSim=",validSim))
+#}
 
 
 
@@ -103,10 +103,12 @@ plot_re = function(itheta,ivalid,h_cr,legend=T)  {
 
 #pdf(file=pdflabel) 
 
-par(mfcol=c(1,1),mar=c(4,1,1,1),oma=c(0,2,2.5,0), las=1)
+#par(mfcol=c(1,1),mar=c(4,1,1,1),oma=c(0,2,2.5,0), las=1)
+#plot_re(ire_cr,valid_cr,"CR",T)
 
-plot_re(ire_cr,valid_cr,"CR",T)
 
-
+colnames(ire_cr) = c("ro","kappa","Depletion","Uend", "q")
+barplot(ire_cr[valid_cr,], ylim=c(-0.7,0.7), ylab="relative error", las=1)
+  
 
 
