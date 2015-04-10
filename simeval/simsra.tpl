@@ -177,11 +177,14 @@ FUNCTION incidence_functions
 	for(int i=syr;i<=eyr;i++)
 	{	    
 	    zt(i) = m+ft(i)*va;
+
 	    sbt(i) = fec * Nat(i);
 
 	    Nat(i+1,1) = (reca*sbt(i))/(1.+recb*sbt(i))*exp(wt(i)*obs_err);
 	    Nat(i+1)(2,nage) = ++elem_prod(Nat(i)(1,nage-1),exp(-zt(i)(1,nage-1)));
-	    Nat(i+1,nage) += Nat(i,nage)*exp(-zt(i,nage));
+	    //Nat(i+1,nage) += Nat(i,nage)*exp(-zt(i,nage));
+		Nat(i+1,nage) /= 1.- exp(-zt(i,nage));
+
 
 	    dvector t1 = elem_div(ft(i)*va,zt(i));
 	    dvector t2 = elem_prod( 1.-exp(-zt(i)), Nat(i) ) ;
@@ -213,7 +216,6 @@ FUNCTION output_data
 	ofs<<"# m " << endl << m <<endl;
 	ofs<<"# alw " << endl << alw <<endl;
 	ofs<<"# blw "<< endl << blw <<endl;
-	ofs<<"# wmat "<< endl << 1.240343  <<endl;
 	ofs<<"# mat50  "<< endl << feca <<endl;
 	ofs<<"# matsd " << endl << fecg <<endl;
 	ofs<<"# ahat " << endl << ahat <<endl;
