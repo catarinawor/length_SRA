@@ -17,7 +17,6 @@ DATA_SECTION
 	init_number m;						// natural mortality
 	init_number alw;					// multiplier for length-weight relationship
 	init_number blw;					// multiplier for length-weight relationship
-	init_number wmat;					// initial weight at maturity
 	init_number mat50;					// maturity parameter
 	init_number matsd;					// maturity parameter
 	init_number ahat;					// vulnerability parameter
@@ -37,7 +36,7 @@ DATA_SECTION
 	init_number iRo; 					// Avearge unfished recruitment
  	init_vector iwt(syr,eyr-1);         // Recruitment deviations
 
-	init_number cv_it;					// CV for survey
+	init_number cv_it;					// sd for survey
 
 	init_number sigR;					// sigma for recruitment deviations, fixed? RL: yes, it is better fix this parameter than using the Error in Variable (EIV) approach. otherwise the likelihoods are going to be more complicated and messy 
 	init_number sigVul;					// RL: it is the parameter control the variability for the vulnerability. low values means that the vul doesn't change much over time...I guess
@@ -75,7 +74,7 @@ DATA_SECTION
 
 
 PARAMETER_SECTION
-	init_number log_Ro(1);				//Log of average unfished recruitment
+	init_number log_Ro;			    	//Log of average unfished recruitment
 	init_number log_Linf(phz_growth);	//log of l infinity
 	init_number log_k(phz_growth);		//log of k from VB
 	init_number log_cvl(phz_growth);	// log of coefficient of variantion for age at length curve
@@ -149,7 +148,7 @@ FUNCTION trans_parms
 	Linf = mfexp( log_Linf );
 	k = mfexp( log_k );
 	cvl = mfexp( log_cvl );
-	reck = mfexp( log_reck ) + 1.001;
+	reck = mfexp( log_reck );// + 1.001;
 	Ro = mfexp( log_Ro );
 	wt = mfexp( log_wt );
 	
@@ -206,9 +205,10 @@ FUNCTION SRA
 	dvar_matrix Upen( syr, eyr, 1, nlen );
 	
 	// INITIAL YEAR (no fishing assumed)
-	for( int a = 1; a <= nage; a++ )
+	Nat( syr, 1 )= Ro;
+	for( int a = 2; a <= nage; a++ )
 	{
-		Nat( syr, a ) = Ro * pow( Sa( a ), age( a ) - 1. );	// initial age-structure
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa( a - 1 );	// initial age-structure
 	}		
 	Nat( syr, nage ) /= 1. - Sa( nage );
 	
@@ -236,8 +236,7 @@ FUNCTION SRA
 	{
 	  
 		dvariable sbt = fec * Nat(y - 1);				// eggs in year-y
-	  
-	  	
+	    	
 		Nat( y, 1 ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// B-H recruitment
 		
 
@@ -253,9 +252,10 @@ FUNCTION SRA
 		//Nat( y )( 2, nage ) =++  elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 ));
 		//Nat( y, nage ) =  Nat( y - 1, Am1 ) * Sa( nage ) * ( 1. - Uage( y - 1, Am1)); //  += CHECK THE PLUS GROUP
 		//Nat( y, nage ) +=  Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )); //  += CHECK THE PLUS GROUP
-		Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 )), tiny, fpen );
-		Nat( y, nage ) = posfun( Nat( y - 1, Am1 ) * Sa( nage ) * ( 1. - Uage( y - 1, Am1)), tiny, fpen); //  += CHECK THE PLUS GROUP
-		Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen); //  += CHECK THE PLUS GROUP
+		Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, nage - 1 ), Sa( 1, nage - 1)), 1. - Uage( y - 1 )( 1, nage -1 )), tiny, fpen );
+		Nat( y, nage ) /= 1. - Sa( nage ) * ( 1. - Uage( y - 1, nage));
+		//Nat( y, nage ) = posfun( Nat( y - 1, Am1 ) * Sa( Am1 ) * ( 1. - Uage( y - 1, Am1)), tiny, fpen); //  += CHECK THE PLUS GROUP
+		//Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen); //  += CHECK THE PLUS GROUP
 		
 		//=====================================================================================
 	
@@ -265,7 +265,8 @@ FUNCTION SRA
 			Nlt( y, b ) = Nat( y ) * P_al( b );	
 
 			// exploitation by length										
-			Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	
+			//Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	
+			Ulength( y, b ) = Clt( y, b ) / Nlt( y, b );	
 		}
 	
 		for( int a = 1; a <= nage; a++ )
@@ -318,7 +319,7 @@ FUNCTION objective_function
 	lvec.initialize();
 
 	lvec(1)=dnorm(zstat,cv_it);
-	lvec(2)=dnorm(wt,sigR);
+	lvec(2)=dnorm(log_wt,sigR);
 
 	dvar_vector pvec(1,3);
 	pvec.initialize();
@@ -340,6 +341,14 @@ FUNCTION objective_function
 		pvec(2)=100.*norm2(log_wt); 	
 	}
 	
+
+	//if(last_phase())
+	//{
+	//	cout<<"log_wt is: "<<log_wt<<endl;
+	//	cout<<"lvec is: "<<lvec<<endl;
+	//	exit(1);	
+	//}
+
 	//=====================================================================================
 	//pergunta:
 	// I am not sure about what kind of penalty this is
