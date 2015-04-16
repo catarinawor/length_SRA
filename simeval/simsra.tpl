@@ -25,6 +25,9 @@ DATA_SECTION
 	init_int nlen;
 	init_int lstp;
 	init_int niyr;
+
+	init_int proc_err;
+	init_int obs_err;
 	
 	//true parameter values
 	init_number sigR; 	    		// standard deviation for recruitment deviations
@@ -43,6 +46,8 @@ DATA_SECTION
 	init_number reck;				// recruitment compensarion ratio
 	init_number Ro;					// Average unfished recruitment
 	init_number q;					// catchability coefficient
+
+
 
 
 	init_vector ft(syr,eyr);		// Fishing mortality pattern
@@ -172,11 +177,14 @@ FUNCTION incidence_functions
 	for(int i=syr;i<=eyr;i++)
 	{	    
 	    zt(i) = m+ft(i)*va;
+
 	    sbt(i) = fec * Nat(i);
 
-	    Nat(i+1,1) = (reca*sbt(i))/(1.+recb*sbt(i))*exp(wt(i));
+	    Nat(i+1,1) = (reca*sbt(i))/(1.+recb*sbt(i))*exp(wt(i)*obs_err);
 	    Nat(i+1)(2,nage) = ++elem_prod(Nat(i)(1,nage-1),exp(-zt(i)(1,nage-1)));
-	    Nat(i+1,nage) += Nat(i,nage)*exp(-zt(i,nage));
+	    //Nat(i+1,nage) += Nat(i,nage)*exp(-zt(i,nage));
+		Nat(i+1,nage) /= 1.- exp(-zt(i,nage));
+
 
 	    dvector t1 = elem_div(ft(i)*va,zt(i));
 	    dvector t2 = elem_prod( 1.-exp(-zt(i)), Nat(i) ) ;
@@ -186,8 +194,8 @@ FUNCTION incidence_functions
 	    // true catch at length
 	    cal(i) = P_al*cat(i); //   P_al(77,12) X pcat(38*12)
 	
-		vbt(i) = q * Nat(i)*elem_prod(wa,va) * exp(eps(i)); // cpue
-		bt(i) = Nat(i)* wa * exp(eps(i)); 				  // survey
+		vbt(i) = q * Nat(i)*elem_prod(wa,va) * exp(eps(i)*proc_err); // cpue
+		bt(i) = Nat(i)* wa * exp(eps(i)*proc_err); 				     // survey
 		depl(i) = sbt(i)/sbt(1);
 	}
 
@@ -208,15 +216,14 @@ FUNCTION output_data
 	ofs<<"# m " << endl << m <<endl;
 	ofs<<"# alw " << endl << alw <<endl;
 	ofs<<"# blw "<< endl << blw <<endl;
-	ofs<<"# wmat "<< endl << 1.240343  <<endl;
 	ofs<<"# mat50  "<< endl << feca <<endl;
-	ofs<<"# #matsd " << endl << fecg <<endl;
+	ofs<<"# matsd " << endl << fecg <<endl;
 	ofs<<"# ahat " << endl << ahat <<endl;
 	ofs<<"# ghat "<< endl << ghat <<endl;
 	ofs<<"# vul "<< endl << va <<endl;
 	ofs<<"# nyt "<< endl << eyr <<endl;
 	ofs<<"# iyr " << endl << iyr <<endl;
-	ofs<<"# yt " << endl << bt <<endl;
+	ofs<<"# yt " << endl << vbt <<endl;
 	ofs<<"# cal "<< endl << cal <<endl;
 	ofs<<"# ilinf "<< endl << Linf <<endl;
 	ofs<<"# ik "<< endl << k <<endl;
@@ -230,7 +237,7 @@ FUNCTION output_data
 	ofs<<"# sigVul " << endl << 0.4 <<endl;
 	ofs<<"# phz_reck "<< endl << 2 <<endl;
 	ofs<<"# phz_growth  "<< endl << -4  <<endl;
-	ofs<<"# use_prior  "<< endl << 1 <<endl;
+	ofs<<"# use_prior  "<< endl << 0 <<endl;
 	ofs<<"# dend " << endl << 999 <<endl;
 	
 	

@@ -22,7 +22,7 @@ maxgrad_h = NULL
 hat_h = NULL
 ire_h = NULL
 re_h = NULL
-nsim = 100
+nsim = 1
 
 
 for(s in 1:nsim) {
@@ -72,12 +72,11 @@ hat_cr <- rbind(hat_cr, ihat_cr)
 valid_maxgrad_cr = which(maxgrad_cr <= 0.0001)
 valid_cr = which( hat_cr[,2] >= 2 & hat_cr[,2] <= true_reck*2)
 valid_grad_cr = which( hat_cr[,2] >= 2 & hat_cr[,2] <= true_reck*2 & maxgrad_cr <= 0.0001)
-if(s==nsim) { cat("# Valid Sim=", length(valid_grad_cr)) }
+#if(s==nsim) { cat("# Valid Sim=", length(valid_grad_cr)) }
 
 #file.remove("simsra.dat")
 
 }
-
 
 
 
@@ -98,15 +97,16 @@ plot_re = function(itheta,ivalid,h_cr,legend=T)  {
 }
 
 
-
 # pdflabel = paste("simF",Ftpattern,"iRE",".pdf",sep="_")
 
 #pdf(file=pdflabel) 
 
 par(mfcol=c(1,1),mar=c(4,1,1,1),oma=c(0,2,2.5,0), las=1)
-
 plot_re(ire_cr,valid_cr,"CR",T)
 
 
+colnames(ire_cr) = c("ro","kappa","Depletion","Uend", "q")
+barplot(ire_cr[valid_cr,], ylim=c(-0.7,0.7), ylab="relative error", las=1)
+  
 
 
