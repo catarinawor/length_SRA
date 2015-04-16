@@ -195,7 +195,7 @@ FUNCTION incidence_functions
 	    cal(i) = P_al*cat(i); //   P_al(77,12) X pcat(38*12)
 	
 		vbt(i) = q * Nat(i)*elem_prod(wa,va) * exp(eps(i)*proc_err); // cpue
-		bt(i) = Nat(i)* wa * exp(eps(i)*proc_err); 				  // survey
+		bt(i) = Nat(i)* wa * exp(eps(i)*proc_err); 				     // survey
 		depl(i) = sbt(i)/sbt(1);
 	}
 
@@ -223,7 +223,7 @@ FUNCTION output_data
 	ofs<<"# vul "<< endl << va <<endl;
 	ofs<<"# nyt "<< endl << eyr <<endl;
 	ofs<<"# iyr " << endl << iyr <<endl;
-	ofs<<"# yt " << endl << bt <<endl;
+	ofs<<"# yt " << endl << vbt <<endl;
 	ofs<<"# cal "<< endl << cal <<endl;
 	ofs<<"# ilinf "<< endl << Linf <<endl;
 	ofs<<"# ik "<< endl << k <<endl;

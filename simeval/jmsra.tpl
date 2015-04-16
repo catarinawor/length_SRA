@@ -309,9 +309,15 @@ FUNCTION observation_model
 		zstat(i)=log(survB(i))-log(psurvB(iyr(i)));
 	}
 			
-	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
 	q=mfexp(mean(zstat));
- 	
+	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
+	//cout<< "zstat is: "<< zstat<<endl;
+	//cout<< "mean(zstat): "<< mean(zstat)<<endl;
+	//cout<< "q is: "<< q<<endl;
+	//cout<< "q is: "<< q<<endl;
+ 	//cout<< "survB is: "<< survB<<endl;
+ 	//cout<< "psurvB is: "<< psurvB<<endl;
+ 	//exit(1);
 	
 FUNCTION objective_function 
 
