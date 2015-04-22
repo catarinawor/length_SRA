@@ -18,11 +18,12 @@ DATA_SECTION
 	init_number m;						// natural mortality
 	init_number alw;					// multiplier for length-weight relationship
 	init_number blw;					// multiplier for length-weight relationship
-	init_number mat50;					// maturity parameter
-	init_number matsd;					// maturity parameter
-	init_number ahat;					// vulnerability parameter
-	init_number ghat;					// vulnerability parameter (sd)
-	init_vector va(1,nage);				// survey vulnerability
+	//init_number mat50;					// maturity parameter
+	//init_number matsd;					// maturity parameter
+	//init_number ahat;					// vulnerability parameter
+	//init_number ghat;					// vulnerability parameter (sd)
+	init_vector vul(1,nage);				// survey vulnerability
+	init_vector fec(1,nage); 			// iyr(syr,nyr)
 	init_int nyt						// number of survey observations
 	init_vector iyr(1,nyt); 			// iyr(syr,nyr)
 	init_vector survB(1,nyt);       	// yt(syr,nyr)
@@ -107,16 +108,18 @@ PARAMETER_SECTION
 	number Eo;							// unfished egg deposition
 	number reca;						// alpha of stock-recruit relationship
 	number recb;						// beta of stock-recruit relationship
+	number phie;
 	number q;							// catchability coefficient (based on zstat)
-				
+	number Sa;							// survival-at-age (assume constant across ages)
+
 	vector zstat(1,nyt);				// MLE of q
 	vector wt(syr,eyr-1);				// recruitment anomalies
-	vector Sa(1,nage);					// survival-at-age (assume constant across ages)
- 	vector vul(1,nage);					// age-specific vulnerabilities
+	
+ 	//vector vul(1,nage);					// age-specific vulnerabilities
 	vector la(1,nage);					// length-at-age
 	vector wa(1,nage);					// weight-at-age
 	vector lxo(1,nage);					// unfished survivorship at age
-	vector fec(1,nage);					// age-specific fecundity - used for stock-recruit function
+	//vector fec(1,nage);					// age-specific fecundity - used for stock-recruit function
 	
 	
 	vector maxUy(syr,eyr);				// maximum U over length classes for each year?
@@ -146,12 +149,12 @@ PROCEDURE_SECTION
 FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
-	Linf = mfexp( log_Linf );
-	k = mfexp( log_k );
-	cvl = mfexp( log_cvl );
-	reck = mfexp( log_reck );// + 1.001;
-	Ro = mfexp( log_Ro );
-	wt = mfexp( log_wt );
+	Linf = exp( log_Linf );
+	k = exp( log_k );
+	cvl = exp( log_cvl );
+	reck = exp( log_reck );
+	Ro = exp( log_Ro );
+	wt = exp( log_wt );
 	
 FUNCTION incidence_functions
 	
@@ -161,7 +164,7 @@ FUNCTION incidence_functions
 	double zn;
 	dvar_vector std( 1, nage );
 
-	la = Linf * ( 1. - mfexp( -k * ( age - to )));
+	la = Linf * ( 1. - exp( -k * ( age - to )));
 	std = la * cvl;
 	
 	Sa = exp(-m);
@@ -169,14 +172,14 @@ FUNCTION incidence_functions
 	lxo( 1 ) = 1.;
 	for( int a = 2; a <= nage; a++ ) 
 	{
-		lxo( a ) = lxo(a-1)*Sa(a-1);
+		lxo( a ) = lxo(a-1)*Sa;
 	}	
-		lxo( nage ) /= 1. - Sa( nage );
+		//lxo( nage ) /= 1. - Sa;
 	
 	
 		wa = alw * pow( la, blw );
-		fec = elem_prod(wa,plogis(age,mat50,matsd));
-		vul = plogis(age,ahat,ghat);
+		//fec = elem_prod(wa,plogis(age,mat50,matsd));
+		//vul = plogis(age,ahat,ghat);
  	
  	for( int a = 1; a <= nage; a++ )
 	{
@@ -195,7 +198,7 @@ FUNCTION incidence_functions
 	
 FUNCTION initialization
 
-	dvariable phie = lxo * fec;
+	phie = lxo * fec;
 	reca = reck/phie;
 	recb = (reck - 1.)/(Ro*phie); 
 
@@ -209,28 +212,22 @@ FUNCTION SRA
 	Nat( syr, 1 )= Ro;
 	for( int a = 2; a <= nage; a++ )
 	{
-		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa( a - 1 );	// initial age-structure
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	}		
-	Nat( syr, nage ) /= 1. - Sa( nage );
+	//Nat( syr, nage ) /= 1. - Sa;
 	
+	// length-structure in year-1
+	Nlt( syr) = Nat( syr ) * P_la;	
 	
-	for( int b = 1; b <= nlen; b++ )
-	{
-		// length-structure in year-1
-		Nlt( syr, b ) = Nat( syr ) * P_al( b );	
-		// exploitation by length		
-		Ulength( syr, b ) = Clt( syr, b ) / posfun( Nlt( syr, b ), Clt( syr, b ), fpen);	
-	}
-	
+	// exploitation by length		
+	Ulength( syr ) = elem_div(Clt( syr ), Nlt( syr ));
+
 	// exploitation rate for fully recruited age class
 	maxUy( syr ) = max( Ulength( syr ));
-
-
-	for( int a = 1; a <= nage; a++ )
-	{
-		// exploitation by age
-		Uage( syr, a ) = Ulength( syr ) * P_la( a );		
-	}
+	
+	// exploitation by age
+	Uage( syr ) = Ulength( syr ) * P_al;		
+	
 
 	// SUBSEQUENT YEARS
 	for( int y = syr + 1; y <= eyr; y++ )
@@ -240,44 +237,35 @@ FUNCTION SRA
 	    	
 		Nat( y, 1 ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// B-H recruitment
 		
-
-		// age-distribution post-recruitment
-		//=====================================================================================
-		//pergunta:
-		// this is very confusing should we use always Am1 or just stick with nage -1
-		// And why is the plus group being calculated in three lines?
-		// Do we need posfun if we are always calculating positive numbers (Nat) by proportions? Can Uage be ever greater than 1?
-		// RL: yes I agree. we should put -1 or am1..whatever you think is better/clear
-		// RL: the plus group is calculated in 3 lines just because it is clear to see the two components of the plus group...you can just use two lines but the equation is too long
-		// RL: Uage can't go greater that 1..or negative of course. because we are simulated data, it is possible that some trials go greater than 1, so better include a penalty or something..
-		//Nat( y )( 2, nage ) =++  elem_prod( elem_prod( Nat( y - 1 )( 1, Am1 ), Sa( 1, Am1 )), 1. - Uage( y - 1 )( 1, Am1 ));
-		//Nat( y, nage ) =  Nat( y - 1, Am1 ) * Sa( nage ) * ( 1. - Uage( y - 1, Am1)); //  += CHECK THE PLUS GROUP
-		//Nat( y, nage ) +=  Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )); //  += CHECK THE PLUS GROUP
-		Nat( y )( 2, nage ) =++ posfun( elem_prod( elem_prod( Nat( y - 1 )( 1, nage - 1 ), Sa( 1, nage - 1)), 1. - Uage( y - 1 )( 1, nage -1 )), tiny, fpen );
-		Nat( y, nage ) /= 1. - Sa( nage ) * ( 1. - Uage( y - 1, nage));
-		//Nat( y, nage ) = posfun( Nat( y - 1, Am1 ) * Sa( Am1 ) * ( 1. - Uage( y - 1, Am1)), tiny, fpen); //  += CHECK THE PLUS GROUP
-		//Nat( y, nage ) += posfun( Nat( y - 1, nage ) * Sa( nage ) * ( 1. - Uage( y - 1, nage )), tiny, fpen); //  += CHECK THE PLUS GROUP
 		
+		// age-distribution post-recruitment
+
+		Nat( y )( 2, nage ) =++ elem_prod( Nat( y - 1 )( 1, nage - 1 )* Sa, 1. - Uage( y - 1 )( 1, nage -1 ));
+		//Nat( y, nage ) /= 1. - Sa * ( 1. - Uage( y - 1, nage));
+
+
 		//=====================================================================================
 	
+		Nlt( y ) = Nat( y ) * P_la;	
+
 		for( int b = 1; b <= nlen; b++ )
 		{
 			// length-distribution by year
-			Nlt( y, b ) = Nat( y ) * P_al( b );	
+			
 
 			// exploitation by length										
 			//Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	
 			Ulength( y, b ) = Clt( y, b ) / Nlt( y, b );	
 		}
-	
-		for( int a = 1; a <= nage; a++ )
-		{
-			// exploitation by age
-			Uage( y, a ) = Ulength( y ) * P_la( a );			
-		}
+			
+		// exploitation by age
+		Uage( y) = Ulength( y ) * P_al;			
+		
 		// max exploitation (fully selected) across lengths
 		maxUy( y ) = max( Ulength( y ));	
 	}
+
+
 
 		for( int b = 1; b <= nlen; b++ )
 		{ 
@@ -293,11 +281,13 @@ FUNCTION SRA
 		}
 		ssvul = sum( Upen );				// vulnerability penalty
 
+
 	//=====================================================================================
 	//pergunta:	
 	// survey has no selectivity?? // RL: I was assuming a acoustic survey. When I included the va, the modelo produced and positive bias por the cpue/index of abundance. we need to look at this issue
-	 	psurvB = Nat * elem_prod(wa,va);
+	 	psurvB = Nat * elem_prod(wa,vul);
 	//psurvB = Nat * wa;
+
 
 	
 	//=====================================================================================
@@ -310,11 +300,14 @@ FUNCTION observation_model
 		zstat(i)=log(survB(i))-log(psurvB(iyr(i)));
 	}
 			
-	q=mfexp(mean(zstat));
+	q=exp(mean(zstat));
 	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
+	
 	//cout<< "zstat is: "<< zstat<<endl;
 	//cout<< "mean(zstat): "<< mean(zstat)<<endl;
-	//cout<< "q is: "<< q<<endl;
+	//cout<< "Uage is: "<< Uage<<endl;
+	//cout<< "reck is: "<< reck<<endl;
+	cout<< "q is: "<< q<<endl;
 	//cout<< "q is: "<< q<<endl;
  	//cout<< "survB is: "<< survB<<endl;
  	//cout<< "psurvB is: "<< psurvB<<endl;
@@ -323,29 +316,31 @@ FUNCTION observation_model
 FUNCTION objective_function 
 
 	dvar_vector lvec(1,2);
-	lvec.initialize();
+	//lvec.initialize();
 
 	lvec(1)=dnorm(zstat,cv_it);
 	lvec(2)=dnorm(log_wt,sigR);
 
-	dvar_vector pvec(1,3);
+	dvar_vector pvec(1,2);
 	pvec.initialize();
 	
-	if(active(log_reck))
-	{  
- 		dvariable h=reck/(4.+reck);	
- 		// beta a=1 and b=1 --> flat
-		pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
-   	}
+	//if(active(log_reck))
+	//{  
+ 	//	dvariable h=reck/(4.+reck);	
+ 	//	// beta a=1 and b=1 --> flat
+	//	pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
+	//	cout<<" (h-0.2)/0.8 is "<< (h-0.2)/0.8<< endl;
+	//	cout<<" (h is "<< h << endl;
+	//	
+   	//}
 	
 	if(last_phase())
-	{
-		
-		pvec(2)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function
+	{		
+		pvec(1)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function
 	}
 	else
 	{
-		pvec(2)=100.*norm2(log_wt); 	
+		pvec(1)=100.*norm2(log_wt); 	
 	}
 	
 
@@ -359,7 +354,7 @@ FUNCTION objective_function
 	//=====================================================================================
 	//pergunta:
 	// I am not sure about what kind of penalty this is
-	pvec(3) = ssvul/sigVul;
+	pvec(2) = ssvul/sigVul;
 	// RL: see commment above
 	//=====================================================================================
 	
@@ -409,7 +404,7 @@ REPORT_SECTION
 	REPORT(Sa);
 	REPORT(vul);
 	REPORT(la);
-	REPORT(va);
+	REPORT(vul);
 	REPORT(Nlt)
 
 TOP_OF_MAIN_SECTION
