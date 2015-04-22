@@ -9,7 +9,7 @@ source("read.admb.R")
 
 
 Est_Tpl = "jmsra"
-Sim_Tpl = "simsra"
+Sim_Tpl = "simsrasp"
 
 
 
@@ -25,7 +25,7 @@ re_h = NULL
 nsim = 1
 
 
-for(s in 1:nsim) {
+#for(s in 1:nsim) {
 
 ##  set seed and Ft  
 
@@ -40,15 +40,14 @@ for(s in 1:nsim) {
 ## run simulator
 system(paste('./',Sim_Tpl,' -ind ',Sim_Tpl,'.dat',sep=""), wait = TRUE)
 input = read.rep("true_data_lsra.rep")
-#names(input)
+names(input)
 true_Ro = input$true_Ro
 true_reck = input$true_reck
-true_ct = input$true_ct
+true_ct = input$true_Clt
 true_ut = input$true_ut
 
 true_utend = input$true_ut[length(true_ut)]
 true_nat = input$true_Nat
-true_cal = input$true_cal
 true_sbt = input$true_sbt
 true_depl = input$true_depl
 true_rt = true_nat[,1]
@@ -56,7 +55,7 @@ true_q = input$true_q
 ## run estimator
 system(paste('./',Est_Tpl,' -ind ',Est_Tpl,'.dat',sep=""), wait = TRUE)
 out_cr = read.admb(Est_Tpl)
-##names(out_cr)
+names(out_cr)
 
 
 ## save sim-est outputs
@@ -70,15 +69,16 @@ ire_cr <- rbind(ire_cr, temp_ire_cr)
 hat_cr <- rbind(hat_cr, ihat_cr)
 
 valid_maxgrad_cr = which(maxgrad_cr <= 0.0001)
-valid_cr = which( hat_cr[,2] >= 2 & hat_cr[,2] <= true_reck*2)
-valid_grad_cr = which( hat_cr[,2] >= 2 & hat_cr[,2] <= true_reck*2 & maxgrad_cr <= 0.0001)
+#valid_cr = which( hat_cr[,2] >= 2 & hat_cr[,2] <= true_reck*2)
+#valid_grad_cr = which( hat_cr[,2] >= 2 & hat_cr[,2] <= true_reck*2 & maxgrad_cr <= 0.0001)
 #if(s==nsim) { cat("# Valid Sim=", length(valid_grad_cr)) }
 
 #file.remove("simsra.dat")
 
-}
+#}
 
-
+names(out_cr)
+names(input)
 
 plot_re = function(itheta,ivalid,h_cr,legend=T)  {
   
@@ -106,7 +106,7 @@ plot_re(ire_cr,valid_cr,"CR",T)
 
 
 colnames(ire_cr) = c("ro","kappa","Depletion","Uend", "q")
-barplot(ire_cr[valid_cr,], ylim=c(-0.7,0.7), ylab="relative error", las=1)
+barplot(ire_cr, ylim=c(-0.7,0.7), ylab="relative error", las=1)
   
 
 

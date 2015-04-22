@@ -152,11 +152,7 @@ FUNCTION incidence_functions
 	reca = reck/phie; 
 	recb = (reck - 1.)/(Ro*phie); 
 	sbo  = Ro*phie;
-	//test = (reca*sbo)/(1.+recb*sbo);
-
-	// 	cout << "Ro is:" << Ro <<endl;	
-	// 	cout << "Ro_test is:"<< test <<endl;
-	// 	exit(1);
+	
 	
 	// Calculate proportion of legth at age class
 
