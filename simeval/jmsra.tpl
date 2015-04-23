@@ -80,13 +80,13 @@ PARAMETER_SECTION
 	init_number log_Linf(phz_growth);	//log of l infinity
 	init_number log_k(phz_growth);		//log of k from VB
 	init_number log_cvl(phz_growth);	// log of coefficient of variantion for age at length curve
-	init_number log_reck(phz_reck);		// log of recruitment compensation ratio
+	init_number reck(phz_reck);		// log of recruitment compensation ratio
 
 	// set growth parameters to true values
 	!! log_Linf=log(ilinf);
 	!! log_k=log(ik);
 	!! log_cvl=log(icvl);
-	!! log_reck=log(ireck);
+	!! reck=ireck;
 	!! log_Ro=log(iRo);
 
 	// log of recruitment deviation
@@ -99,7 +99,7 @@ PARAMETER_SECTION
 	number Linf;						// von Bertalanffy asymptotic length (estimated - based on log_linf)
 	number k;							// von Bertalanffy metabolic parameter (estimated - based on log_k)
 	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
-	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
+	//number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
 	
 	
@@ -152,7 +152,7 @@ FUNCTION trans_parms
 	Linf = exp( log_Linf );
 	k = exp( log_k );
 	cvl = exp( log_cvl );
-	reck = exp( log_reck );
+	//reck = exp( log_reck );
 	Ro = exp( log_Ro );
 	wt = exp( log_wt );
 	
@@ -307,7 +307,7 @@ FUNCTION observation_model
 	//cout<< "mean(zstat): "<< mean(zstat)<<endl;
 	//cout<< "Uage is: "<< Uage<<endl;
 	//cout<< "reck is: "<< reck<<endl;
-	cout<< "q is: "<< q<<endl;
+	//cout<< "q is: "<< q<<endl;
 	//cout<< "q is: "<< q<<endl;
  	//cout<< "survB is: "<< survB<<endl;
  	//cout<< "psurvB is: "<< psurvB<<endl;
@@ -316,7 +316,7 @@ FUNCTION observation_model
 FUNCTION objective_function 
 
 	dvar_vector lvec(1,2);
-	//lvec.initialize();
+	lvec.initialize();
 
 	lvec(1)=dnorm(zstat,cv_it);
 	lvec(2)=dnorm(log_wt,sigR);

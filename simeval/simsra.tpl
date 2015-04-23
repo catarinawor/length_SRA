@@ -32,11 +32,10 @@ DATA_SECTION
 	//true parameter values
 	init_number sigR; 	    		// standard deviation for recruitment deviations
 	init_number tau;				// standard deviation for observation error
-	init_number m;					// natural mortality
-	init_number ahat;				// selectivity inflexion point
-	init_number ghat;				// selectivity sd
-	init_number feca;				// maturity curve inflexion point
-	init_number fecg;				// maturity sd
+	init_number Sa;				// natural survival
+	
+	init_number wmat;				// 50% maturity 
+	
 	init_number Linf;				// vb Linfinity
 	init_number k;					// vb k
 	init_number to;					// vb to
@@ -48,9 +47,8 @@ DATA_SECTION
 	init_number q;					// catchability coefficient
 
 
-
-
-	init_vector ft(syr,eyr);		// Fishing mortality pattern
+	init_vector va(1,nage);        // vector of vulnerabilities at age
+	init_vector ut(syr,eyr);		// exploitation rate pattern
 	init_vector iyr(1,niyr);     	// years for which a survey is available
 
 	init_int dend;					// end of file number
@@ -59,7 +57,7 @@ DATA_SECTION
 		if( dend != 999 )
 		{
 			cout<<"Error reading true values.\n Fix it."<<endl;
-			cout<< ft <<endl;
+			cout<< iyr <<endl;
 			cout<< dend <<endl;
 			ad_exit(1);
 		}
@@ -84,21 +82,23 @@ DATA_SECTION
 	vector depl(syr,eyr);			// depletion based on spawning biomass
 	
 	vector len(1,nlen); 			// length classes
-	vector va(1,nage); 				// fisheries vulnerability at age
 	vector lxo(1,nage); 			// Equilibrium unfished numbers ata age
 	vector wa(1,nage); 				// Weight at age
 	vector fec(1,nage); 			// fecundity at age
 	vector la(1,nage); 				// length at age
-	vector Sa(1,nage); 				// Survival at age	
 	
 
 	matrix P_la(1,nage,1,nlen); 	// matrix of proportion of age at length
 	matrix P_al(1,nlen,1,nage); 	// matrix of proportion of age at length (transpose)
-	matrix Nat(syr,eyr+1,1,nage); 	// Numbers at age
-	matrix zt(syr,eyr,1,nage); 		// Total mortality
-	matrix cat(syr,eyr,1,nage); 	// Catch at age (in numbers)
-	matrix pcat(syr,eyr,1,nage); 	// Proportions of catch at age
-	matrix cal(syr,eyr,1,nlen); 	// Catch at Length
+	matrix Nat(syr,eyr,1,nage); 	// Numbers at age
+	matrix Ulength(syr,eyr,1,nlen); // Exploitation rate at length
+	matrix Uage(syr,eyr,1,nage); // Exploitation rate at length
+	matrix Nlt(syr,eyr,1,nlen); 	// Numbers at length
+	matrix Clt(syr,eyr,1,nlen); 	// Catch at length
+
+
+
+	
 	
 	LOC_CALCS
 		random_number_generator rng(seed);
@@ -130,7 +130,6 @@ FUNCTION incidence_functions
 	dvector z2(1,nlen); 				// intermediate steps for calculating proportion of age at length
 	dvector std(1,nage); 					// std for length at age curve
 
-	Sa = exp(-m);
 
  	la.initialize();
 	la = Linf*(1.-exp(-k*(age-to)));  //average length at age
@@ -139,13 +138,20 @@ FUNCTION incidence_functions
 	lxo(1) = 1.; //first age	
 	for(int a = 2 ; a <= nage ; a++)
 	{
-		lxo(a) = lxo(a-1)*Sa(a-1); // proportion of individuals at age surviving M only
+		lxo(a) = lxo(a-1)*Sa; // proportion of individuals at age surviving M only
 	}
-	lxo(nage) /= 1.-Sa(nage); // age plus group
+	//lxo(nage) /= 1.-Sa; // age plus group
 	
 	wa = alw * pow(la,blw); //weight at age
-	fec = elem_prod(wa,plogis(age,feca,fecg)); // wight at age-weight at 50% maturity
- 	va = plogis(age,ahat,ghat);
+
+ 	for(int w=1;w<=nage;w++)
+ 	{
+ 		if(wa(w)>wmat)
+ 		{
+ 			fec=wa(w)-wmat;
+ 		}
+ 	}
+ 	
 
 	phie = lxo*fec; 
 	
@@ -154,7 +160,7 @@ FUNCTION incidence_functions
 	sbo  = Ro*phie;
 	
 	
-	// Calculate proportion of legth at age class
+	// Calculate proportion of length at age class
 
  	for( int a = 1; a <= nage; a++ )
 	{
@@ -162,45 +168,51 @@ FUNCTION incidence_functions
 		z2 = (( len + lstp * 0.5 )-la( a ))/std( a );
 		for( int b=1; b<= nlen; b++ )
 		{
-		P_la( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b )); // calculates the proportion of a given age given your length
+			P_la( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b )); // calculates the proportion of a given age given your length
 		}
 	}
 	
 	P_al = trans(P_la); //transpose matrix to length by age
 
 	Nat(syr) = Ro*lxo;
-	  
-	for(int i=syr;i<=eyr;i++)
-	{	    
-	    zt(i) = m+ft(i)*va;
+	Nlt(syr) = Nat(syr)*P_la;
+	Ulength(syr) = ut(syr)/(1.+mfexp(-1.7*(len-4.)/0.1)); //4 is age of 50% mat hard coded in
+	Uage(syr) = Ulength(syr)*P_al;
+	Clt(syr) = elem_prod(Nlt(syr),Ulength(syr));
 
+	vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * exp(eps(syr)*obs_err); // cpue
+	bt(syr) = Nat(syr)* wa * exp(eps(syr)*proc_err); 				     // survey
+	sbt(syr) = fec * Nat(syr);
+	depl(syr) = sbt(syr)/sbt(syr);
+	  
+	for(int i=syr;i<=eyr-1;i++)
+	{	   
+	    
 	    sbt(i) = fec * Nat(i);
 
-	    Nat(i+1,1) = (reca*sbt(i))/(1.+recb*sbt(i))*exp(wt(i)*obs_err);
-	    Nat(i+1)(2,nage) = ++elem_prod(Nat(i)(1,nage-1),exp(-zt(i)(1,nage-1)));
-	    //Nat(i+1,nage) += Nat(i,nage)*exp(-zt(i,nage));
-		Nat(i+1,nage) /= 1.- exp(-zt(i,nage));
+	    Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp(wt(i)*proc_err);
+	    Nat(i+1)(2,nage) = ++elem_prod(Nat(i)(1,nage-1)*Sa,1.-Uage(i)(1,nage-1));
+	    // no age plus -  change that later
+		// Nat( syr, nage ) /= 1. - Sa( nage );
 
+		//parei aqui 
+		Nlt(i+1) = Nat(i+1)*P_la;
+		Ulength(i+1) = ut(i+1)/(1.+mfexp(-1.7*(len-4.)/0.1)); //4 is length of 50% mat hard coded in
+		Uage(i+1) = Ulength(i+1)*P_al;
+		Clt(i+1) = elem_prod(Nlt(i+1),Ulength(i+1));
 
-	    dvector t1 = elem_div(ft(i)*va,zt(i));
-	    dvector t2 = elem_prod( 1.-exp(-zt(i)), Nat(i) ) ;
-	    cat(i) = elem_prod(t1,t2); 
-	    pcat(i) = cat(i)/sum(cat(i));
-
-	    // true catch at length
-	    cal(i) = P_al*cat(i); //   P_al(77,12) X pcat(38*12)
-	
-		vbt(i) = q * Nat(i)*elem_prod(wa,va) * exp(eps(i)*proc_err); // cpue
-		bt(i) = Nat(i)* wa * exp(eps(i)*proc_err); 				     // survey
-		depl(i) = sbt(i)/sbt(1);
+		vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * exp(eps(i+1)*proc_err); // cpue
+		bt(i+1) = Nat(i+1)* wa * exp(eps(i+1)*proc_err); 
+		sbt(i+1) = fec * Nat(i+1);				     // survey
+		depl(i+1) = sbt(i+1)/sbt(syr);
 	}
 
-	  ct = cat*wa;
+
+
 
 	  
 FUNCTION output_data
-	dvector iwt(syr,eyr-1);				// Recruitment deviations
-	iwt.initialize();
+	
 
 	ofstream ofs("jmsra.dat");
 	ofs<<"# syr " << endl << syr <<endl;
@@ -209,25 +221,26 @@ FUNCTION output_data
 	ofs<<"# nlen "<< endl << nlen <<endl;
 	ofs<<"# lstp "<< endl << lstp <<endl;
 	ofs<<"# SR function " << endl << 1 <<endl;
-	ofs<<"# m " << endl << m <<endl;
+	ofs<<"# m " << endl << -log(Sa) <<endl;
 	ofs<<"# alw " << endl << alw <<endl;
 	ofs<<"# blw "<< endl << blw <<endl;
-	ofs<<"# mat50  "<< endl << feca <<endl;
-	ofs<<"# matsd " << endl << fecg <<endl;
-	ofs<<"# ahat " << endl << ahat <<endl;
-	ofs<<"# ghat "<< endl << ghat <<endl;
+	//ofs<<"# mat50  "<< endl << feca <<endl;
+	//ofs<<"# matsd " << endl << fecg <<endl;
+	//ofs<<"# ahat " << endl << ahat <<endl;
+	//ofs<<"# ghat "<< endl << ghat <<endl;
 	ofs<<"# vul "<< endl << va <<endl;
+	ofs<<"# fec "<< endl << fec <<endl;
 	ofs<<"# nyt "<< endl << eyr <<endl;
 	ofs<<"# iyr " << endl << iyr <<endl;
 	ofs<<"# yt " << endl << vbt <<endl;
-	ofs<<"# cal "<< endl << cal <<endl;
+	ofs<<"# Clt"<< endl << Clt <<endl;
 	ofs<<"# ilinf "<< endl << Linf <<endl;
 	ofs<<"# ik "<< endl << k <<endl;
 	ofs<<"# it0 " << endl << to <<endl;
 	ofs<<"# icvl " << endl << cvl <<endl;
 	ofs<<"# ireck "<< endl << reck <<endl;
 	ofs<<"# iRo "<< endl << Ro <<endl;
-	ofs<<"# wt "<< endl << exp(iwt) <<endl;
+	ofs<<"# wt "<< endl << exp(wt(syr,eyr-1)) <<endl;
 	ofs<<"# cv_it " << endl << tau <<endl;
 	ofs<<"# sigR " << endl << sigR <<endl;
 	ofs<<"# sigVul " << endl << 0.4 <<endl;
@@ -240,10 +253,9 @@ FUNCTION output_data
 FUNCTION output_true
 	  
 	ofstream ofs("true_data_lsra.rep");
-	ofs<<"true_ct" << endl << ct <<endl;
-	ofs<<"true_ut" << endl << ft <<endl;
+	ofs<<"true_ut" << endl << ut <<endl;
 	ofs<<"true_Nat" << endl << Nat.sub(syr,eyr) <<endl;
-	ofs<<"true_cal" << endl << cal.sub(syr,eyr) <<endl;
+	ofs<<"true_Clt" << endl << Clt.sub(syr,eyr) <<endl;
 	ofs<<"true_Ro" << endl << Ro <<endl;
 	ofs<<"true_reck" << endl << reck <<endl;
 	ofs<<"true_sbt" << endl << sbt <<endl;
@@ -253,8 +265,4 @@ FUNCTION output_true
 
 
 	
-
-
-
-
 
