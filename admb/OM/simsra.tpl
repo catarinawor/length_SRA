@@ -46,6 +46,9 @@ DATA_SECTION
 	init_number Ro;					// Average unfished recruitment
 	init_number q;					// catchability coefficient
 
+	init_number Ulenmu;					// 50% selectivity at lenth
+	init_number Ulensd;					// sd for selectivity at lenght
+
 
 	init_vector va(1,nage);        // vector of vulnerabilities at age
 	init_vector ut(syr,eyr);		// exploitation rate pattern
@@ -88,8 +91,8 @@ DATA_SECTION
 	vector la(1,nage); 				// length at age
 	
 
-	matrix P_la(1,nage,1,nlen); 	// matrix of proportion of age at length
-	matrix P_al(1,nlen,1,nage); 	// matrix of proportion of age at length (transpose)
+	matrix P_al(1,nage,1,nlen); 	// matrix of proportion of age at length
+	matrix P_la(1,nlen,1,nage); 	// matrix of proportion of age at length (transpose)
 	matrix Nat(syr,eyr,1,nage); 	// Numbers at age
 	matrix Ulength(syr,eyr,1,nlen); // Exploitation rate at length
 	matrix Uage(syr,eyr,1,nage); // Exploitation rate at length
@@ -173,24 +176,35 @@ FUNCTION propAgeAtLengh
 		z2 = (( len + lstp * 0.5 )-la( a ))/std( a );
 		for( int b=1; b<= nlen; b++ )
 		{
-			P_la( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b )); // calculates the proportion of a given age given your length
+			P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b )); // calculates the proportion of a given age given your length
 		}
 	}
 	
-	P_al = trans(P_la); //transpose matrix to length by age
+	P_la = trans(P_al); //transpose matrix to length by age
 
 
 FUNCTION initialYear
 	
 	Nat(syr) = Ro*lxo;
-	Nlt(syr) = Nat(syr)*P_la;
-	Ulength(syr) = ut(syr)/(1.+mfexp(-1.7*(len-4.)/0.1)); //4 is age of 50% mat hard coded in
-	Uage(syr) = Ulength(syr)*P_al;
+	Nlt(syr) = Nat(syr)*P_al;
+
+	//Exploitation rate at length
+	Ulength(syr) = ut(syr)/(1.+mfexp(-1.7*(len-Ulenmu)/Ulensd)); 
+	//Exploitation rate at age
+	Uage(syr) = Ulength(syr)*P_la;
+	
 	Clt(syr) = elem_prod(Nlt(syr),Ulength(syr));
 
+	// Is this accounting for vulnet=rable biomass twice? Ulength already includes selectivity
 	vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * exp(eps(syr)*obs_err); // cpue
+	
+	// Add process error to all ages in initial year
 	bt(syr) = Nat(syr)* wa * exp(eps(syr)*proc_err); 				     // survey
+	
+	//spawning biomass
 	sbt(syr) = fec * Nat(syr);
+
+	//spawning biomass depletion
 	depl(syr) = sbt(syr)/sbt(syr);
 
 
@@ -200,9 +214,7 @@ FUNCTION populationDynamics
 	for(int i=syr;i<=eyr-1;i++)
 	{	   
 	    
-	    //Spawning biomass
-	    sbt(i) = fec * Nat(i);
-
+	   
 	    //recruitment
 	    Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp(wt(i)*proc_err);
 	    
@@ -213,18 +225,23 @@ FUNCTION populationDynamics
 
 		
 		//Proportion of individuals at length 
-		Nlt(i+1) = Nat(i+1)*P_la;
+		Nlt(i+1) = Nat(i+1)*P_al;
 
 		//Explitation rate at length
 		Ulength(i+1) = ut(i+1)/(1.+mfexp(-1.7*(len-4.)/0.1)); //4 is length of 50% mat hard coded in
 		
 		//exploitation rate at age
-		Uage(i+1) = Ulength(i+1)*P_al;
+		Uage(i+1) = Ulength(i+1)*P_la;
 		Clt(i+1) = elem_prod(Nlt(i+1),Ulength(i+1));
 
+		// Vulnerable biomass
 		vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * exp(eps(i+1)*proc_err); // cpue
+		
+		//Total biomass - what is this additional process error representing? 
 		bt(i+1) = Nat(i+1)* wa * exp(eps(i+1)*proc_err); 
+		//spawning biomass
 		sbt(i+1) = fec * Nat(i+1);				     // survey
+		//spawning biomass depletion
 		depl(i+1) = sbt(i+1)/sbt(syr);
 	}
 
@@ -235,7 +252,7 @@ FUNCTION populationDynamics
 FUNCTION output_data
 	
 
-	ofstream ofs("jmsra.dat");
+	ofstream ofs("../SA/length_sra.tpl.dat");
 	ofs<<"# syr " << endl << syr <<endl;
 	ofs<<"# eyr " << endl << eyr <<endl;
 	ofs<<"# nage "<< endl << nage <<endl;
