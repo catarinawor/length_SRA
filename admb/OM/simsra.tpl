@@ -11,16 +11,17 @@ DATA_SECTION
 	int seed;
 
 	LOC_CALCS
-		ifstream ifs( "seed.txt" ); // if this file is available
+		ifstream ifs( "../seed.txt" ); // if this file is available
 		ifs>>seed; //read in the seed
-		seed += 10; // add 10 to the seed?
-		ofstream ofs( "seed.txt" ); //put out to seed.txt
+		seed += 13; // add 10 to the seed
+		ofstream ofs( "../seed.txt" ); //put out to seed.txt
 		ofs<<seed<<endl; //the new value of the seed
 	END_CALCS
 
 	//model dimensions
 	init_int syr;
 	init_int eyr;
+	init_int sage;
 	init_int nage;
 	init_int nlen;
 	init_int lstp;
@@ -50,7 +51,7 @@ DATA_SECTION
 	init_number Ulensd;					// sd for selectivity at lenght
 
 
-	init_vector va(1,nage);        // vector of vulnerabilities at age
+	init_vector va(sage,nage);        // vector of vulnerabilities at age
 	init_vector ut(syr,eyr);		// exploitation rate pattern
 	init_vector iyr(1,niyr);     	// years for which a survey is available
 
@@ -77,7 +78,7 @@ DATA_SECTION
 	
 	vector wt(syr,eyr);				// Recruitment deviations
 	vector eps(syr,eyr); 			// Observation errors deviations
-	vector age(1,nage); 			// age vector
+	vector age(sage,nage); 			// age vector
 	vector vbt(syr,eyr); 			// vulnerable biomass (assuming a single gear)
 	vector ct(syr,eyr);  			// catches
 	vector bt(syr,eyr);	  			// total biomass
@@ -85,17 +86,18 @@ DATA_SECTION
 	vector depl(syr,eyr);			// depletion based on spawning biomass
 	
 	vector len(1,nlen); 			// length classes
-	vector lxo(1,nage); 			// Equilibrium unfished numbers ata age
-	vector wa(1,nage); 				// Weight at age
-	vector fec(1,nage); 			// fecundity at age
-	vector la(1,nage); 				// length at age
+	vector lxo(sage,nage); 			// Equilibrium unfished numbers ata age
+	vector wa(sage,nage); 				// Weight at age
+	vector fec(sage,nage); 			// fecundity at age
+	vector la(sage,nage); 				// length at age
+	vector std(sage,nage); 			// std for length at age curve
 	
 
-	matrix P_al(1,nage,1,nlen); 	// matrix of proportion of age at length
-	matrix P_la(1,nlen,1,nage); 	// matrix of proportion of age at length (transpose)
-	matrix Nat(syr,eyr,1,nage); 	// Numbers at age
+	matrix P_al(sage,nage,1,nlen); 	// matrix of proportion of age at length
+	matrix P_la(1,nlen,sage,nage); 	// matrix of proportion of age at length (transpose)
+	matrix Nat(syr,eyr,sage,nage); 	// Numbers at age
 	matrix Ulength(syr,eyr,1,nlen); // Exploitation rate at length
-	matrix Uage(syr,eyr,1,nage); // Exploitation rate at length
+	matrix Uage(syr,eyr,sage,nage); // Exploitation rate at length
 	matrix Nlt(syr,eyr,1,nlen); 	// Numbers at length
 	matrix Clt(syr,eyr,1,nlen); 	// Catch at length
 
@@ -104,14 +106,17 @@ DATA_SECTION
 	
 	
 	LOC_CALCS
+
+		//generate random variables
 		random_number_generator rng(seed);
 		wt.fill_randn(rng);
 		wt*=sigR;
 		eps.fill_randn(rng);
 		eps*=tau;
-		age.fill_seqadd(1,1);
+		age.fill_seqadd(sage,1);
 		len.fill_seqadd(lstp,lstp);
 		Am1=nage-1;	
+
 	END_CALCS
 	
 PARAMETER_SECTION
@@ -132,18 +137,16 @@ PROCEDURE_SECTION
 
 FUNCTION incidence_functions
 	
-	//  biological processes that will not be directly estimated in the assessment
-	dvector z1(1,nlen); 				// intermediate steps for calculating proportion of age at length
-	dvector z2(1,nlen); 				// intermediate steps for calculating proportion of age at length
-	dvector std(1,nage); 				// std for length at age curve
-
+			
 
  	la.initialize();
+ 	std.initialize();
+
 	la = Linf*(1.-exp(-k*(age-to)));  //average length at age
 	std = la*cvl;  		  //std for length at age
 
-	lxo(1) = 1.; //first age	
-	for(int a = 2 ; a <= nage ; a++)
+	lxo(sage) = 1.; //first age	
+	for(int a = sage+1 ; a <= nage ; a++)
 	{
 		lxo(a) = lxo(a-1)*Sa; // proportion of individuals at age surviving M only
 	}
@@ -151,7 +154,7 @@ FUNCTION incidence_functions
 	
 	wa = alw * pow(la,blw); //weight at age
 
- 	for(int w=1;w<=nage;w++)
+ 	for(int w=sage ;w<=nage;w++)
  	{
  		if(wa(w)>wmat)
  		{
@@ -166,11 +169,13 @@ FUNCTION incidence_functions
 	recb = (reck - 1.)/(Ro*phie); 
 	sbo  = Ro*phie;
 	
-	
 FUNCTION propAgeAtLengh
-	// Calculate proportion of length at age class
 
- 	for( int a = 1; a <= nage; a++ )
+	dvector z1(1,nlen); 				// intermediate steps for calculating proportion of age at length
+	dvector z2(1,nlen); 				// intermediate steps for calculating proportion of age at length
+	
+
+ 	for( int a = sage; a <= nage; a++ )
 	{
 		z1 = (( len - lstp * 0.5 )-la( a ))/std( a );
 		z2 = (( len + lstp * 0.5 )-la( a ))/std( a );
@@ -195,7 +200,6 @@ FUNCTION initialYear
 	
 	Clt(syr) = elem_prod(Nlt(syr),Ulength(syr));
 
-	// Is this accounting for vulnet=rable biomass twice? Ulength already includes selectivity
 	vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * exp(eps(syr)*obs_err); // cpue
 	
 	// Add process error to all ages in initial year
@@ -219,12 +223,13 @@ FUNCTION populationDynamics
 	    Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp(wt(i)*proc_err);
 	    
 	    //ages 2 -nage
-	    Nat(i+1)(2,nage) = ++elem_prod(Nat(i)(1,nage-1)*Sa,1.-Uage(i)(1,nage-1));
+	    Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(1,nage-1)*Sa,1.-Uage(i)(1,nage-1));
 	    // no age plus -  change that later
 		// Nat( i+1, nage ) /= 1. - Sa( nage );
 
 		
 		//Proportion of individuals at length 
+		//note admb matrix multiplication is yj = \sum_i xi * mij 
 		Nlt(i+1) = Nat(i+1)*P_al;
 
 		//Explitation rate at length
@@ -252,9 +257,10 @@ FUNCTION populationDynamics
 FUNCTION output_data
 	
 
-	ofstream ofs("../SA/length_sra.tpl.dat");
+	ofstream ofs("../SA/length_sra.dat");
 	ofs<<"# syr " << endl << syr <<endl;
 	ofs<<"# eyr " << endl << eyr <<endl;
+	ofs<<"# sage "<< endl << sage <<endl;
 	ofs<<"# nage "<< endl << nage <<endl;
 	ofs<<"# nlen "<< endl << nlen <<endl;
 	ofs<<"# lstp "<< endl << lstp <<endl;
@@ -285,7 +291,7 @@ FUNCTION output_data
 	ofs<<"# phz_reck "<< endl << 2 <<endl;
 	ofs<<"# phz_growth  "<< endl << -4  <<endl;
 	ofs<<"# use_prior  "<< endl << 0 <<endl;
-	ofs<<"# dend " << endl << 999 <<endl;
+	ofs<<"# eof " << endl << 999 <<endl;
 	
 	
 FUNCTION output_true

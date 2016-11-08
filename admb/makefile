@@ -5,41 +5,33 @@
 ##		run:   -copy executable and force a run
 ##		mcmc:  -copy executable and run in mcmc mode and mceval
 ##		retro: -copy executable and run  retrospective analysis
-EXEC=jmsra
-DAT=jmsra.dat
-CTL=
-ARG=
-MCFLAG=-mcmc 10000 -mcsave 100 -nosdmcmc
-NR=4
-OM=simsra
-SIMDAT=simsra.dat
-LAST := 10
+
+DIREXEC= /Users/catarinawor/Documents/length_SRA/admb/SA
+DIROM =  /Users/catarinawor/Documents/length_SRA/admb/OM
+OM= simsra
+OMDAT= simsra.dat
+EXEC= SA/length_sra
+DAT= SA/length_sra.dat
+RDATA ='source(file.path("../","R/simeval/","readSimEval.R"))'
+
+
+LAST := 150
 NUMBERS := $(shell seq 1 ${LAST})
 
 
+omi: 
+	$(MAKE) --directory $(DIROM) 
+
+sai:
+	$(MAKE) --directory $(DIREXEC) 
         
+readRdat: 
+	@echo $(RDATA) | R --vanilla --slave
 
 
+all: omi sai readRdat
 
-all: $(EXEC)
-	./$(EXEC) -ind $(DAT) $(ARG)
-
-compi: admb $(EXEC) 
-
-
-run: ./$(EXEC) -ind $(DAT) $(ARG)
-
-mcmc: $(EXEC) $(EXEC).psv
-	./$(EXEC) -ind $(DAT) -mceval
-
-
-mceval: $(EXEC)
-	cp $(CTL).psv $(EXEC).psv
-	./$(EXEC) -ind $(DAT) -mceval
-
-simeval: $(foreach var,$(NUMBERS),./$(OM);\
-	./$(EXEC) -ind $(DAT) $(ARG);)
-	
+simeval: $(foreach var,$(NUMBERS), $(MAKE) all ;)
 
 
 clean: 
