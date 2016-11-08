@@ -8,23 +8,27 @@
 	
 DATA_SECTION
 
-	// model inputs and available data	
+	// model dimensions 	
 	init_int syr;						// start year of survey data
 	init_int eyr;						// end year of survey data
-	init_int nage;						// number of age-classes
+	init_int sage;						// first age
+	init_int nage;						// last age
 	init_int nlen;						// number of length-bins (assume start at 0)
 	init_int lstp;						// width of length-bins
 	init_int SR;						// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker
+	
+	// model known parameters
 	init_number m;						// natural mortality
 	init_number alw;					// multiplier for length-weight relationship
 	init_number blw;					// multiplier for length-weight relationship
-	//init_number mat50;					// maturity parameter
-	//init_number matsd;					// maturity parameter
-	//init_number ahat;					// vulnerability parameter
-	//init_number ghat;					// vulnerability parameter (sd)
-	init_vector vul(1,nage);				// survey vulnerability
-	init_vector fec(1,nage); 			// iyr(syr,nyr)
-	init_int nyt						// number of survey observations
+	
+
+	// population values
+	init_vector vul(sage,nage);				// survey vulnerability
+	init_vector fec(sage,nage); 			// iyr(syr,nyr)
+	
+	// fisheries data
+	init_int nyt;						// number of survey observations
 	init_vector iyr(1,nyt); 			// iyr(syr,nyr)
 	init_vector survB(1,nyt);       	// yt(syr,nyr)
 	init_matrix Clt(syr,eyr,1,nlen);	// catch at length and year
@@ -61,14 +65,14 @@ DATA_SECTION
 
 	END_CALCS
 	
-	vector age(1,nage);					// ages
+	vector age(sage,nage);					// ages
 	vector len(1,nlen);					// middle length of each length bin
 	int Am1;							// maximum age minus 1
 	number tiny;						// very small number to be used in the fpen function
 	
 	LOC_CALCS
 		// FILL IN SEQUENCE VECTORS
-		age.fill_seqadd( 1, 1 );
+		age.fill_seqadd( sage, 1 );
 		len.fill_seqadd( lstp, lstp );
 		Am1=nage-1;
 		tiny=1.e-20;
@@ -80,13 +84,13 @@ PARAMETER_SECTION
 	init_number log_Linf(phz_growth);	//log of l infinity
 	init_number log_k(phz_growth);		//log of k from VB
 	init_number log_cvl(phz_growth);	// log of coefficient of variantion for age at length curve
-	init_number reck(phz_reck);		// log of recruitment compensation ratio
+	init_number log_reck(phz_reck);		// log of recruitment compensation ratio
 
 	// set growth parameters to true values
 	!! log_Linf=log(ilinf);
 	!! log_k=log(ik);
 	!! log_cvl=log(icvl);
-	!! reck=ireck;
+	!! log_reck=log(ireck);
 	!! log_Ro=log(iRo);
 
 	// log of recruitment deviation
@@ -99,7 +103,7 @@ PARAMETER_SECTION
 	number Linf;						// von Bertalanffy asymptotic length (estimated - based on log_linf)
 	number k;							// von Bertalanffy metabolic parameter (estimated - based on log_k)
 	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
-	//number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
+	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
 	
 	
@@ -116,10 +120,10 @@ PARAMETER_SECTION
 	vector wt(syr,eyr-1);				// recruitment anomalies
 	
  	//vector vul(1,nage);					// age-specific vulnerabilities
-	vector la(1,nage);					// length-at-age
-	vector wa(1,nage);					// weight-at-age
-	vector lxo(1,nage);					// unfished survivorship at age
-	//vector fec(1,nage);					// age-specific fecundity - used for stock-recruit function
+	vector la(sage,nage);					// length-at-age
+	vector std(sage,nage);
+	vector wa(sage,nage);					// weight-at-age
+	vector lxo(sage,nage);					// unfished survivorship at age
 	
 	
 	vector maxUy(syr,eyr);				// maximum U over length classes for each year?
@@ -128,8 +132,8 @@ PARAMETER_SECTION
  	vector psurvB(syr,eyr);				// predicted survey biomass
 	
 	matrix Nlt(syr,eyr,1,nlen); 		// Matrix of numbers at length class
-	matrix P_la(1,nage,1,nlen);			// proportion of individual of each age at a given length class
-	matrix P_al(1,nlen,1,nage);			// transpose of above
+	matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class
+	matrix P_la(1,nlen,sage,nage);			// transpose of above
 	matrix Nat(syr,eyr,1,nage);			// Numbers of individuals at age
 	matrix Ulength(syr,eyr,1,nlen); 	// U (explitation rate) for each length class
 	matrix Uage(syr,eyr,1,nage);		// U (explitation rate) for each age
@@ -141,7 +145,8 @@ PROCEDURE_SECTION
     
     trans_parms();
 	incidence_functions();
-    initialization();
+	propAgeAtLengh();
+	initialYear();   
 	SRA();
 	observation_model();
 	objective_function();
@@ -152,61 +157,70 @@ FUNCTION trans_parms
 	Linf = exp( log_Linf );
 	k = exp( log_k );
 	cvl = exp( log_cvl );
-	//reck = exp( log_reck );
+	reck = exp( log_reck );
 	Ro = exp( log_Ro );
 	wt = exp( log_wt );
+
+
 	
 FUNCTION incidence_functions
 	
 	
-	dvector z1( 1, nlen );
-	dvector z2( 1, nlen );
+	la.initialize();
+ 	std.initialize();
 	double zn;
-	dvar_vector std( 1, nage );
+	
 
 	la = Linf * ( 1. - exp( -k * ( age - to )));
 	std = la * cvl;
 	
 	Sa = exp(-m);
 	
-	lxo( 1 ) = 1.;
-	for( int a = 2; a <= nage; a++ ) 
+	lxo( sage ) = 1.;
+	for( int a = sage+1; a <= nage; a++ ) 
 	{
 		lxo( a ) = lxo(a-1)*Sa;
 	}	
 		//lxo( nage ) /= 1. - Sa;
 	
 	
-		wa = alw * pow( la, blw );
-		//fec = elem_prod(wa,plogis(age,mat50,matsd));
-		//vul = plogis(age,ahat,ghat);
+	wa = alw * pow( la, blw );
+
+	phie = lxo * fec;
+
+	reca = reck/phie;
+	recb = (reck - 1.)/(Ro*phie); 
+
+
+
  	
+FUNCTION propAgeAtLengh
+	// Calculate proportion of length at age class
+
+
+ 	dvector z1( 1, nlen );
+	dvector z2( 1, nlen );
+
  	for( int a = 1; a <= nage; a++ )
 	{
 		
 		// Calculate the integral for proportion age at each length
 		z1 = (( len - lstp * 0.5 )-value( la( a )))/value( std( a ));
 		z2 = (( len + lstp * 0.5 )-value( la( a )))/value( std( a ));
+		
 		for( int b=1; b<= nlen; b++ )
 		{
-			P_la( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
+			P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
 		}
 		
 	}
 	
-	P_al = trans( P_la );	
+	P_la = trans( P_al );	
+
 	
-FUNCTION initialization
+	
+FUNCTION initialYear
 
-	phie = lxo * fec;
-	reca = reck/phie;
-	recb = (reck - 1.)/(Ro*phie); 
-
-
-FUNCTION SRA
-
-	// RL: these are the devs for the vul penalty  
-	dvar_matrix Upen( syr, eyr, 1, nlen );
 	
 	// INITIAL YEAR (no fishing assumed)
 	Nat( syr, 1 )= Ro;
@@ -217,7 +231,7 @@ FUNCTION SRA
 	//Nat( syr, nage ) /= 1. - Sa;
 	
 	// length-structure in year-1
-	Nlt( syr) = Nat( syr ) * P_la;	
+	Nlt( syr) = Nat( syr ) * P_al;	
 	
 	// exploitation by length		
 	Ulength( syr ) = elem_div(Clt( syr ), Nlt( syr ));
@@ -226,8 +240,15 @@ FUNCTION SRA
 	maxUy( syr ) = max( Ulength( syr ));
 	
 	// exploitation by age
-	Uage( syr ) = Ulength( syr ) * P_al;		
+	Uage( syr ) = Ulength( syr ) * P_la;
 	
+
+
+FUNCTION SRA
+
+	// RL: these are the devs for the vul penalty  
+	dvar_matrix Upen( syr, eyr, 1, nlen );
+			
 
 	// SUBSEQUENT YEARS
 	for( int y = syr + 1; y <= eyr; y++ )
@@ -235,18 +256,25 @@ FUNCTION SRA
 	  
 		dvariable sbt = fec * Nat(y - 1);				// eggs in year-y
 	    	
-		Nat( y, 1 ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// B-H recruitment
+		Nat( y, sage ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// B-H recruitment
 		
 		
 		// age-distribution post-recruitment
 
-		Nat( y )( 2, nage ) =++ elem_prod( Nat( y - 1 )( 1, nage - 1 )* Sa, 1. - Uage( y - 1 )( 1, nage -1 ));
+		for( int a = sage +1; a <= nage; a++ ){
+
+			Nat( y )( a ) =  Nat( y - 1 )( a - 1 )* Sa * (1. - Uage( y - 1 )( a -1 ));
+			Nat( y )( a ) =  posfun( Nat( y )( a ), tiny, fpen);	
+		}
+		
+		
 		//Nat( y, nage ) /= 1. - Sa * ( 1. - Uage( y - 1, nage));
 
 
 		//=====================================================================================
-	
-		Nlt( y ) = Nat( y ) * P_la;	
+		//Numbers at lengh
+
+		Nlt( y ) = Nat( y ) * P_al;	
 
 		for( int b = 1; b <= nlen; b++ )
 		{
@@ -259,11 +287,17 @@ FUNCTION SRA
 		}
 			
 		// exploitation by age
-		Uage( y) = Ulength( y ) * P_al;			
+		Uage( y) = Ulength( y ) * P_la;			
 		
 		// max exploitation (fully selected) across lengths
-		maxUy( y ) = max( Ulength( y ));	
+		maxUy( y ) = max( Ulength( y ));
+
+		//cout<<"Uage"<<endl<<Uage( syr)<<endl;
+		//cout<<"Nat"<<endl<<Nat( syr)<<endl;
+	
+
 	}
+	
 
 
 
@@ -282,20 +316,22 @@ FUNCTION SRA
 		ssvul = sum( Upen );				// vulnerability penalty
 
 
-	//=====================================================================================
-	//pergunta:	
-	// survey has no selectivity?? // RL: I was assuming a acoustic survey. When I included the va, the modelo produced and positive bias por the cpue/index of abundance. we need to look at this issue
 	 	psurvB = Nat * elem_prod(wa,vul);
+	 	//cout<<"Nat "<<endl<<Nat <<endl;
+	 	//cout<<"psurvB "<<endl<<psurvB <<endl;
+	 	//exit(1);
+	 	
 	//psurvB = Nat * wa;
 
 
 	
-	//=====================================================================================
-
+	
 
 FUNCTION observation_model
 
-	for(int i=1; i <= nyt; i++  )
+
+	dvar_vector datry(sage,nage);
+	for( int i = 1; i <= nyt ; i++ )
 	{
 		zstat(i)=log(survB(i))-log(psurvB(iyr(i)));
 	}
@@ -303,15 +339,10 @@ FUNCTION observation_model
 	q=exp(mean(zstat));
 	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
 	
-	//cout<< "zstat is: "<< zstat<<endl;
-	//cout<< "mean(zstat): "<< mean(zstat)<<endl;
-	//cout<< "Uage is: "<< Uage<<endl;
-	//cout<< "reck is: "<< reck<<endl;
-	//cout<< "q is: "<< q<<endl;
-	//cout<< "q is: "<< q<<endl;
- 	//cout<< "survB is: "<< survB<<endl;
- 	//cout<< "psurvB is: "<< psurvB<<endl;
- 	//exit(1);
+	//cout<<"survB "<<endl<<survB <<endl;
+	//cout<<"psurvB "<<endl<<psurvB <<endl;
+	//cout<<"zstat "<<endl<<zstat <<endl;
+	// 	exit(1);
 	
 FUNCTION objective_function 
 
@@ -364,28 +395,23 @@ FUNCTION objective_function
 REPORT_SECTION
 	
 	REPORT(Ro);
-	report<<"ro\n"<<Ro<<endl;
 	REPORT(reck);
 	REPORT(reca);
 	REPORT(recb);
 	report<<"bo\n"<<Eo<<endl;
-	report<<"kappa\n"<<reck<<endl;
 	REPORT(Linf);
 	REPORT(k);
 	REPORT(cvl);
  	REPORT(wt);
-	REPORT(reca);
-	REPORT(recb);
 	REPORT(psurvB);
 	REPORT(survB);
-	report<<"yt\n"<<survB<<endl;
+	
 	report<<"bt\n"<<Nat*wa<<endl;
         dvector yield=value(elem_prod(Nat,Uage)*wa);
  	REPORT(yield);
 	REPORT(muUl);
 	REPORT(maxUy);
-// 	REPORT(Nat);
-	report<<"N\n"<<Nat<<endl;
+ 	REPORT(Nat);
 	REPORT(Ulength);
 	REPORT(Uage);
 	REPORT(Clt);
