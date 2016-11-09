@@ -20,6 +20,8 @@
 0.2
 #tau
 0.1
+#tau_length
+0.1
 #surv
 0.7
 #wmat;

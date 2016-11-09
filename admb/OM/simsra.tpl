@@ -32,7 +32,8 @@ DATA_SECTION
 	
 	//true parameter values
 	init_number sigR; 	    		// standard deviation for recruitment deviations
-	init_number tau;				// standard deviation for observation error
+	init_number tau;				// standard deviation for survey observation error
+	init_number tau_length;			// standard deviation for observation error
 	init_number Sa;					// natural survival
 	
 	init_number wmat;				// 50% maturity 
@@ -102,6 +103,7 @@ DATA_SECTION
 	matrix Uage(syr,eyr,sage,nage); // Exploitation rate at length
 	matrix Nlt(syr,eyr,1,nlen); 	// Numbers at length
 	matrix Clt(syr,eyr,1,nlen); 	// Catch at length
+	matrix obsClt(syr,eyr,1,nlen); 	// Observed catch at length
 
 
 
@@ -213,6 +215,8 @@ FUNCTION initialYear
 	
 	Clt(syr) = elem_prod(Nlt(syr),Ulength(syr));
 
+	addErrorClt(syr);
+
 	vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * exp(eps(syr)*obs_err); // cpue
 	
 	// Add process error to all ages in initial year
@@ -254,6 +258,8 @@ FUNCTION populationDynamics
 		Uage(i+1) = Ulength(i+1)*P_la;
 		Clt(i+1) = elem_prod(Nlt(i+1),Ulength(i+1));
 
+		addErrorClt(i);
+
 		// Vulnerable biomass
 		vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * exp(eps(i+1)*proc_err); // cpue
 		
@@ -265,6 +271,17 @@ FUNCTION populationDynamics
 		depl(i+1) = sbt(i+1)/sbt(syr);
 	}
 	//cout<<"Nat"<<endl<<Nat<<endl;
+
+FUNCTION void addErrorClt(const int& ii)
+
+	
+       		
+
+       		//dvector ppl(1,nlen);
+       		//ppl.initialize();
+       		
+			obsClt(ii) = rmvlogistic(Clt(ii),tau_length,seed+ii);
+      	
 
 
 
