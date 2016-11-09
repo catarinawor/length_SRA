@@ -195,7 +195,7 @@ FUNCTION trans_parms
 	reck = exp( theta(2,1) );
 	Linf = exp( theta(3,1) );
 	k = exp( theta(4,1) );
-	to = exp( theta(5,1) );
+	to =  theta(5,1) ;
 	cvl = exp( theta(6,1) );
 	wt = exp( log_wt );
 
@@ -467,7 +467,7 @@ FUNCTION objective_function
 	// RL: see commment above
 	//=====================================================================================
 	
-	nll = sum(lvec); // + sum(npvec); //+ sum(pvec);
+	nll = sum(lvec) + sum(npvec)+ sum(pvec);
 
 
 REPORT_SECTION
