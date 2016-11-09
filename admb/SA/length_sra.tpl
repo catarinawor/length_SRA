@@ -60,6 +60,7 @@ DATA_SECTION
 		{
 			cout<<"Error reading data.\n Fix it."<<endl;
 			cout<< "dend is:"<<dend<<endl;
+			cout<< "sigR is:"<<sigR<<endl;
 			ad_exit(1);
 		}
 
