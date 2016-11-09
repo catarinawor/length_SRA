@@ -18,9 +18,13 @@ DATA_SECTION
 		ofs<<seed<<endl; //the new value of the seed
 	END_CALCS
 
+	//scenario name
+	init_adstring scnName;
+
 	//model dimensions
 	init_int syr;
 	init_int eyr;
+	init_int rep_yr;
 	init_int sage;
 	init_int nage;
 	init_int nlen;
@@ -47,6 +51,11 @@ DATA_SECTION
 	init_number reck;				// recruitment compensarion ratio
 	init_number Ro;					// Average unfished recruitment
 	init_number q;					// catchability coefficient
+
+
+	//Selectivity control parameters
+	init_int nselch;			//number of times selectivitu changes in the time series
+	init_matrix selControl(1,nselch,1,4);
 
 	init_number Ulenmu;					// 50% selectivity at lenth
 	init_number Ulensd;					// sd for selectivity at lenght
@@ -78,6 +87,37 @@ DATA_SECTION
 	number sbo;						// Unfished stock spawning biomass
 	//number test;					// test to see if S-R function is calculated correctly, should return Ro 
 	number tiny;						// very small number to be used in the fpen function
+
+	//selectivity parameters
+	vector selyr(1,nselch);
+	vector selb(1,nselch);
+	vector sela(1,nselch);
+	vector selg(1,nselch);
+	ivector indselyr(syr,eyr);
+
+
+	LOC_CALCS
+		selyr = column(selControl,1);
+		selb  = column(selControl,2);
+		sela  = column(selControl,3);
+		selg  = column(selControl,4);
+
+		int tmp;
+       	tmp= 1;
+
+       
+       	for(int y=syr;y<=eyr;y++)
+       	{
+       		if(selyr(tmp)>=y){
+       			indselyr(y)=tmp;
+       		}else{
+       			indselyr(y)=tmp+1;
+       			tmp++;
+       		}
+       	}
+
+       
+	END_CALCS
 
 	vector wt(syr,eyr);				// Recruitment deviations
 	vector eps(syr,eyr); 			// Observation errors deviations
@@ -179,6 +219,8 @@ FUNCTION incidence_functions
 	sbo  = Ro*phie;
 
 	fpen = 0.;
+
+	cout<<"OK after incidence_functions"<<endl;
 	
 FUNCTION propAgeAtLengh
 
@@ -198,6 +240,8 @@ FUNCTION propAgeAtLengh
 	
 	P_la = trans(P_al); //transpose matrix to length by age
 
+	cout<<"OK after propAgeAtLengh"<<endl;
+
 
 FUNCTION initialYear
 	
@@ -209,7 +253,12 @@ FUNCTION initialYear
 	Nlt(syr) = Nat(syr)*P_al;
 
 	//Exploitation rate at length
-	Ulength(syr) = ut(syr)/(1.+mfexp(-1.7*(len-Ulenmu)/Ulensd)); 
+	
+	calcUlength(syr);
+	//Ulength(syr) = ut(syr)/(1.+mfexp(-1.7*(len-Ulenmu)/Ulensd)); 
+	
+
+
 	//Exploitation rate at age
 	Uage(syr) = Ulength(syr)*P_la;
 	
@@ -231,11 +280,15 @@ FUNCTION initialYear
 	//spawning biomass depletion
 	depl(syr) = sbt(syr)/sbt(syr);
 
+	cout<<"OK after initialYear"<<endl;
+
 
 
 FUNCTION populationDynamics	
 
-	for(int i=syr;i<=eyr-1;i++)
+
+	int i;
+	for(i=syr;i<=eyr-1;i++)
 	{	   
 	    
 	   
@@ -252,8 +305,9 @@ FUNCTION populationDynamics
 		Nlt(i+1) = Nat(i+1)*P_al;
 
 		//Explitation rate at length
-		Ulength(i+1) = ut(i+1)/(1.+mfexp(-1.7*(len-4.)/0.1)); //4 is length of 50% mat hard coded in
-		
+		//Ulength(i+1) = ut(i+1)/(1.+mfexp(-1.7*(len-4.)/0.1)); //4 is length of 50% mat hard coded in
+		calcUlength(i+1);
+
 		//exploitation rate at age
 		Uage(i+1) = Ulength(i+1)*P_la;
 		Clt(i+1) = elem_prod(Nlt(i+1),Ulength(i+1));
@@ -272,10 +326,9 @@ FUNCTION populationDynamics
 	}
 	//cout<<"Nat"<<endl<<Nat<<endl;
 
-FUNCTION void addErrorClt(const int& ii)
+	cout<<"OK after populationDynamics"<<endl;
 
-	
-       		
+FUNCTION void addErrorClt(const int& ii)
 
        		//dvector ppl(1,nlen);
        		//ppl.initialize();
@@ -283,7 +336,23 @@ FUNCTION void addErrorClt(const int& ii)
 			obsClt(ii) = rmvlogistic(Clt(ii),tau_length,seed+ii);
       	
 
+FUNCTION void calcUlength(const int& ii)
 
+	dvector sellen(1,nlen);
+
+	for(int b=1;b<=nlen;b++){
+		sellen(b) = (1/(1-selg(indselyr(ii))))*
+			pow((1-selg(indselyr(ii)))/selg(indselyr(ii)),selg(indselyr(ii)))*
+			((exp(sela(indselyr(ii))*selg(indselyr(ii))*(selb(indselyr(ii))-len(b))))/
+			(1+exp(sela(indselyr(ii))*(selb(indselyr(ii))-len(b)))));
+	}
+
+	
+
+	Ulength(ii) = ut(ii)*sellen;
+	///(1.+mfexp(-1.7*(len-4.)/0.1));
+
+	//S(l)=(1/(1-g))*((1-g)/g)^g*((exp(a*g*(b-l)))/(1+exp(a*(b-l))))
 
 FUNCTION output_ctl
 	
@@ -318,7 +387,7 @@ FUNCTION output_data
 	
 
 	ofstream ofs("../SA/length_sra.dat");
-	ofs<<"# syr " << endl << syr <<endl;
+	ofs<<"# syr " << endl << rep_yr <<endl;
 	ofs<<"# eyr " << endl << eyr <<endl;
 	ofs<<"# sage "<< endl << sage <<endl;
 	ofs<<"# nage "<< endl << nage <<endl;
@@ -334,17 +403,17 @@ FUNCTION output_data
 	//ofs<<"# ghat "<< endl << ghat <<endl;
 	ofs<<"# vul "<< endl << va <<endl;
 	ofs<<"# fec "<< endl << fec <<endl;
-	ofs<<"# nyt "<< endl << eyr <<endl;
+	ofs<<"# nyt "<< endl << niyr <<endl;
 	ofs<<"# iyr " << endl << iyr <<endl;
-	ofs<<"# yt " << endl << vbt <<endl;
-	ofs<<"# Clt"<< endl << Clt <<endl;
+	ofs<<"# yt " << endl << vbt(rep_yr,eyr) <<endl;
+	ofs<<"# Clt"<< endl << Clt.sub(rep_yr,eyr) <<endl;
 	//ofs<<"# ilinf "<< endl << Linf <<endl;
 	//ofs<<"# ik "<< endl << k <<endl;
 	//ofs<<"# it0 " << endl << to <<endl;
 	//ofs<<"# icvl " << endl << cvl <<endl;
 	//ofs<<"# ireck "<< endl << reck <<endl;
 	//ofs<<"# iRo "<< endl << Ro <<endl;
-	ofs<<"# wt "<< endl << exp(wt(syr,eyr-1)) <<endl;
+	ofs<<"# wt "<< endl << exp(wt(rep_yr,eyr-1)) <<endl;
 	ofs<<"# cv_it " << endl << tau <<endl;
 	ofs<<"# sigR " << endl << sigR <<endl;
 	ofs<<"# sigVul " << endl << 0.4 <<endl;
@@ -357,6 +426,9 @@ FUNCTION output_data
 FUNCTION output_true
 	  
 	ofstream ofs("true_data_lsra.rep");
+
+
+	ofs<<"scnName" << endl << scnName <<endl;
 	ofs<<"true_ut" << endl << ut <<endl;
 	ofs<<"true_Nat" << endl << Nat.sub(syr,eyr) <<endl;
 	ofs<<"true_Clt" << endl << Clt.sub(syr,eyr) <<endl;
