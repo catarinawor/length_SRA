@@ -34,12 +34,12 @@ DATA_SECTION
 	init_matrix Clt(syr,eyr,1,nlen);	// catch at length and year
 
 	//known growth and recruitment parameters	
-	init_number ilinf; 					// Linf for VB growth curve
-	init_number ik; 					// growth rate parameter fro VB growth curve
-	init_number to; 					// time of length 0 for VB growth curve
-	init_number icvl;					// coefficient of variantion for age at length curve
-	init_number ireck;					// recruitment compensation ratio		
-	init_number iRo; 					// Avearge unfished recruitment
+	//init_number ilinf; 					// Linf for VB growth curve
+	//init_number ik; 					// growth rate parameter fro VB growth curve
+	//init_number to; 					// time of length 0 for VB growth curve
+	//init_number icvl;					// coefficient of variantion for age at length curve
+	//init_number ireck;					// recruitment compensation ratio		
+	//init_number iRo; 					// Avearge unfished recruitment
  	init_vector iwt(syr,eyr-1);         // Recruitment deviations
 
 	init_number cv_it;					// sd for survey
@@ -47,9 +47,9 @@ DATA_SECTION
 	init_number sigR;					// sigma for recruitment deviations, fixed? RL: yes, it is better fix this parameter than using the Error in Variable (EIV) approach. otherwise the likelihoods are going to be more complicated and messy 
 	init_number sigVul;					// RL: it is the parameter control the variability for the vulnerability. low values means that the vul doesn't change much over time...I guess
 	
-	init_int phz_reck;					// phase for estimating reck
-	init_int phz_growth;				// phase for growth parameters
-	init_int use_prior;					// add priors to the likehoods ? (1 or 0)
+	//init_int phz_reck;					// phase for estimating reck
+	//init_int phz_growth;				// phase for growth parameters
+	//init_int use_prior;					// add priors to the likehoods ? (1 or 0)
 
 	init_int dend;
 	
@@ -78,20 +78,56 @@ DATA_SECTION
 		tiny=1.e-20;
 	END_CALCS
 
+		!! ad_comm::change_datafile_name("length_sra.ctl");
+	
+	// |---------------------------------------------------------------------------------|
+	// | Control File - parameter intitial values and prior info
+	// |---------------------------------------------------------------------------------|
+	// | ilvec[1] 		-> fisheries catge data (1,fisharea)
+	// | ilvec[2]       -> number of survey years       (1,nItNobs)
+		
+
+	init_int npar;
+	init_matrix theta_control(1,npar,1,7);
+
+	vector   theta_ival(1,npar);
+	vector     theta_lb(1,npar);
+	vector     theta_ub(1,npar);
+	ivector   theta_phz(1,npar);
+	ivector theta_prior(1,npar);
+	
+	LOC_CALCS
+		
+		theta_ival  = column(theta_control,1);
+		theta_lb    = column(theta_control,2);
+		theta_ub    = column(theta_control,3);
+		theta_phz   = ivector(column(theta_control,4));
+		theta_prior = ivector(column(theta_control,5));
+		
+	END_CALCS
+
+INITIALIZATION_SECTION
+ 	 theta theta_ival;
+ 	 
+
+
 
 PARAMETER_SECTION
-	init_number log_Ro;			    	//Log of average unfished recruitment
-	init_number log_Linf(phz_growth);	//log of l infinity
-	init_number log_k(phz_growth);		//log of k from VB
-	init_number log_cvl(phz_growth);	// log of coefficient of variantion for age at length curve
-	init_number log_reck(phz_reck);		// log of recruitment compensation ratio
+
+	init_bounded_vector_vector theta(1,npar,1,1,theta_lb,theta_ub,theta_phz);
+
+	//init_number log_Ro;			    	//Log of average unfished recruitment
+	//init_number log_Linf(phz_growth);	//log of l infinity
+	//init_number log_k(phz_growth);		//log of k from VB
+	//init_number log_cvl(phz_growth);	// log of coefficient of variantion for age at length curve
+	//init_number log_reck(phz_reck);		// log of recruitment compensation ratio
 
 	// set growth parameters to true values
-	!! log_Linf=log(ilinf);
-	!! log_k=log(ik);
-	!! log_cvl=log(icvl);
-	!! log_reck=log(ireck);
-	!! log_Ro=log(iRo);
+	//!! log_Linf=log(ilinf);
+	//!! log_k=log(ik);
+	//!! log_cvl=log(icvl);
+	//!! log_reck=log(ireck);
+	//!! log_Ro=log(iRo);
 
 	// log of recruitment deviation
 	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2);  
@@ -102,10 +138,11 @@ PARAMETER_SECTION
 	number fpen;						// penalty to be added to likelihood when posfun is used
 	number Linf;						// von Bertalanffy asymptotic length (estimated - based on log_linf)
 	number k;							// von Bertalanffy metabolic parameter (estimated - based on log_k)
+	number to;
 	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
 	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
-	
+	number sbo;
 	
 	number ssvul; 						// it is the sum sq devs for the length vul deviations (mean va(L) - va(L,t))^2
 	
@@ -154,11 +191,12 @@ PROCEDURE_SECTION
 FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
-	Linf = exp( log_Linf );
-	k = exp( log_k );
-	cvl = exp( log_cvl );
-	reck = exp( log_reck );
-	Ro = exp( log_Ro );
+	Ro = exp( theta(1,1) );
+	reck = exp( theta(2,1) );
+	Linf = exp( theta(3,1) );
+	k = exp( theta(4,1) );
+	to = exp( theta(5,1) );
+	cvl = exp( theta(6,1) );
 	wt = exp( log_wt );
 
 
@@ -166,9 +204,11 @@ FUNCTION trans_parms
 FUNCTION incidence_functions
 	
 	
+	fpen=0.;
+
 	la.initialize();
  	std.initialize();
-	double zn;
+	
 	
 
 	la = Linf * ( 1. - exp( -k * ( age - to )));
@@ -190,7 +230,7 @@ FUNCTION incidence_functions
 
 	reca = reck/phie;
 	recb = (reck - 1.)/(Ro*phie); 
-
+	sbo  = Ro*phie;
 
 
  	
@@ -198,15 +238,15 @@ FUNCTION propAgeAtLengh
 	// Calculate proportion of length at age class
 
 
- 	dvector z1( 1, nlen );
-	dvector z2( 1, nlen );
+ 	dvar_vector z1( 1, nlen );
+	dvar_vector z2( 1, nlen );
 
  	for( int a = 1; a <= nage; a++ )
 	{
 		
 		// Calculate the integral for proportion age at each length
-		z1 = (( len - lstp * 0.5 )-value( la( a )))/value( std( a ));
-		z2 = (( len + lstp * 0.5 )-value( la( a )))/value( std( a ));
+		z1 = (( len - lstp * 0.5 )-( la( a )))/( std( a ));
+		z2 = (( len + lstp * 0.5 )-( la( a )))/( std( a ));
 		
 		for( int b=1; b<= nlen; b++ )
 		{
@@ -223,7 +263,7 @@ FUNCTION initialYear
 
 	
 	// INITIAL YEAR (no fishing assumed)
-	Nat( syr, 1 )= Ro;
+	Nat( syr, sage )= Ro;
 	for( int a = 2; a <= nage; a++ )
 	{
 		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
@@ -352,9 +392,47 @@ FUNCTION objective_function
 	lvec(1)=dnorm(zstat,cv_it);
 	lvec(2)=dnorm(log_wt,sigR);
 
-	dvar_vector pvec(1,2);
-	pvec.initialize();
+	dvar_vector npvec(1,npar);
+	npvec.initialize();
 	
+	dvar_vector pvec(1,npar);
+	pvec.initialize();
+
+	
+	//Priors 
+	//prior for h
+	for(int i=1;i<=npar;i++)
+	{
+		switch(theta_prior(i))
+		{
+				case 1:		//normal
+					npvec(i) = dnorm(theta(i,1),theta_control(i,6),theta_control(i,7));
+					break;
+					
+				case 2:		//lognormal CHANGED RF found an error in dlnorm prior. rev 116
+					npvec(i) = dlnorm(theta(i,1),theta_control(i,6),theta_control(i,7));
+					break;
+					
+				case 3:		//beta distribution (0-1 scale)
+					double lb,ub;
+					lb=theta_lb(i);
+					ub=theta_ub(i);
+					npvec(i) = dbeta((theta(i,1)-lb)/(ub-lb),theta_control(i,6),theta_control(i,7));
+					break;
+					
+				case 4:		//gamma distribution
+					npvec(i) = dgamma(theta(i,1),theta_control(i,6),theta_control(i,7));
+					break;
+					
+				default:	//uniform density
+					npvec(i) = log(1./(theta_control(i,3)-theta_control(i,2)));
+					break;
+			}
+	}
+
+
+
+
 	//if(active(log_reck))
 	//{  
  	//	dvariable h=reck/(4.+reck);	
@@ -389,7 +467,7 @@ FUNCTION objective_function
 	// RL: see commment above
 	//=====================================================================================
 	
-	nll = sum(lvec) + sum(pvec)*use_prior;
+	nll = sum(lvec); // + sum(npvec); //+ sum(pvec);
 
 
 REPORT_SECTION

@@ -67,6 +67,7 @@ DATA_SECTION
 		}
 	END_CALCS
 
+
 	// derived quantities
 	number reca;					// BH parameter a
 	number recb;					// BH parameter b
@@ -75,7 +76,8 @@ DATA_SECTION
 	number phie;					// Equilibrium fished fecundity
 	number sbo;						// Unfished stock spawning biomass
 	//number test;					// test to see if S-R function is calculated correctly, should return Ro 
-	
+	number tiny;						// very small number to be used in the fpen function
+
 	vector wt(syr,eyr);				// Recruitment deviations
 	vector eps(syr,eyr); 			// Observation errors deviations
 	vector age(sage,nage); 			// age vector
@@ -116,10 +118,13 @@ DATA_SECTION
 		age.fill_seqadd(sage,1);
 		len.fill_seqadd(lstp,lstp);
 		Am1=nage-1;	
+		tiny=1.e-20;
 
 	END_CALCS
 	
 PARAMETER_SECTION
+
+	number fpen;
 	objective_function_value no_f; 
 
 PRELIMINARY_CALCS_SECTION	  
@@ -130,6 +135,7 @@ PRELIMINARY_CALCS_SECTION
 	populationDynamics();
 
 	output_data();
+	output_ctl();
 	output_true();
 	exit(1);
 	
@@ -144,6 +150,7 @@ FUNCTION incidence_functions
 
 	la = Linf*(1.-exp(-k*(age-to)));  //average length at age
 	std = la*cvl;  		  //std for length at age
+
 
 	lxo(sage) = 1.; //first age	
 	for(int a = sage+1 ; a <= nage ; a++)
@@ -168,6 +175,8 @@ FUNCTION incidence_functions
 	reca = reck/phie; 
 	recb = (reck - 1.)/(Ro*phie); 
 	sbo  = Ro*phie;
+
+	fpen = 0.;
 	
 FUNCTION propAgeAtLengh
 
@@ -190,7 +199,11 @@ FUNCTION propAgeAtLengh
 
 FUNCTION initialYear
 	
-	Nat(syr) = Ro*lxo;
+	Nat( syr, sage )= Ro;
+	for( int a = 2; a <= nage; a++ )
+	{
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
+	}
 	Nlt(syr) = Nat(syr)*P_al;
 
 	//Exploitation rate at length
@@ -207,6 +220,9 @@ FUNCTION initialYear
 	
 	//spawning biomass
 	sbt(syr) = fec * Nat(syr);
+
+	//cout<<"Nat(syr)"<<endl<<Nat(syr)<<endl;
+	//cout<<"fec"<<endl<<fec<<endl;
 
 	//spawning biomass depletion
 	depl(syr) = sbt(syr)/sbt(syr);
@@ -226,7 +242,6 @@ FUNCTION populationDynamics
 	    Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(1,nage-1)*Sa,1.-Uage(i)(1,nage-1));
 	    // no age plus -  change that later
 		// Nat( i+1, nage ) /= 1. - Sa( nage );
-
 		
 		//Proportion of individuals at length 
 		//note admb matrix multiplication is yj = \sum_i xi * mij 
@@ -249,8 +264,36 @@ FUNCTION populationDynamics
 		//spawning biomass depletion
 		depl(i+1) = sbt(i+1)/sbt(syr);
 	}
+	//cout<<"Nat"<<endl<<Nat<<endl;
 
 
+
+FUNCTION output_ctl
+	
+
+	ofstream mfs("../SA/length_sra.ctl");
+	mfs<<"## ------------------------------------------------------------------------------------ ##"<< endl;
+	mfs<<"## CONTROL FILE TEMPLATE                                                                ##"<< endl;
+	mfs<<"## ------------------------------------------------------------------------------------ ##"<< endl;
+	mfs<<"## ------------------------------------------------------------------------------------ ##"<< endl;
+	mfs<<"## CONTROLS FOR LEADING PARAMETERS                                                      ##"<< endl;
+	mfs<<"##  Prior descriptions:                                                                 ##"<< endl;
+	mfs<<"##                      -0 uniform      (0,0)                                           ##"<< endl;
+	mfs<<"##                      -1 normal       (p1=mu,p2=sig)                                  ##"<< endl;
+	mfs<<"##                      -2 lognormal    (p1=log(mu),p2=sig)                             ##"<< endl;
+	mfs<<"##                      -3 beta         (p1=alpha,p2=beta)                              ##"<< endl;
+	mfs<<"##                      -4 gamma        (p1=alpha,p2=beta)                              ##"<< endl;	
+	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
+	mfs<<"## npar"<<endl<< "6"<< endl;
+	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
+	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
+	mfs<< 0.0  	 <<"\t"<< -4.0 <<"\t"<< 4.0  <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_ro   	##"<<endl;
+   	mfs<< 2.302585 	 <<"\t"<<  0.0 <<"\t"<< 5.0  <<"\t"<<  2  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 5.0  	<<"\t"<<"#log_reck  ##"<<endl;
+   	mfs<< 2.302585   <<"\t"<< 1.3  <<"\t"<< 4.0  <<"\t"<< -4  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
+   	mfs<< -1.203973  <<"\t"<< -3.0 <<"\t"<< -0.2 <<"\t"<< -4  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
+   	mfs<< 0  		 <<"\t"<< -2.0 <<"\t"<< 0.1  <<"\t"<< -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.1  	<<"\t"<<"#to 	##"<<endl;
+   	mfs<< -2.525729  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< -4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
+   
 
 
 	  
@@ -278,19 +321,19 @@ FUNCTION output_data
 	ofs<<"# iyr " << endl << iyr <<endl;
 	ofs<<"# yt " << endl << vbt <<endl;
 	ofs<<"# Clt"<< endl << Clt <<endl;
-	ofs<<"# ilinf "<< endl << Linf <<endl;
-	ofs<<"# ik "<< endl << k <<endl;
-	ofs<<"# it0 " << endl << to <<endl;
-	ofs<<"# icvl " << endl << cvl <<endl;
-	ofs<<"# ireck "<< endl << reck <<endl;
-	ofs<<"# iRo "<< endl << Ro <<endl;
+	//ofs<<"# ilinf "<< endl << Linf <<endl;
+	//ofs<<"# ik "<< endl << k <<endl;
+	//ofs<<"# it0 " << endl << to <<endl;
+	//ofs<<"# icvl " << endl << cvl <<endl;
+	//ofs<<"# ireck "<< endl << reck <<endl;
+	//ofs<<"# iRo "<< endl << Ro <<endl;
 	ofs<<"# wt "<< endl << exp(wt(syr,eyr-1)) <<endl;
 	ofs<<"# cv_it " << endl << tau <<endl;
 	ofs<<"# sigR " << endl << sigR <<endl;
 	ofs<<"# sigVul " << endl << 0.4 <<endl;
-	ofs<<"# phz_reck "<< endl << 2 <<endl;
-	ofs<<"# phz_growth  "<< endl << -4  <<endl;
-	ofs<<"# use_prior  "<< endl << 0 <<endl;
+	//ofs<<"# phz_reck "<< endl << 2 <<endl;
+	//ofs<<"# phz_growth  "<< endl << -4  <<endl;
+	//ofs<<"# use_prior  "<< endl << 0 <<endl;
 	ofs<<"# eof " << endl << 999 <<endl;
 	
 	
