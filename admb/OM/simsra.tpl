@@ -95,6 +95,8 @@ DATA_SECTION
 	vector selg(1,nselch);
 	ivector indselyr(syr,eyr);
 
+	matrix  sellen(1,nselch,1,nlen);
+
 
 	LOC_CALCS
 		selyr = column(selControl,1);
@@ -254,7 +256,7 @@ FUNCTION initialYear
 
 	//Exploitation rate at length
 	
-	calcUlength(syr);
+	calcUlength(syr,indselyr(syr));
 	//Ulength(syr) = ut(syr)/(1.+mfexp(-1.7*(len-Ulenmu)/Ulensd)); 
 	
 
@@ -306,7 +308,7 @@ FUNCTION populationDynamics
 
 		//Explitation rate at length
 		//Ulength(i+1) = ut(i+1)/(1.+mfexp(-1.7*(len-4.)/0.1)); //4 is length of 50% mat hard coded in
-		calcUlength(i+1);
+		calcUlength(i+1,indselyr(i+1));
 
 		//exploitation rate at age
 		Uage(i+1) = Ulength(i+1)*P_la;
@@ -336,20 +338,19 @@ FUNCTION void addErrorClt(const int& ii)
 			obsClt(ii) = rmvlogistic(Clt(ii),tau_length,seed+ii);
       	
 
-FUNCTION void calcUlength(const int& ii)
+FUNCTION void calcUlength(const int& ii,const int& si)
 
-	dvector sellen(1,nlen);
 
 	for(int b=1;b<=nlen;b++){
-		sellen(b) = (1/(1-selg(indselyr(ii))))*
-			pow((1-selg(indselyr(ii)))/selg(indselyr(ii)),selg(indselyr(ii)))*
-			((exp(sela(indselyr(ii))*selg(indselyr(ii))*(selb(indselyr(ii))-len(b))))/
-			(1+exp(sela(indselyr(ii))*(selb(indselyr(ii))-len(b)))));
+		sellen(si)(b) = (1/(1-selg(si)))*
+			pow((1-selg(si))/selg(si),selg(si))*
+			((exp(sela(si)*selg(si)*(selb(si)-len(b))))/
+			(1+exp(sela(si)*(selb(si)-len(b)))));
 	}
 
 	
 
-	Ulength(ii) = ut(ii)*sellen;
+	Ulength(ii) = ut(ii)*sellen(si);
 	///(1.+mfexp(-1.7*(len-4.)/0.1));
 
 	//S(l)=(1/(1-g))*((1-g)/g)^g*((exp(a*g*(b-l)))/(1+exp(a*(b-l))))
@@ -405,7 +406,7 @@ FUNCTION output_data
 	ofs<<"# fec "<< endl << fec <<endl;
 	ofs<<"# nyt "<< endl << niyr <<endl;
 	ofs<<"# iyr " << endl << iyr <<endl;
-	ofs<<"# yt " << endl << vbt(rep_yr,eyr) <<endl;
+	ofs<<"# yt " << endl << vbt(rep_yr,eyr)  <<endl;
 	ofs<<"# Clt"<< endl << Clt.sub(rep_yr,eyr) <<endl;
 	//ofs<<"# ilinf "<< endl << Linf <<endl;
 	//ofs<<"# ik "<< endl << k <<endl;
@@ -437,6 +438,8 @@ FUNCTION output_true
 	ofs<<"true_sbt" << endl << sbt <<endl;
 	ofs<<"true_depl" << endl << depl <<endl;
 	ofs<<"true_q" << endl << q <<endl;	
+	ofs<<"sellen" << endl << sellen <<endl;	
+	
 
 
 
