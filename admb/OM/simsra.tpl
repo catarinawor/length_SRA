@@ -42,6 +42,8 @@ DATA_SECTION
 	
 	init_number wmat;				// 50% maturity 
 	
+	//Growth control parameters
+	//init_int nlinfch;
 	init_number Linf;				// vb Linfinity
 	init_number k;					// vb k
 	init_number to;					// vb to
@@ -254,7 +256,7 @@ FUNCTION initialYear
 	{
 		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	}
-	Nat( syr, nage ) = /= (1.-Sa);
+	Nat( syr, nage ) /= (1.-Sa);
 	
 
 	Nlt(syr) = Nat(syr)*P_al;
@@ -262,7 +264,7 @@ FUNCTION initialYear
 	//Exploitation rate at length
 	
 
-	Ulength(ii) = ut(ii)*sellen(indselyr(syr));
+	Ulength(syr) = ut(syr)*sellen(indselyr(syr));
 	
 	//Ulength(syr) = ut(syr)/(1.+mfexp(-1.7*(len-Ulenmu)/Ulensd)); 
 	
@@ -302,7 +304,7 @@ FUNCTION populationDynamics
 	    
 	   
 	    //recruitment
-	    Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp(wt(i)*proc_err);
+	    Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp(wt(i+1)*proc_err);
 	    
 	    //ages 2 -nage
 	    Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(1,nage-1)*Sa,1.-Uage(i)(1,nage-1));
@@ -316,7 +318,7 @@ FUNCTION populationDynamics
 		//Explitation rate at length
 		//Ulength(i+1) = ut(i+1)/(1.+mfexp(-1.7*(len-4.)/0.1)); //4 is length of 50% mat hard coded in
 		//calcUlength(i+1,indselyr(i+1));
-		Ulength(ii) = ut(ii)*sellen(indselyr(syr));
+		Ulength(i+1) = ut(i+1)*sellen(indselyr(i+1));
 
 		//exploitation rate at age
 		Uage(i+1) = Ulength(i+1)*P_la;
@@ -394,8 +396,9 @@ FUNCTION output_ctl
    	mfs<< -1.203973  <<"\t"<< -3.0 <<"\t"<< -0.2 <<"\t"<< -4  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
    	mfs<< 0  		 <<"\t"<< -2.0 <<"\t"<< 0.1  <<"\t"<< -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.1  	<<"\t"<<"#to 	##"<<endl;
    	mfs<< -2.525729  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< -4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
-   
-
+    mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
+	mfs<<"##initial values for recruitment deviations ##"<< endl;
+	mfs<<"# wt "<< endl << exp(wt(rep_yr-(sage-nage),eyr)) <<endl;
 
 	  
 FUNCTION output_data
@@ -428,7 +431,6 @@ FUNCTION output_data
 	//ofs<<"# icvl " << endl << cvl <<endl;
 	//ofs<<"# ireck "<< endl << reck <<endl;
 	//ofs<<"# iRo "<< endl << Ro <<endl;
-	ofs<<"# wt "<< endl << exp(wt(rep_yr,eyr-1)) <<endl;
 	ofs<<"# cv_it " << endl << tau <<endl;
 	ofs<<"# sigR " << endl << sigR <<endl;
 	ofs<<"# sigVul " << endl << 0.4 <<endl;
@@ -444,15 +446,24 @@ FUNCTION output_true
 
 
 	ofs<<"scnName" << endl << scnName <<endl;
-	ofs<<"true_ut" << endl << ut <<endl;
-	ofs<<"true_Nat" << endl << Nat.sub(syr,eyr) <<endl;
-	ofs<<"true_Clt" << endl << Clt.sub(syr,eyr) <<endl;
-	ofs<<"true_Ro" << endl << Ro <<endl;
-	ofs<<"true_reck" << endl << reck <<endl;
-	ofs<<"true_sbt" << endl << sbt <<endl;
-	ofs<<"true_depl" << endl << depl <<endl;
-	ofs<<"true_q" << endl << q <<endl;	
+	ofs<<"ut" << endl << ut <<endl;
+	ofs<<"Nat" << endl << Nat <<endl;
+	ofs<<"Nlt" << endl << Nlt <<endl;
+	ofs<<"Clt" << endl << Clt.sub(syr,eyr) <<endl;
+	ofs<<"Ro" << endl << Ro <<endl;
+	ofs<<"Rinit" << endl << Nat(rep_yr)(sage) <<endl;
+	ofs<<"reck" << endl << reck <<endl;
+	ofs<<"Linf" << endl << Linf <<endl;
+	ofs<<"k" << endl << k <<endl;
+	ofs<<"to" << endl << to <<endl;
+	ofs<<"cvl" << endl << cvl <<endl;
+	ofs<<"sbt" << endl << sbt <<endl;
+	ofs<<"depl" << endl << depl <<endl;
+	ofs<<"q" << endl << q <<endl;	
 	ofs<<"sellen" << endl << sellen <<endl;	
+	ofs<<"syr" << endl << syr <<endl;
+	ofs<<"eyr" << endl << eyr <<endl;
+	ofs<<"rep_yr" << endl << rep_yr <<endl;	
 	
 
 

@@ -40,7 +40,6 @@ DATA_SECTION
 	//init_number icvl;					// coefficient of variantion for age at length curve
 	//init_number ireck;					// recruitment compensation ratio		
 	//init_number iRo; 					// Avearge unfished recruitment
- 	init_vector iwt(syr,eyr-1);         // Recruitment deviations
 
 	init_number cv_it;					// sd for survey
 
@@ -66,6 +65,7 @@ DATA_SECTION
 
 	END_CALCS
 	
+	int nag;
 	vector age(sage,nage);					// ages
 	vector len(1,nlen);					// middle length of each length bin
 	int Am1;							// maximum age minus 1
@@ -75,6 +75,8 @@ DATA_SECTION
 		// FILL IN SEQUENCE VECTORS
 		age.fill_seqadd( sage, 1 );
 		len.fill_seqadd( lstp, lstp );
+
+		nag = nage-sage;
 		Am1=nage-1;
 		tiny=1.e-20;
 	END_CALCS
@@ -96,6 +98,8 @@ DATA_SECTION
 	vector     theta_ub(1,npar);
 	ivector   theta_phz(1,npar);
 	ivector theta_prior(1,npar);
+
+	init_vector iwt(syr-nag,eyr);         // Recruitment deviations
 	
 	LOC_CALCS
 		
@@ -131,7 +135,7 @@ PARAMETER_SECTION
 	//!! log_Ro=log(iRo);
 
 	// log of recruitment deviation
-	init_bounded_dev_vector log_wt(syr,eyr-1,-10.,10.,2);  
+	init_bounded_dev_vector log_wt(syr-nag,eyr,-10.,10.,2);  
  	!! log_wt = log(iwt);
 
 	objective_function_value nll;
@@ -143,6 +147,7 @@ PARAMETER_SECTION
 	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
 	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
+	number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
 	
 	number ssvul; 						// it is the sum sq devs for the length vul deviations (mean va(L) - va(L,t))^2
@@ -155,7 +160,7 @@ PARAMETER_SECTION
 	number Sa;							// survival-at-age (assume constant across ages)
 
 	vector zstat(1,nyt);				// MLE of q
-	vector wt(syr,eyr-1);				// recruitment anomalies
+	vector wt(syr-nag,eyr);				// recruitment anomalies
 	
  	//vector vul(1,nage);					// age-specific vulnerabilities
 	vector la(sage,nage);					// length-at-age
@@ -193,11 +198,12 @@ FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
 	Ro = exp( theta(1,1) );
-	reck = exp( theta(2,1) );
-	Linf = exp( theta(3,1) );
-	k = exp( theta(4,1) );
-	to =  theta(5,1) ;
-	cvl = exp( theta(6,1) );
+	Rinit = exp( theta(2,1) );
+	reck = exp( theta(3,1) );
+	Linf = exp( theta(4,1) );
+	k = exp( theta(5,1) );
+	to =  theta(6,1) ;
+	cvl = exp( theta(7,1) );
 	wt = exp( log_wt );
 
 
@@ -222,7 +228,7 @@ FUNCTION incidence_functions
 	{
 		lxo( a ) = lxo(a-1)*Sa;
 	}	
-		//lxo( nage ) /= 1. - Sa;
+		lxo( nage ) /= 1. - Sa;
 	
 	
 	wa = alw * pow( la, blw );
@@ -265,13 +271,13 @@ FUNCTION initialYear
 	
 	// INITIAL YEAR (no fishing assumed)
 
-	
-	Nat( syr, sage )= Ro;
+
+	Nat( syr, sage )= Rinit * mfexp(wt(syr));
 	for( int a = 2; a <= nage; a++ )
 	{
-		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * mfexp(wt(syr-(a-1)));	// initial age-structure
 	}		
-	Nat( syr, nage ) /= (1. - Sa;
+	Nat( syr, nage ) /= (1. - Sa);
 	
 	// length-structure in year-1
 	Nlt( syr) = Nat( syr ) * P_al;	
@@ -299,7 +305,7 @@ FUNCTION SRA
 	  
 		dvariable sbt = fec * Nat(y - 1);				// eggs in year-y
 	    	
-		Nat( y, sage ) = reca * sbt / ( 1. + recb * sbt) * wt( y - 1 );	// B-H recruitment
+		Nat( y, sage ) = reca * sbt / ( 1. + recb * sbt) * wt( y );	// B-H recruitment
 		
 		
 		// age-distribution post-recruitment
@@ -476,12 +482,14 @@ FUNCTION objective_function
 REPORT_SECTION
 	
 	REPORT(Ro);
+	REPORT(Rinit);
 	REPORT(reck);
 	REPORT(reca);
 	REPORT(recb);
 	report<<"bo\n"<<Eo<<endl;
 	REPORT(Linf);
 	REPORT(k);
+	REPORT(to);
 	REPORT(cvl);
  	REPORT(wt);
 	REPORT(psurvB);
