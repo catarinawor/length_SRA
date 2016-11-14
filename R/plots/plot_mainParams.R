@@ -30,20 +30,30 @@ plot_params <- function( M )
 		if(M[[i]]$SApar$maxgrad<1.0e-03){
 
 			est<-c(M[[i]]$SArep$Ro ,
+				M[[i]]$SArep$Rinit ,
 				M[[i]]$SArep$reck,
-				M[[i]]$SArep$depletion[length(M[[i]]$SArep$depletion)], 
-				M[[i]]$SArep$q,
-				M[[i]]$SArep$maxUy[length(M[[i]]$SArep$maxUy)])
+				#M[[i]]$SArep$depletion[length(M[[i]]$SArep$depletion)], 
+				#M[[i]]$SArep$q,
+				M[[i]]$SArep$Linf,
+				M[[i]]$SArep$k,
+				M[[i]]$SArep$to,
+				M[[i]]$SArep$cvl)
+				#M[[i]]$SArep$maxUy[length(M[[i]]$SArep$maxUy)])
 
-			true<-c(M[[i]]$OM$true_Ro ,
-				M[[i]]$OM$true_reck,
-				M[[i]]$OM$true_depl[length(M[[i]]$OM$true_depl)], 
-				M[[i]]$OM$true_q,
-				M[[i]]$OM$true_ut[length(M[[i]]$OM$true_ut)])
+			true<-c(M[[i]]$OM$Ro ,
+				M[[i]]$OM$Rinit ,
+				M[[i]]$OM$reck,
+				M[[i]]$OM$Linf,
+				M[[i]]$OM$k,
+				M[[i]]$OM$to,
+				M[[i]]$OM$cvl,
+				#M[[i]]$OM$true_depl[length(M[[i]]$OM$true_depl)], 
+				#M[[i]]$OM$true_q,
+				#M[[i]]$OM$true_ut[length(M[[i]]$OM$true_ut)])
 
 			bias<- (est- true) / true
 
-			df <- data.frame(Ro=bias[1] ,kappa=bias[2],Depletion=bias[3],q=bias[4],Uend=bias[5])
+			df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
 			mdf <- rbind(mdf,df)
 		}
 	}
