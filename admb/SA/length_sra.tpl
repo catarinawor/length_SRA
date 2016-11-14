@@ -264,12 +264,14 @@ FUNCTION initialYear
 
 	
 	// INITIAL YEAR (no fishing assumed)
+
+	
 	Nat( syr, sage )= Ro;
 	for( int a = 2; a <= nage; a++ )
 	{
 		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	}		
-	//Nat( syr, nage ) /= 1. - Sa;
+	Nat( syr, nage ) /= (1. - Sa;
 	
 	// length-structure in year-1
 	Nlt( syr) = Nat( syr ) * P_al;	
@@ -309,7 +311,7 @@ FUNCTION SRA
 		}
 		
 		
-		//Nat( y, nage ) /= 1. - Sa * ( 1. - Uage( y - 1, nage));
+		Nat( y, nage ) /= (1. - Sa * ( 1. - Uage( y - 1, nage)));
 
 
 		//=====================================================================================

@@ -201,7 +201,7 @@ FUNCTION incidence_functions
 	{
 		lxo(a) = lxo(a-1)*Sa; // proportion of individuals at age surviving M only
 	}
-	//lxo(nage) /= 1.-Sa; // age plus group
+	lxo(nage) /= (1.-Sa); // age plus group
 	
 	wa = alw * pow(la,blw); //weight at age
 
@@ -222,7 +222,9 @@ FUNCTION incidence_functions
 
 	fpen = 0.;
 
-	cout<<"OK after incidence_functions"<<endl;
+	calcSellen();
+
+	//cout<<"OK after incidence_functions"<<endl;
 	
 FUNCTION propAgeAtLengh
 
@@ -242,7 +244,7 @@ FUNCTION propAgeAtLengh
 	
 	P_la = trans(P_al); //transpose matrix to length by age
 
-	cout<<"OK after propAgeAtLengh"<<endl;
+	//cout<<"OK after propAgeAtLengh"<<endl;
 
 
 FUNCTION initialYear
@@ -252,11 +254,16 @@ FUNCTION initialYear
 	{
 		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	}
+	Nat( syr, nage ) = /= (1.-Sa);
+	
+
 	Nlt(syr) = Nat(syr)*P_al;
 
 	//Exploitation rate at length
 	
-	calcUlength(syr,indselyr(syr));
+
+	Ulength(ii) = ut(ii)*sellen(indselyr(syr));
+	
 	//Ulength(syr) = ut(syr)/(1.+mfexp(-1.7*(len-Ulenmu)/Ulensd)); 
 	
 
@@ -282,7 +289,7 @@ FUNCTION initialYear
 	//spawning biomass depletion
 	depl(syr) = sbt(syr)/sbt(syr);
 
-	cout<<"OK after initialYear"<<endl;
+	//cout<<"OK after initialYear"<<endl;
 
 
 
@@ -299,8 +306,8 @@ FUNCTION populationDynamics
 	    
 	    //ages 2 -nage
 	    Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(1,nage-1)*Sa,1.-Uage(i)(1,nage-1));
-	    // no age plus -  change that later
-		// Nat( i+1, nage ) /= 1. - Sa( nage );
+	    
+		 Nat( i+1, nage ) /= (1. - Sa);
 		
 		//Proportion of individuals at length 
 		//note admb matrix multiplication is yj = \sum_i xi * mij 
@@ -308,7 +315,8 @@ FUNCTION populationDynamics
 
 		//Explitation rate at length
 		//Ulength(i+1) = ut(i+1)/(1.+mfexp(-1.7*(len-4.)/0.1)); //4 is length of 50% mat hard coded in
-		calcUlength(i+1,indselyr(i+1));
+		//calcUlength(i+1,indselyr(i+1));
+		Ulength(ii) = ut(ii)*sellen(indselyr(syr));
 
 		//exploitation rate at age
 		Uage(i+1) = Ulength(i+1)*P_la;
@@ -328,7 +336,7 @@ FUNCTION populationDynamics
 	}
 	//cout<<"Nat"<<endl<<Nat<<endl;
 
-	cout<<"OK after populationDynamics"<<endl;
+	//cout<<"OK after populationDynamics"<<endl;
 
 FUNCTION void addErrorClt(const int& ii)
 
@@ -338,19 +346,24 @@ FUNCTION void addErrorClt(const int& ii)
 			obsClt(ii) = rmvlogistic(Clt(ii),tau_length,seed+ii);
       	
 
-FUNCTION void calcUlength(const int& ii,const int& si)
+FUNCTION  calcSellen
 
+	int b, si;
+	
 
-	for(int b=1;b<=nlen;b++){
-		sellen(si)(b) = (1/(1-selg(si)))*
-			pow((1-selg(si))/selg(si),selg(si))*
-			((exp(sela(si)*selg(si)*(selb(si)-len(b))))/
-			(1+exp(sela(si)*(selb(si)-len(b)))));
+	for(int si=1;si<=nselch;si++){
+		for(int b=1;b<=nlen;b++){
+			
+			sellen(si)(b) = (1/(1-selg(si)))*
+							pow((1-selg(si))/selg(si),selg(si))*
+							((exp(sela(si)*selg(si)*(selb(si)-len(b))))/
+							(1+exp(sela(si)*(selb(si)-len(b)))));
+		}
 	}
 
 	
 
-	Ulength(ii) = ut(ii)*sellen(si);
+	
 	///(1.+mfexp(-1.7*(len-4.)/0.1));
 
 	//S(l)=(1/(1-g))*((1-g)/g)^g*((exp(a*g*(b-l)))/(1+exp(a*(b-l))))
@@ -371,10 +384,11 @@ FUNCTION output_ctl
 	mfs<<"##                      -3 beta         (p1=alpha,p2=beta)                              ##"<< endl;
 	mfs<<"##                      -4 gamma        (p1=alpha,p2=beta)                              ##"<< endl;	
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	mfs<<"## npar"<<endl<< "6"<< endl;
+	mfs<<"## npar"<<endl<< "7"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<< 0.0  	 <<"\t"<< -4.0 <<"\t"<< 4.0  <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_ro   	##"<<endl;
+   	mfs<< 0.0  	 <<"\t"<< -4.0 <<"\t"<< 4.0  <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_rinit   	##"<<endl;
    	mfs<< 2.302585 	 <<"\t"<<  0.0 <<"\t"<< 5.0  <<"\t"<<  2  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 5.0  	<<"\t"<<"#log_reck  ##"<<endl;
    	mfs<< 2.302585   <<"\t"<< 1.3  <<"\t"<< 4.0  <<"\t"<< -4  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
    	mfs<< -1.203973  <<"\t"<< -3.0 <<"\t"<< -0.2 <<"\t"<< -4  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
