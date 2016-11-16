@@ -99,7 +99,8 @@ DATA_SECTION
 	ivector   theta_phz(1,npar);
 	ivector theta_prior(1,npar);
 
-	init_vector iwt(syr-nag,eyr);         // Recruitment deviations
+	init_vector iwt(syr,eyr);         // Recruitment deviations
+	init_vector iwt_init(sage+1,nage);         // Recruitment deviations in initial year
 	
 	LOC_CALCS
 		
@@ -108,6 +109,8 @@ DATA_SECTION
 		theta_ub    = column(theta_control,3);
 		theta_phz   = ivector(column(theta_control,4));
 		theta_prior = ivector(column(theta_control,5));
+
+
 		
 	END_CALCS
 
@@ -135,8 +138,13 @@ PARAMETER_SECTION
 	//!! log_Ro=log(iRo);
 
 	// log of recruitment deviation
-	init_bounded_dev_vector log_wt(syr-nag,eyr,-10.,10.,2);  
+	init_bounded_dev_vector log_wt(syr,eyr,-10.,10.,2); 
+	init_bounded_dev_vector log_wt_init(sage+1,nage,-10.,10.,2); 
+
+
+
  	!! log_wt = log(iwt);
+ 	!! log_wt_init = log(iwt_init);
 
 	objective_function_value nll;
 	
@@ -152,7 +160,7 @@ PARAMETER_SECTION
 	
 	number ssvul; 						// it is the sum sq devs for the length vul deviations (mean va(L) - va(L,t))^2
 	
-	number Eo;							// unfished egg deposition
+	//number Eo;							// unfished egg deposition
 	number reca;						// alpha of stock-recruit relationship
 	number recb;						// beta of stock-recruit relationship
 	number phie;
@@ -160,13 +168,15 @@ PARAMETER_SECTION
 	number Sa;							// survival-at-age (assume constant across ages)
 
 	vector zstat(1,nyt);				// MLE of q
-	vector wt(syr-nag,eyr);				// recruitment anomalies
+	vector wt(syr,eyr);				// recruitment anomalies
+	vector wt_init(sage+1,nage);				// recruitment anomalies for initial year
 	
  	//vector vul(1,nage);					// age-specific vulnerabilities
 	vector la(sage,nage);					// length-at-age
 	vector std(sage,nage);
 	vector wa(sage,nage);					// weight-at-age
 	vector lxo(sage,nage);					// unfished survivorship at age
+	//vector lz(sage,nage);					// unfished survivorship at age
 	
 	
 	vector maxUy(syr,eyr);				// maximum U over length classes for each year?
@@ -205,6 +215,9 @@ FUNCTION trans_parms
 	to =  theta(6,1) ;
 	cvl = exp( theta(7,1) );
 	wt = exp( log_wt );
+	wt_init = exp( log_wt_init );
+
+	
 
 
 	
@@ -224,11 +237,13 @@ FUNCTION incidence_functions
 	Sa = exp(-m);
 	
 	lxo( sage ) = 1.;
+	
 	for( int a = sage+1; a <= nage; a++ ) 
 	{
 		lxo( a ) = lxo(a-1)*Sa;
 	}	
-		lxo( nage ) /= 1. - Sa;
+	lxo( nage ) /= 1. - Sa;
+
 	
 	
 	wa = alw * pow( la, blw );
@@ -272,12 +287,17 @@ FUNCTION initialYear
 	// INITIAL YEAR (no fishing assumed)
 
 
-	Nat( syr, sage )= Rinit * mfexp(wt(syr));
-	for( int a = 2; a <= nage; a++ )
-	{
-		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * mfexp(wt(syr-(a-1)));	// initial age-structure
-	}		
-	Nat( syr, nage ) /= (1. - Sa);
+	//Nat( syr, sage )= Ro;
+	//for( int a = 2; a <= nage; a++ )
+	//{
+	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
+	//}		
+	//Nat( syr, nage ) /= 1. - Sa;
+
+	Nat(syr,sage)= Rinit* (wt(syr));	
+	Nat(syr)(sage+1,nage) = Rinit* wt_init;
+	Nat(syr)(sage+1,nage) = elem_prod(Nat(syr)(sage+1,nage), lxo(sage+1,nage));
+
 	
 	// length-structure in year-1
 	Nlt( syr) = Nat( syr ) * P_al;	
@@ -291,7 +311,9 @@ FUNCTION initialYear
 	// exploitation by age
 	Uage( syr ) = Ulength( syr ) * P_la;
 	
-
+	//cout<<"wt_init"<<endl<<wt_init<<endl;
+	//cout<<"Nat"<<endl<<Nat( syr)<<endl;
+	//exit(1);
 
 FUNCTION SRA
 
@@ -342,7 +364,7 @@ FUNCTION SRA
 		maxUy( y ) = max( Ulength( y ));
 
 		//cout<<"Uage"<<endl<<Uage( syr)<<endl;
-		//cout<<"Nat"<<endl<<Nat( syr)<<endl;
+		//cout<<"Nat"<<endl<<Nat( y)<<endl;
 	
 
 	}
@@ -476,7 +498,10 @@ FUNCTION objective_function
 	// RL: see commment above
 	//=====================================================================================
 	
-	nll = sum(lvec) + sum(npvec)+ sum(pvec);
+	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
+	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
+	nll = sum(lvec);// + sum(npvec)+ sum(pvec);
+
 
 
 REPORT_SECTION
@@ -486,12 +511,13 @@ REPORT_SECTION
 	REPORT(reck);
 	REPORT(reca);
 	REPORT(recb);
-	report<<"bo\n"<<Eo<<endl;
+	REPORT(sbo);
 	REPORT(Linf);
 	REPORT(k);
 	REPORT(to);
 	REPORT(cvl);
  	REPORT(wt);
+ 	//REPORT(wt_init);
 	REPORT(psurvB);
 	REPORT(survB);
 	

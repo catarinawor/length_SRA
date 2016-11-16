@@ -23,38 +23,46 @@ plot_params <- function( M )
 
 	n <- length( M )
 	mdf <- NULL
+	adf <- NULL
+	
 
 
+	conv_n= 0
 	for(i in 1:n){
 
 		if(M[[i]]$SApar$maxgrad<1.0e-03){
+			conv_n <-  conv_n + 1
 
-			est<-c(M[[i]]$SArep$Ro ,
-				M[[i]]$SArep$Rinit ,
+
+			est<-c(M[[i]]$SArep$Ro,
+				M[[i]]$SArep$Rinit,
 				M[[i]]$SArep$reck,
-				#M[[i]]$SArep$depletion[length(M[[i]]$SArep$depletion)], 
-				#M[[i]]$SArep$q,
 				M[[i]]$SArep$Linf,
 				M[[i]]$SArep$k,
 				M[[i]]$SArep$to,
 				M[[i]]$SArep$cvl)
 				#M[[i]]$SArep$maxUy[length(M[[i]]$SArep$maxUy)])
 
-			true<-c(M[[i]]$OM$Ro ,
-				M[[i]]$OM$Rinit ,
+			true<-c(M[[i]]$OM$Ro,
+				M[[i]]$OM$Rinit,
 				M[[i]]$OM$reck,
 				M[[i]]$OM$Linf,
 				M[[i]]$OM$k,
 				M[[i]]$OM$to,
-				M[[i]]$OM$cvl,
+				M[[i]]$OM$cvl)
 				#M[[i]]$OM$true_depl[length(M[[i]]$OM$true_depl)], 
 				#M[[i]]$OM$true_q,
 				#M[[i]]$OM$true_ut[length(M[[i]]$OM$true_ut)])
 
-			bias<- (est- true) / true
+			
+				bias<- (est- true) / true
+			
 
 			df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
 			mdf <- rbind(mdf,df)
+
+			af <- data.frame(true = true, est = est, param=c("Ro", "Rinit","kappa","Linf","k","to","cvl"))
+			adf <- rbind(adf,af)
 		}
 	}
 
@@ -67,7 +75,9 @@ plot_params <- function( M )
 	p <- p + geom_boxplot(aes(x=parameter,y=value, fill=parameter))
 	p <- p + geom_hline(yintercept=0, color="darkred", size=1.2, alpha=0.3)
 	p <- p + labs(x="Parameter",y="Bias")
-	p <- p + theme_bw(11)
+	p <- p + theme_bw(11) 
+	p <- p + ylim(-0.5, 0.5)
+	p <- p + annotate("text" , x = 1, y = 0.4, label = paste("n = ",conv_n))
 	print(p)
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")

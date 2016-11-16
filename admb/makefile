@@ -23,7 +23,7 @@ omi:
 	$(MAKE) --directory $(DIROM) 
 
 sai:
-	$(MAKE) --directory $(DIREXEC) 
+	- $(MAKE) --directory $(DIREXEC) 
         
 readRdat: 
 	@echo $(RDATA) | R --vanilla --slave

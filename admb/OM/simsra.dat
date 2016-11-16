@@ -18,7 +18,7 @@ baseCase
 #niyr
 40
 #proc_err
-0
+1
 #obs_err
 1
 #sigR
@@ -31,6 +31,9 @@ baseCase
 0.7
 #wmat;
 1.25
+#Growth parameters
+#nLinfchange
+#1
 #Linf;
 10
 #k
