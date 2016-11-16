@@ -10,7 +10,7 @@
 #
 
  
-DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult"
+DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base"
 
 plotlib<-"/Users/catarinawor/Documents/Length_SRA/R/plots"
 #.RFILES     <- list.files(.LIB,pattern="\\.[Rr]$")
@@ -39,6 +39,7 @@ source(plotfiles)
 length(SIMSdat)
 	
 plot_params( SIMSdat )
+plot_derivQuant( SIMSdat )
 
 
 	
