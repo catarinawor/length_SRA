@@ -31,15 +31,17 @@ for(i in 1:length(Rfiles)){
 }
 
 
-#load graphing groutines
-source(plotfiles)
+#load graphing routinesfor
+for(p in 1:length(plotfiles)){
+	source(plotfiles[p])
+}
 
 
 
 length(SIMSdat)
 	
 plot_params( SIMSdat )
-plot_derivQuant( SIMSdat )
+#plot_derivQuant( SIMSdat )
 
 
 	

@@ -247,15 +247,15 @@ FUNCTION propAgeAtLengh
 	
 	P_la = trans(P_al); //transpose matrix to length by age
 
-	//cout<<"OK after propAgeAtLengh"<<endl;
+	cout<<"OK after propAgeAtLengh"<<endl;
 
 
 FUNCTION initialYear
 	
 	Nat( syr, sage )= Ro;
-	for( int a = 2; a <= nage; a++ )
+	for( int a = sage+1; a <= nage; a++ )
 	{
-		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa ;	// initial age-structure
 	}
 	Nat( syr, nage ) /= (1.-Sa);
 	
@@ -292,7 +292,7 @@ FUNCTION initialYear
 	//spawning biomass depletion
 	depl(syr) = sbt(syr)/sbt(syr);
 
-	//cout<<"OK after initialYear"<<endl;
+	cout<<"OK after initialYear"<<endl;
 
 
 
@@ -308,9 +308,9 @@ FUNCTION populationDynamics
 	    Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp(wt(i+1)*proc_err);
 	    
 	    //ages 2 -nage
-	    Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(1,nage-1)*Sa,1.-Uage(i)(1,nage-1));
+	    Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(sage,nage-1)*Sa,1.-Uage(i)(sage,nage-1));
 	    
-		Nat( i+1, nage ) /= (1. - Sa);
+		Nat( i+1, nage ) /= (1. - ( Sa* (1.-Uage(i)(nage) ) ) );
 		
 		//Proportion of individuals at length 
 		//note admb matrix multiplication is yj = \sum_i xi * mij 
@@ -330,8 +330,9 @@ FUNCTION populationDynamics
 		// Vulnerable biomass
 		vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * exp(eps(i+1)*obs_err); // cpue
 		
-		//Total biomass - what is this additional process error representing? 
+		//Total biomass - what is this additional obs error representing? 
 		bt(i+1) = Nat(i+1)* wa * exp(eps(i+1)*obs_err); 
+		
 		//spawning biomass
 		sbt(i+1) = fec * Nat(i+1);				     // survey
 		//spawning biomass depletion
@@ -339,7 +340,7 @@ FUNCTION populationDynamics
 	}
 	//cout<<"Nat"<<endl<<Nat<<endl;
 
-	//cout<<"OK after populationDynamics"<<endl;
+	cout<<"OK after populationDynamics"<<endl;
 
 FUNCTION void addErrorClt(const int& ii)
 
@@ -361,15 +362,16 @@ FUNCTION  calcSellen
 							pow((1-selg(si))/selg(si),selg(si))*
 							((exp(sela(si)*selg(si)*(selb(si)-len(b))))/
 							(1+exp(sela(si)*(selb(si)-len(b)))));
+
+			//sellen(si)(b) = 1.;///(1.+mfexp(-1.7*(len(b)-4.)/0.1));
 		}
 	}
 
 	
-
 	
 	///(1.+mfexp(-1.7*(len-4.)/0.1));
 
-	//S(l)=(1/(1-g))*((1-g)/g)^g*((exp(a*g*(b-l)))/(1+exp(a*(b-l))))
+	
 
 FUNCTION output_ctl
 	
@@ -387,22 +389,23 @@ FUNCTION output_ctl
 	mfs<<"##                      -3 beta         (p1=alpha,p2=beta)                              ##"<< endl;
 	mfs<<"##                      -4 gamma        (p1=alpha,p2=beta)                              ##"<< endl;	
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	mfs<<"## npar"<<endl<< "7"<< endl;
+	mfs<<"## npar"<<endl<< "6"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_ro   	##"<<endl;
-   	mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  -1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
-   	mfs<< 2.302585 	 <<"\t"<<  0.0 <<"\t"<< 5.0   <<"\t"<<  2  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 5.0  	<<"\t"<<"#log_reck  ##"<<endl;
-   	mfs<< 2.302585   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
-   	mfs<< -1.203973  <<"\t"<< -3.0 <<"\t"<< -0.2  <<"\t"<<  3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
+	mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_ro   	##"<<endl;
+   //	mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  -1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
+   	mfs<< 2.302585 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
+   	mfs<< 2.302585   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
+   	mfs<< -1.203973  <<"\t"<< -3.0 <<"\t"<< -0.2  <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
    	mfs<< 0  		 <<"\t"<< -2.0 <<"\t"<< 0.01   <<"\t"<< -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.01  	<<"\t"<<"#to 	##"<<endl;
-   	mfs<< -2.525729  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
+   	mfs<< -2.525729  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	-4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
     mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<<"##initial values for recruitment deviations ##"<< endl;
-	mfs<<"# wt "<< endl << exp(wt(rep_yr,eyr)) <<endl;
+	mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr)) <<endl;
 	mfs<<"##initial values for recruitment deviations in first year ##"<< endl;
-	mfs<<"# wt_init "<< endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)) <<endl;
+	//mfs<<"# wt_init "<< endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)) <<endl;
 
+	//cout<<"OK after otput_ctl"<<endl;
 	  
 FUNCTION output_data
 	
@@ -427,7 +430,8 @@ FUNCTION output_data
 	ofs<<"# nyt "<< endl << niyr <<endl;
 	ofs<<"# iyr " << endl << iyr <<endl;
 	ofs<<"# yt " << endl << vbt(rep_yr,eyr)  <<endl;
-	ofs<<"# Clt"<< endl << obsClt.sub(rep_yr,eyr) <<endl;
+	//ofs<<"# Clt"<< endl << obsClt.sub(rep_yr,eyr) <<endl;
+	ofs<<"# Clt"<< endl << Clt.sub(rep_yr,eyr) <<endl;
 	//ofs<<"# ilinf "<< endl << Linf <<endl;
 	//ofs<<"# ik "<< endl << k <<endl;
 	//ofs<<"# it0 " << endl << to <<endl;
@@ -441,6 +445,8 @@ FUNCTION output_data
 	//ofs<<"# phz_growth  "<< endl << -4  <<endl;
 	//ofs<<"# use_prior  "<< endl << 0 <<endl;
 	ofs<<"# eof " << endl << 999 <<endl;
+
+	cout<<"OK after otput_dat"<<endl;
 	
 	
 FUNCTION output_true

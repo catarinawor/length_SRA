@@ -33,7 +33,7 @@ plot_derivQuant <- function( M )
 			conv_n <-  conv_n + 1
 
 
-			est<-M[[i]]$SArep$depletion[length(M[[i]]$SArep$depletion)], 
+			est<-c(M[[i]]$SArep$depletion[length(M[[i]]$SArep$depletion)], 
 				M[[i]]$SArep$q,
 				M[[i]]$SArep$maxUy[length(M[[i]]$SArep$maxUy)])
 
