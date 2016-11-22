@@ -35,7 +35,7 @@ plot_params <- function( M )
 
 
 			est<-c(M[[i]]$SArep$Ro,
-				M[[i]]$SArep$Rinit,
+				#M[[i]]$SArep$Rinit,
 				M[[i]]$SArep$reck,
 				M[[i]]$SArep$Linf,
 				M[[i]]$SArep$k,
@@ -44,7 +44,7 @@ plot_params <- function( M )
 				#M[[i]]$SArep$maxUy[length(M[[i]]$SArep$maxUy)])
 
 			true<-c(M[[i]]$OM$Ro,
-				M[[i]]$OM$Rinit,
+				#M[[i]]$OM$Rinit,
 				M[[i]]$OM$reck,
 				M[[i]]$OM$Linf,
 				M[[i]]$OM$k,
@@ -61,10 +61,13 @@ plot_params <- function( M )
 			df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
 			mdf <- rbind(mdf,df)
 
-			af <- data.frame(true = true, est = est, param=c("Ro", "Rinit","kappa","Linf","k","to","cvl"))
+			#af <- data.frame(true = true, est = est, param=c("Ro", "Rinit","kappa","Linf","k","to","cvl"))
+			af <- data.frame(true = true, est = est, param=c("Ro", "kappa","Linf","k","to","cvl"))
+			
 			adf <- rbind(adf,af)
 		}
 	}
+
 
 	
 	df2<-melt(mdf,variable.name = "parameter")

@@ -100,7 +100,7 @@ DATA_SECTION
 	ivector theta_prior(1,npar);
 
 	init_vector iwt(syr,eyr);         // Recruitment deviations
-	init_vector iwt_init(sage+1,nage);         // Recruitment deviations in initial year
+	//init_vector iwt_init(sage+1,nage);         // Recruitment deviations in initial year
 	
 	LOC_CALCS
 		
@@ -138,13 +138,13 @@ PARAMETER_SECTION
 	//!! log_Ro=log(iRo);
 
 	// log of recruitment deviation
-	init_bounded_dev_vector log_wt(syr,eyr,-10.,10.,2); 
-	init_bounded_dev_vector log_wt_init(sage+1,nage,-10.,10.,2); 
+	init_bounded_dev_vector log_wt(syr+1,eyr,-10.,10.,2); 
+	//init_bounded_dev_vector log_wt_init(sage+1,nage,-10.,10.,2); 
 
 
 
- 	!! log_wt = log(iwt);
- 	!! log_wt_init = log(iwt_init);
+ 	//!! log_wt = log(iwt);
+ 	//!! log_wt_init = log(iwt_init);
 
 	objective_function_value nll;
 	
@@ -155,7 +155,7 @@ PARAMETER_SECTION
 	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
 	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
-	number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
+	//number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
 	
 	number ssvul; 						// it is the sum sq devs for the length vul deviations (mean va(L) - va(L,t))^2
@@ -168,8 +168,8 @@ PARAMETER_SECTION
 	number Sa;							// survival-at-age (assume constant across ages)
 
 	vector zstat(1,nyt);				// MLE of q
-	vector wt(syr,eyr);				// recruitment anomalies
-	vector wt_init(sage+1,nage);				// recruitment anomalies for initial year
+	vector wt(syr+1,eyr);					// recruitment anomalies
+	//vector wt_init(sage+1,nage);				// recruitment anomalies for initial year
 	
  	//vector vul(1,nage);					// age-specific vulnerabilities
 	vector la(sage,nage);					// length-at-age
@@ -208,14 +208,21 @@ FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
 	Ro = exp( theta(1,1) );
-	Rinit = exp( theta(2,1) );
-	reck = exp( theta(3,1) );
-	Linf = exp( theta(4,1) );
-	k = exp( theta(5,1) );
-	to =  theta(6,1) ;
-	cvl = exp( theta(7,1) );
+	//Rinit = exp( theta(2,1) );
+	//reck = exp( theta(3,1) );
+	//Linf = exp( theta(4,1) );
+	//k = exp( theta(5,1) );
+	//to =  theta(6,1) ;
+	//cvl = exp( theta(7,1) );
+
+	reck = exp( theta(2,1) );
+	Linf = exp( theta(3,1) );
+	k = exp( theta(4,1) );
+	to =  theta(5,1) ;
+	cvl = exp( theta(6,1) );
+	
 	wt = exp( log_wt );
-	wt_init = exp( log_wt_init );
+	//wt_init = exp( log_wt_init );
 
 	
 
@@ -228,6 +235,7 @@ FUNCTION incidence_functions
 
 	la.initialize();
  	std.initialize();
+ 	Nat.initialize();
 	
 	
 
@@ -287,16 +295,16 @@ FUNCTION initialYear
 	// INITIAL YEAR (no fishing assumed)
 
 
-	//Nat( syr, sage )= Ro;
-	//for( int a = 2; a <= nage; a++ )
-	//{
-	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
-	//}		
-	//Nat( syr, nage ) /= 1. - Sa;
+	Nat( syr, sage )= Ro;
+	for( int a = 2; a <= nage; a++ )
+	{
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
+	}		
+	Nat( syr, nage ) /= 1. - Sa;
 
-	Nat(syr,sage)= Rinit* (wt(syr));	
-	Nat(syr)(sage+1,nage) = Rinit* wt_init;
-	Nat(syr)(sage+1,nage) = elem_prod(Nat(syr)(sage+1,nage), lxo(sage+1,nage));
+	//Nat(syr,sage)= Rinit* (wt(syr));	
+	//Nat(syr)(sage+1,nage) = Rinit* wt_init;
+	//Nat(syr)(sage+1,nage) = elem_prod(Nat(syr)(sage+1,nage), lxo(sage+1,nage));
 
 	
 	// length-structure in year-1
@@ -456,7 +464,9 @@ FUNCTION objective_function
 					break;
 					
 				default:	//uniform density
-					npvec(i) = log(1./(theta_control(i,3)-theta_control(i,2)));
+					//npvec(i) = log(1./(theta_control(i,3)-theta_control(i,2)));
+					npvec(i) = (1./(theta_control(i,3)-theta_control(i,2)));
+		
 					break;
 			}
 	}
@@ -484,6 +494,7 @@ FUNCTION objective_function
 	}
 	
 
+
 	//if(last_phase())
 	//{
 	//	cout<<"log_wt is: "<<log_wt<<endl;
@@ -493,21 +504,30 @@ FUNCTION objective_function
 
 	//=====================================================================================
 	//pergunta:
-	// I am not sure about what kind of penalty this is
+	// 
 	pvec(2) = ssvul/sigVul;
+
+	//cout<<"sum(npvec) "<<endl<<sum(npvec)<<endl;
+
 	// RL: see commment above
 	//=====================================================================================
 	
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
-	nll = sum(lvec);// + sum(npvec)+ sum(pvec);
+	nll = sum(lvec) + sum(npvec)+ sum(pvec);
+	//nll = sum(lvec) +  sum(pvec);
 
+	
+	
 
+	
+	
 
 REPORT_SECTION
 	
+	
 	REPORT(Ro);
-	REPORT(Rinit);
+	//REPORT(Rinit);
 	REPORT(reck);
 	REPORT(reca);
 	REPORT(recb);
