@@ -99,7 +99,7 @@ DATA_SECTION
 	ivector   theta_phz(1,npar);
 	ivector theta_prior(1,npar);
 
-	init_vector iwt(syr,eyr);         // Recruitment deviations
+	init_vector iwt(syr+1,eyr);         // Recruitment deviations
 	//init_vector iwt_init(sage+1,nage);         // Recruitment deviations in initial year
 	
 	LOC_CALCS
@@ -143,7 +143,7 @@ PARAMETER_SECTION
 
 
 
- 	//!! log_wt = log(iwt);
+ 	!! log_wt = log(iwt);
  	//!! log_wt_init = log(iwt_init);
 
 	objective_function_value nll;

@@ -208,11 +208,11 @@ FUNCTION incidence_functions
 	
 	wa = alw * pow(la,blw); //weight at age
 
- 	for(int w=sage ;w<=nage;w++)
+ 	for(int w=sage; w<=nage;w++)
  	{
  		if(wa(w)>wmat)
  		{
- 			fec=wa(w)-wmat;
+ 			fec(w)=wa(w)-wmat;
  		}
  	}
  	
@@ -393,6 +393,7 @@ FUNCTION output_ctl
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_ro   	##"<<endl;
+	//mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_rbar   	##"<<endl;
    //	mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  -1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
    	mfs<< 2.302585 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
    	mfs<< 2.302585   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
@@ -401,7 +402,7 @@ FUNCTION output_ctl
    	mfs<< -2.525729  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	-4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
     mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<<"##initial values for recruitment deviations ##"<< endl;
-	mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr)) <<endl;
+	mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr)*proc_err) <<endl;
 	mfs<<"##initial values for recruitment deviations in first year ##"<< endl;
 	//mfs<<"# wt_init "<< endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)) <<endl;
 
@@ -453,6 +454,17 @@ FUNCTION output_true
 	  
 	ofstream ofs("true_data_lsra.rep");
 
+	//double tRbar;
+
+	//for(int ni=rep_yr;ni<=eyr;ni++){
+
+		//cout<<"r " << endl << (Nat(ni)(sage))/mfexp(wt(rep_yr)*proc_err)<<endl;
+
+		//tRbar += (Nat(ni)(sage))/mfexp(wt(rep_yr)*proc_err);
+
+	//}
+	//tRbar /= (eyr-rep_yr+1);
+	//	/mfexp(wt(rep_yr,eyr)*proc_err))/(eyr-rep_yr+1);
 
 	ofs<<"scnName" << endl << scnName <<endl;
 	ofs<<"ut" << endl << ut <<endl;
@@ -460,6 +472,7 @@ FUNCTION output_true
 	ofs<<"Nlt" << endl << Nlt <<endl;
 	ofs<<"Clt" << endl << Clt.sub(syr,eyr) <<endl;
 	ofs<<"Ro" << endl << Ro <<endl;
+	//ofs<<"Rbar" << endl << tRbar <<endl;	
 	ofs<<"Rinit" << endl << Nat(rep_yr)(sage)/mfexp(wt(rep_yr)*proc_err) <<endl;
 	ofs<<"reck" << endl << reck <<endl;
 	ofs<<"Linf" << endl << Linf <<endl;
@@ -474,6 +487,10 @@ FUNCTION output_true
 	ofs<<"eyr" << endl << eyr <<endl;
 	ofs<<"rep_yr" << endl << rep_yr <<endl;	
 	ofs<<"wt" << endl << wt <<endl;	
+	ofs<<"lxo" << endl << lxo <<endl;
+	ofs<<"fec" << endl << fec <<endl;	
+	ofs<<"wa" << endl << wa <<endl;	
+
 	
 
 
