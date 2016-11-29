@@ -41,8 +41,9 @@ for(p in 1:length(plotfiles)){
 length(SIMSdat)
 	
 plot_params( SIMSdat )
-#plot_derivQuant( SIMSdat )
-
+plot_derivQuant( SIMSdat )
+plot_SBiomass( SIMSdat )
+plot_udevs( SIMSdat )
 
 	
 

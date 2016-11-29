@@ -1,0 +1,211 @@
+% stuff to be used whe compiling only one chapter -- e.e for revision and committee approval
+
+\documentclass{article}
+
+%% Compile this with
+%% R> library(pgfSweave)
+%% R> pgfSweave
+
+%\usepackage[nogin]{Sweave} %way to understand R code
+\usepackage{pgf} %look it up
+\usepackage{tikz} % allows R code or other stuff in the figure labels
+\usepackage{rotating}
+\usepackage{color}
+\definecolor{greytext}{gray}{0.5}
+\usepackage[left=1.2in,right=1.2in,top=1.2in,bottom=1.2in]{geometry} % sets the margins
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\usepackage{indentfirst}
+\usepackage{titlesec}
+\usepackage{natbib}
+\usepackage{checkend}   % better error messages on left-open environments
+\usepackage{graphicx}   % for incorporating external images
+
+\newcommand{\lang}{\textsf} %
+\newcommand{\code}{\texttt}
+\newcommand{\pkg}{\texttt}
+\newcommand{\ques}[1]{{\bf\large#1}}
+\newcommand{\eb}{\\ \nonumber} 
+
+\doublespacing
+
+\usepackage{times,mathptmx,courier}
+\usepackage[scaled=1]{helvet}
+\usepackage{lineno}
+\usepackage{listings}
+\lstset{basicstyle=\sffamily\scriptsize,showstringspaces=false,fontadjust}
+
+\usepackage{fixme}%you probably wan't this 
+%% Math or theory people may want to include the handy AMS macros
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{float}
+
+%% The pifont package provides access to the elements in the dingbat font.   
+%% Use \ding{##} for a particular dingbat (see p7 of psnfss2e.pdf)
+%%   Useful:
+%%     51,52 different forms of a checkmark
+%%     54,55,56 different forms of a cross (saltyre)
+%%     172-181 are 1-10 in open circle (serif)
+%%     182-191 are 1-10 black circle (serif)
+%%     192-201 are 1-10 in open circle (sans serif)
+%%     202-211 are 1-10 in black circle (sans serif)
+%% \begin{dinglist}{##}\item... or dingautolist (which auto-increments)
+%% to create a bullet list with the provided character.
+\usepackage{pifont}
+\usepackage{fixltx2e}
+\usepackage[printonlyused,nohyperlinks]{acronym}
+
+\usepackage{comment}
+
+
+
+\titleformat*{\section}{\singlespacing\raggedright\bfseries\Large}
+\titleformat*{\subsection}{\singlespacing\raggedright\bfseries\large}
+\titleformat*{\subsubsection}{\singlespacing\raggedright\bfseries}
+\titleformat*{\paragraph}{\singlespacing\raggedright\itshape}
+
+%% The caption package provides support for varying how table and
+%% figure captions are typeset.
+\usepackage[format=hang,indention=-1cm,labelfont={bf},margin=1em]{caption}
+
+%% url: for typesetting URLs and smart(er) hyphenation.
+%% \url{http://...} 
+\usepackage{url}
+\urlstyle{sf}   % typeset urls in sans-serif
+%\graphicspath{{/home/daft/Dropbox/figures/}{/home/daft/Dropbox/figures/cpue_figures/}} % set the path to figures folder
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Possibly useful packages: you may need to explicitly install
+%% these from CTAN if they aren't part of your distribution;
+%% teTeX seems to ship with a smaller base than MikTeX and MacTeX.
+%%
+%\usepackage{pdfpages}  % insert pages from other PDF files
+%\usepackage{longtable} % provide tables spanning multiple pages
+%\usepackage{chngpage}  % support changing the page widths on demand
+%\usepackage{tabularx}  % an enhanced tabular environment
+
+%% enumitem: support pausing and resuming enumerate environments.
+%\usepackage{enumitem}
+
+%% rotating: provides two environments, sidewaystable and sidewaysfigure,
+%% for typesetting tables and figures in landscape mode.  
+%\usepackage{rotating}
+
+%% subfig: provides for including subfigures within a figure,
+%% and includes being able to separately reference the subfigures.
+\usepackage{subfig}
+
+
+\usepackage[bookmarks,bookmarksnumbered,%
+    citebordercolor={0.8 0.8 0.8},filebordercolor={0.8 0.8 0.8},%
+    linkbordercolor={0.8 0.8 0.8},%pagebordercolor={0.8 0.8 0.8},
+    urlbordercolor={0.8 0.8 0.8},
+    linktocpage%
+    ]{hyperref}
+%%\usepackage[bookmarks,bookmarksnumbered,%
+%%    citebordercolor={0.8 0.8 0.8},filebordercolor={0.8 0.8 0.8},%
+%%    linkbordercolor={0.8 0.8 0.8},pagebordercolor={0.8 0.8 0.8},%
+%%    urlbordercolor={0.8 0.8 0.8},%
+%%    pagebackref,linktocpage%
+%%    ]{hyperref}
+%% The following change how the the back-references text is typeset in a
+%% bibliography when `backref' or `pagebackref' are used
+%\renewcommand\backrefpagesname{\(\rightarrow\) pages}
+%\renewcommand\backref{\textcolor{greytext} \backrefpagesname\ }
+
+%allow use of \degree command
+\usepackage{gensymb}
+
+\usepackage{lineno}
+\linenumbers
+
+
+
+%% The following is used for tables of equations.
+\newcounter{saveEq} 
+\def\putEq{\setcounter{saveEq}{\value{equation}}} 
+\def\getEq{\setcounter{equation}{\value{saveEq}}} 
+\def 
+\tableEq{ 
+
+% equations in tables
+\putEq \setcounter{equation}{0} 
+\renewcommand{\theequation}{T\arabic{table}.\arabic{equation}} \vspace{-5mm} } 
+\def\normalEq{ 
+
+% renew normal equations
+\getEq 
+\renewcommand{\theequation}{\arabic{section}.\arabic{equation}}}
+\newcommand{\normal}[2]{\ensuremath{N(#1,#2)}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Some special settings that controls how text is typeset
+%%
+ \raggedbottom      % pages don't have to line up nicely on the last line
+% \sloppy       % be a bit more relaxed in inter-word spacing
+ \clubpenalty=10000 % try harder to avoid orphans
+ \widowpenalty=20000    % try harder to avoid widows
+% \tolerance=1000
+
+
+
+
+\title{Stock Reduction Analysis using catch at length data}            
+\author{Catarina Wor, Brett van Poorten, Roberto Licandeo, Carl Walters}
+%\pgfrealjobname{pgfSweave-vignette}
+%pgfSweave-vignette
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+   Last thing to be written
+\end{abstract}
+
+
+\section{Introduction}
+
+(old intro written by Carl Walters)
+Modern stock assessments typically attempt to fit population dynamics models to catch at age and catch at length data, in hopes of extracting information from these data about age-size vulnerability and fishing mortality patterns (ref).  In cases where age data are lacking, software like MULTIFAN attempt to obtain estimates only from size distribution data while assuming information about variability in length at age, while perhaps also attempting to recover information about changes in body growth patterns.  Some older assessment methods attempt to put aside the length frequency data, by converting these data to age compositions using age-from-length tables, perhaps using iterative methods to estimate proportions of fish at age for each length interval (e.g. Shirippa and Goodyear, ref.).  It is typical for assessment results from assessment models to show substantial deviations between predicted and observed length distributions of catches, reflecting both sampling variation in the length composition data and incorrect assumptions about stability of both growth and vulnerability patterns. 
+ 
+
+ Here we suggest an alternative approach to assessment modeling that begins by assuming that the assessment model should exactly reproduce the observed catch at length distribution.  This is similar to the classical assumption in virtual population analysis that reconstructed numbers at age should exactly match observed catch at age data, or the suggestion by Schnute (ref) that statistical catch at age models might best be run in a “conditioned on catch” format by subtracting observed catches at age from modeled numbers at age in estimation of numbers at age over time.  The suggested approach may have two key advantages over statistical catch at age and/or catch at length models: (1) it does not require estimation of age or size vulnerability schedules, and (2) catch at length data are commonly available for every year, even when age composition sampling has not been conducted.  
+
+
+
+
+\section{Materials and methods}
+
+In this section we describe the stock reduction analysis with catch at length data, describe the simulation analysis and scenarios used to test the model and provide a description of the real data used to illustrate the model applicability.
+
+\subsection{Stock reduction analysis with catch at length data}
+
+	
+
+\subsection{Simulation routines and scenarios}
+
+\subsection{Real data examples}
+
+equations and data description go here
+
+
+\section{Results}
+
+show figures with real and simulated data
+
+\section{Discussion}
+
+Does the model work
+
+\clearpage
+
+ \bibliographystyle{apa}
+       \bibliography{references.bib}
+
+
+\end{document}

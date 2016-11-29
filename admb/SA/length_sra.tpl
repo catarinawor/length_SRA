@@ -15,7 +15,7 @@ DATA_SECTION
 	init_int nage;						// last age
 	init_int nlen;						// number of length-bins (assume start at 0)
 	init_int lstp;						// width of length-bins
-	init_int SR;						// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker
+	init_int SR;						// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker  BvP: not used
 	
 	// model known parameters
 	init_number m;						// natural mortality
@@ -361,8 +361,8 @@ FUNCTION SRA
 			
 
 			// exploitation by length										
-			//Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	
-			Ulength( y, b ) = Clt( y, b ) / Nlt( y, b );	
+			Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	// BvP put this back in to keep values from going over one
+			//Ulength( y, b ) = Clt( y, b ) / Nlt( y, b );	
 		}
 			
 		// exploitation by age
@@ -429,7 +429,8 @@ FUNCTION objective_function
 	lvec.initialize();
 
 	lvec(1)=dnorm(zstat,cv_it);
-	lvec(2)=dnorm(log_wt,sigR);
+	//lvec(2)=dnorm(log_wt,sigR);
+	//lvec(2)=0.;
 
 	dvar_vector npvec(1,npar);
 	npvec.initialize();
@@ -464,9 +465,11 @@ FUNCTION objective_function
 					break;
 					
 				default:	//uniform density
-					//npvec(i) = log(1./(theta_control(i,3)-theta_control(i,2)));
-					npvec(i) = (1./(theta_control(i,3)-theta_control(i,2)));
-		
+					dvariable dummy;
+					dummy = posfun(theta(i,1),theta_control(i,2),fpen);   // BvP added to keep parameter within bounds
+					dummy = posfun(theta_control(i,3)-theta(i,1),0.0,fpen);   // BvP added to keep parameter within bounds
+					npvec(i) = log(1./(theta_control(i,3)-theta_control(i,2)));
+					//npvec(i) = (1./(theta_control(i,3)-theta_control(i,2)));
 					break;
 			}
 	}
@@ -486,13 +489,13 @@ FUNCTION objective_function
 	
 	if(last_phase())
 	{		
-		pvec(1)=dnorm(log_wt,2.); 	// estimate recruitment deviations with dnorm function
+		pvec(1)=dnorm(log_wt,sigR); 	// estimate recruitment deviations with dnorm function
 	}
 	else
 	{
-		pvec(1)=100.*norm2(log_wt); 	
+		pvec(1)=norm2(log_wt)/1000;///1000.0; 	
 	}
-	
+	pvec(1)=0;
 
 
 	//if(last_phase())
@@ -507,6 +510,7 @@ FUNCTION objective_function
 	// 
 	pvec(2) = ssvul/sigVul;
 
+
 	//cout<<"sum(npvec) "<<endl<<sum(npvec)<<endl;
 
 	// RL: see commment above
@@ -514,7 +518,7 @@ FUNCTION objective_function
 	
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
-	nll = sum(lvec) + sum(npvec)+ sum(pvec);
+	nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen*1000;
 	//nll = sum(lvec) +  sum(pvec);
 
 	

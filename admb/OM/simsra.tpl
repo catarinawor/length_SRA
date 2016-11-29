@@ -19,7 +19,7 @@ DATA_SECTION
 	END_CALCS
 
 	//scenario name
-	init_adstring scnName;
+	init_int scnNumber;
 
 	//model dimensions
 	init_int syr;
@@ -36,6 +36,7 @@ DATA_SECTION
 	
 	//true parameter values
 	init_number sigR; 	    		// standard deviation for recruitment deviations
+	init_number sigVul; 
 	init_number tau;				// standard deviation for survey observation error
 	init_number tau_length;			// standard deviation for observation error
 	init_number Sa;					// natural survival
@@ -138,6 +139,9 @@ DATA_SECTION
 	vector fec(sage,nage); 			// fecundity at age
 	vector la(sage,nage); 				// length at age
 	vector std(sage,nage); 			// std for length at age curve
+
+	vector umsy(syr,eyr);
+	vector msy(syr,eyr);
 	
 
 	matrix P_al(sage,nage,1,nlen); 	// matrix of proportion of age at length
@@ -180,6 +184,8 @@ PRELIMINARY_CALCS_SECTION
 	propAgeAtLengh();
 	initialYear();
 	populationDynamics();
+
+	calc_msy();
 
 	output_data();
 	output_ctl();
@@ -371,7 +377,74 @@ FUNCTION  calcSellen
 	
 	///(1.+mfexp(-1.7*(len-4.)/0.1));
 
+FUNCTION calc_msy
+
+	dvector utest(1,101);
+	utest.fill_seqadd(0,0.01);
+
+ //This function calculates MSY in the lazy and slow way. 
+ 	int k, kk ;
+	int NF=size_count(utest);
 	
+	dmatrix selage(syr,eyr,sage,nage);
+
+	
+	
+	
+
+	for(int y=syr;y<=eyr;y++){
+
+		selage(y)= Uage(y)/max(Uage(y));
+
+		dvector ye(1,NF);
+		ye.initialize();
+		
+		for(k=1; k<=NF; k++)
+		{
+			dvector lz(sage,nage);
+			lz.initialize();
+
+			dvariable phieq;
+			dvariable phiz;
+			dvariable req;
+
+			phieq.initialize();
+			phiz.initialize();
+			req.initialize();
+
+
+
+			lz(sage) = 1.; //first age	
+			for(int a = sage+1 ; a <= nage ; a++)
+			{
+				lz(a) = lz(a-1)*Sa*(1-utest(k)); // proportion of individuals at age surviving M only
+			}
+			lz(nage) /= (1.-Sa*(1-utest(k))); // age plus group
+
+			phiz= lz*fec;
+			
+			phieq = elem_prod(lz,selage(y))*wa;
+			req = Ro*(reck-phie/phiz)/(reck-1);
+			
+			ye(k)= value(utest(k)*req*phieq);
+		}
+
+		
+		msy(y)= max(ye);
+		double mtest;	
+
+		for(kk=1; kk<=NF; kk++)
+		{
+			mtest=ye(kk);
+				
+			if(mtest==msy(y)){
+				umsy(y)=utest(kk);
+			} 
+		}
+
+
+	}
+
 
 FUNCTION output_ctl
 	
@@ -394,11 +467,11 @@ FUNCTION output_ctl
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_ro   	##"<<endl;
 	//mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_rbar   	##"<<endl;
-   //	mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  -1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
+   	//mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
    	mfs<< 2.302585 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
    	mfs<< 2.302585   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
    	mfs<< -1.203973  <<"\t"<< -3.0 <<"\t"<< -0.2  <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
-   	mfs<< 0  		 <<"\t"<< -2.0 <<"\t"<< 0.01   <<"\t"<< -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.01  	<<"\t"<<"#to 	##"<<endl;
+   	mfs<< -0.1  	<<"\t"<< -2.0 <<"\t"<< 0.0   <<"\t"<<   -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.0  	<<"\t"<<"#to 	##"<<endl;
    	mfs<< -2.525729  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	-4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
     mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<<"##initial values for recruitment deviations ##"<< endl;
@@ -441,7 +514,7 @@ FUNCTION output_data
 	//ofs<<"# iRo "<< endl << Ro <<endl;
 	ofs<<"# cv_it " << endl << tau <<endl;
 	ofs<<"# sigR " << endl << sigR <<endl;
-	ofs<<"# sigVul " << endl << 0.4 <<endl;
+	ofs<<"# sigVul " << endl << sigVul <<endl;
 	//ofs<<"# phz_reck "<< endl << 2 <<endl;
 	//ofs<<"# phz_growth  "<< endl << -4  <<endl;
 	//ofs<<"# use_prior  "<< endl << 0 <<endl;
@@ -454,25 +527,24 @@ FUNCTION output_true
 	  
 	ofstream ofs("true_data_lsra.rep");
 
-	//double tRbar;
+	double tRbar;
 
-	//for(int ni=rep_yr;ni<=eyr;ni++){
+	for(int ni=rep_yr;ni<=eyr;ni++){
 
-		//cout<<"r " << endl << (Nat(ni)(sage))/mfexp(wt(rep_yr)*proc_err)<<endl;
+		
+		tRbar += (Nat(ni)(sage))/mfexp(wt(ni)*proc_err);
 
-		//tRbar += (Nat(ni)(sage))/mfexp(wt(rep_yr)*proc_err);
-
-	//}
-	//tRbar /= (eyr-rep_yr+1);
+	}
+	tRbar /= (eyr-rep_yr+1);
 	//	/mfexp(wt(rep_yr,eyr)*proc_err))/(eyr-rep_yr+1);
 
-	ofs<<"scnName" << endl << scnName <<endl;
+	ofs<<"scnNumber" << endl << scnNumber <<endl;
 	ofs<<"ut" << endl << ut <<endl;
 	ofs<<"Nat" << endl << Nat <<endl;
 	ofs<<"Nlt" << endl << Nlt <<endl;
 	ofs<<"Clt" << endl << Clt.sub(syr,eyr) <<endl;
 	ofs<<"Ro" << endl << Ro <<endl;
-	//ofs<<"Rbar" << endl << tRbar <<endl;	
+	ofs<<"Rbar" << endl << tRbar <<endl;	
 	ofs<<"Rinit" << endl << Nat(rep_yr)(sage)/mfexp(wt(rep_yr)*proc_err) <<endl;
 	ofs<<"reck" << endl << reck <<endl;
 	ofs<<"Linf" << endl << Linf <<endl;
@@ -490,6 +562,9 @@ FUNCTION output_true
 	ofs<<"lxo" << endl << lxo <<endl;
 	ofs<<"fec" << endl << fec <<endl;	
 	ofs<<"wa" << endl << wa <<endl;	
+	ofs<<"umsy" << endl << umsy<<endl;	
+	ofs<<"msy" << endl << msy<<endl;	
+
 
 	
 
