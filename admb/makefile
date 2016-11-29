@@ -15,7 +15,7 @@ DAT= SA/length_sra.dat
 RDATA ='source(file.path("../","R/simeval/","readSimEval.R"))'
 
 
-LAST := 50
+LAST := 100
 NUMBERS := $(shell seq 1 ${LAST})
 
 

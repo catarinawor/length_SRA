@@ -7,6 +7,7 @@
 # ==============================================
 #for testing delete, when done
 
+source("/Users/catarinawor/Documents/Length_SRA/R/plots/readscn.R")
 
 
 #source("/Users/catarinawor/Documents/Lagrangian/R/read_mse/Rplots/calc_quantile.R")
@@ -21,6 +22,9 @@ plot_params <- function( M )
 {
 	cat("plot_params")
 
+	scn<-read_scnnames()
+
+
 	n <- length( M )
 	mdf <- NULL
 	adf <- NULL
@@ -30,7 +34,7 @@ plot_params <- function( M )
 	conv_n= 0
 	for(i in 1:n){
 
-		if(M[[i]]$SApar$maxgrad<1.0e-03){
+		if(M[[i]]$SApar$maxgrad<1.0e-04){
 			conv_n <-  conv_n + 1
 
 
@@ -57,12 +61,13 @@ plot_params <- function( M )
 			
 				bias<- (est- true) / true
 			
+			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
 
-			df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
+			df <- data.frame(Ro=bias[1],  kappa=bias[2],Linf=bias[3],k=bias[4],to=bias[5],cvl=bias[6], scenario=scn[M[[i]]$OM$scnNumber])
 			mdf <- rbind(mdf,df)
 
 			#af <- data.frame(true = true, est = est, param=c("Ro", "Rinit","kappa","Linf","k","to","cvl"))
-			af <- data.frame(true = true, est = est, param=c("Ro", "kappa","Linf","k","to","cvl"))
+			af <- data.frame(true = true, est = est, param=c("Ro", "kappa","Linf","k","to","cvl"), scenario=scn[M[[i]]$OM$scnNumber])
 			
 			adf <- rbind(adf,af)
 		}
@@ -70,7 +75,7 @@ plot_params <- function( M )
 
 
 	
-	df2<-melt(mdf,variable.name = "parameter")
+	df2<-melt(mdf,variable.name = "parameter",id="scenario")
 
 
 	
@@ -80,6 +85,7 @@ plot_params <- function( M )
 	p <- p + labs(x="Parameter",y="Bias")
 	p <- p + theme_bw(11) 
 	p <- p + ylim(-0.5, 0.5)
+	p <- p + facet_wrap(~scenario)
 	p <- p + annotate("text" , x = 1, y = 0.4, label = paste("n = ",conv_n))
 	print(p)
 
