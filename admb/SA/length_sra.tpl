@@ -78,7 +78,7 @@ DATA_SECTION
 
 		nag = nage-sage;
 		Am1=nage-1;
-		tiny=1.e-20;
+		tiny=1.e-40;
 	END_CALCS
 
 		!! ad_comm::change_datafile_name("length_sra.ctl");
@@ -138,7 +138,7 @@ PARAMETER_SECTION
 	//!! log_Ro=log(iRo);
 
 	// log of recruitment deviation
-	init_bounded_dev_vector log_wt(syr+1,eyr,-10.,10.,2); 
+	init_bounded_dev_vector log_wt(syr+1,eyr,-5.,5.,2); 
 	//init_bounded_dev_vector log_wt_init(sage+1,nage,-10.,10.,2); 
 
 
@@ -343,12 +343,15 @@ FUNCTION SRA
 		for( int a = sage +1; a <= nage; a++ ){
 
 			Nat( y )( a ) =  Nat( y - 1 )( a - 1 )* Sa * (1. - Uage( y - 1 )( a -1 ));
-			Nat( y )( a ) =  posfun( Nat( y )( a ), tiny, fpen);	
+				
 		}
-		
-		
+			
 		Nat( y, nage ) /= (1. - Sa * ( 1. - Uage( y - 1, nage)));
 
+		
+		for( int aa = sage; aa <= nage; aa++ ){
+			Nat( y )( aa ) =  posfun( Nat( y )( aa ), tiny, fpen);
+		}
 
 		//=====================================================================================
 		//Numbers at lengh
@@ -391,6 +394,7 @@ FUNCTION SRA
 		{
 			// penalty against dramatic changes in vulnerability?? 
 			Upen( y ) = pow( Ulength( y ) / posfun( maxUy( y ), tiny, fpen ) - muUl, 2. );	
+			//Upen( y ) = pow( Ulength( y ) /  maxUy( y ) - muUl, 2. );	
 		}
 		ssvul = sum( Upen );				// vulnerability penalty
 
@@ -425,7 +429,7 @@ FUNCTION observation_model
 	
 FUNCTION objective_function 
 
-	dvar_vector lvec(1,2);
+	dvar_vector lvec(1,1);
 	lvec.initialize();
 
 	lvec(1)=dnorm(zstat,cv_it);
@@ -493,9 +497,9 @@ FUNCTION objective_function
 	}
 	else
 	{
-		pvec(1)=norm2(log_wt)/1000;///1000.0; 	
+		pvec(1)=norm2(log_wt);//1000;///1000.0; 	
 	}
-	pvec(1)=0;
+	//pvec(1)=0;
 
 
 	//if(last_phase())
@@ -519,6 +523,8 @@ FUNCTION objective_function
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
 	nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen*1000;
+	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen;
+	
 	//nll = sum(lvec) +  sum(pvec);
 
 	
@@ -570,7 +576,9 @@ REPORT_SECTION
 	REPORT(vul);
 	REPORT(la);
 	REPORT(vul);
-	REPORT(Nlt)
+	REPORT(Nlt);
+	REPORT(log_wt);
+	
 
 TOP_OF_MAIN_SECTION
 	

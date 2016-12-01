@@ -132,6 +132,7 @@ DATA_SECTION
 	vector bt(syr,eyr);	  			// total biomass
 	vector sbt(syr,eyr); 			// spawning biomass
 	vector depl(syr,eyr);			// depletion based on spawning biomass
+	vector maxUy(syr,eyr);   		// annual U based on vulberable biomass
 	
 	vector len(1,nlen); 			// length classes
 	vector lxo(sage,nage); 			// Equilibrium unfished numbers ata age
@@ -148,6 +149,7 @@ DATA_SECTION
 	matrix P_la(1,nlen,sage,nage); 	// matrix of proportion of age at length (transpose)
 	matrix Nat(syr,eyr,sage,nage); 	// Numbers at age
 	matrix Ulength(syr,eyr,1,nlen); // Exploitation rate at length
+	matrix ObsUlength(syr,eyr,1,nlen); // Exploitation rate at length based on vulnerable biomass
 	matrix Uage(syr,eyr,sage,nage); // Exploitation rate at length
 	matrix Nlt(syr,eyr,1,nlen); 	// Numbers at length
 	matrix Clt(syr,eyr,1,nlen); 	// Catch at length
@@ -282,6 +284,10 @@ FUNCTION initialYear
 	
 	Clt(syr) = elem_prod(Nlt(syr),Ulength(syr));
 
+	ObsUlength(syr) = elem_div(Clt(syr),elem_prod(Nlt(syr),sellen(indselyr(syr))));
+
+	maxUy(syr)=max(ObsUlength(syr));
+
 	addErrorClt(syr);
 
 	vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * mfexp(eps(syr)*obs_err); // cpue
@@ -333,7 +339,11 @@ FUNCTION populationDynamics
 
 		addErrorClt(i+1);
 
-		// Vulnerable biomass
+		ObsUlength(i+1) = elem_div(Clt(i+1),Nlt(i+1));
+
+		maxUy(i+1)=max(ObsUlength(i+1));
+
+		// Vulnerable biomass for survey
 		vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * exp(eps(i+1)*obs_err); // cpue
 		
 		//Total biomass - what is this additional obs error representing? 
@@ -475,7 +485,7 @@ FUNCTION output_ctl
    	mfs<< -2.525729  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	-4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
     mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<<"##initial values for recruitment deviations ##"<< endl;
-	mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr)*proc_err) <<endl;
+	mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr-(nage-sage+1))*proc_err) <<endl<<exp(wt(eyr-(nage-sage+1),eyr)*0.)<< endl;;
 	mfs<<"##initial values for recruitment deviations in first year ##"<< endl;
 	//mfs<<"# wt_init "<< endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)) <<endl;
 
@@ -558,12 +568,16 @@ FUNCTION output_true
 	ofs<<"syr" << endl << syr <<endl;
 	ofs<<"eyr" << endl << eyr <<endl;
 	ofs<<"rep_yr" << endl << rep_yr <<endl;	
-	ofs<<"wt" << endl << wt <<endl;	
+	ofs<<"wt" << endl << exp(wt(rep_yr+1,eyr)*proc_err) <<endl;	
 	ofs<<"lxo" << endl << lxo <<endl;
 	ofs<<"fec" << endl << fec <<endl;	
 	ofs<<"wa" << endl << wa <<endl;	
 	ofs<<"umsy" << endl << umsy<<endl;	
-	ofs<<"msy" << endl << msy<<endl;	
+	ofs<<"msy" << endl << msy<<endl;
+	ofs<<"Ulength" << endl << Ulength <<endl;	
+	ofs<<"ObsUlength"<<endl << ObsUlength<< endl;
+	ofs<<"maxUy"<<endl << maxUy<< endl;
+
 
 
 	
