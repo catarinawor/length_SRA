@@ -28,13 +28,13 @@ plot_derivQuant <- function( M )
 
 	mdf <- NULL
 
-	conv_n= 0
+	conv_n<-numeric(length=length(scn))
 
 	for(i in 1:n){
 
 		if(M[[i]]$SApar$maxgrad<1.0e-04){
 
-			conv_n <-  conv_n + 1
+			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
 
 
 			est<-c(M[[i]]$SArep$depletion[length(M[[i]]$SArep$depletion)], 
@@ -43,7 +43,7 @@ plot_derivQuant <- function( M )
 
 			true<-c(M[[i]]$OM$depl[length(M[[i]]$OM$depl)], 
 				M[[i]]$OM$q,
-				M[[i]]$OM$ut[length(M[[i]]$OM$ut)])
+				M[[i]]$OM$maxUy[length(M[[i]]$OM$maxUy)])
 
 			bias<- (est- true) / true
 
@@ -64,6 +64,7 @@ plot_derivQuant <- function( M )
 	p <- p + ylim(-0.5, 0.5)
 	p <- p + theme_bw(11)
 	p <- p + facet_wrap(~scenario)
+	p <- p + annotate("text" , x = 1.2, y = 0.4, label = paste("n = ",conv_n))
 	print(p)
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")

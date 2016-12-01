@@ -10,12 +10,14 @@
 source("/Users/catarinawor/Documents/Length_SRA/R/plots/readscn.R")
 
 
-plotAgeComps <- function( M ){
+
+plotAgeComps <- function( M )
+{
 	#n <- length(M)
 	cat(".plotAgeComps\n")
 	
 
-	M<-SIMSdat[[50]]
+	#M<-SIMSdat[[802]]
 
 
 	names(M)
@@ -45,7 +47,7 @@ plotAgeComps <- function( M ){
 		{
 			#ix <- M$SArep$Clt
 			
-			df <- data.frame((M$SArep$Clt-M$OM$Clt[st:nrow(M$SArep$Clt),])/M$OM$Clt[st:nrow(M$SArep$Clt),])
+			df <- data.frame((M$SArep$Ulength-M$OM$Ulength[st:nrow(M$SArep$Ulength),])/M$OM$Ulength[st:nrow(M$SArep$Ulength),])
 			df <- data.frame(scenario=scn[M$OM$scnNumber],year=M$SArep$yr,df)
 			len <- M$SArep$len
 			colnames(df) <- c("Scenario","Year",paste(len))
@@ -65,10 +67,10 @@ plotAgeComps <- function( M ){
 		# A   <- data.frame(Model=names(M)[i],A)
 		# colnames(A) <- c("Model","Year","Gear","Area","Group","Sex","AgeErr",paste(age))
 		# mdf <- rbind(mdf,A)
-		#}
+
+	}
 	mB  <- melt(B,id.vars=c("Scenario","Year"))
-	BroodYear <- mB$Year-as.double(mB$variable)
-	mB  <- cbind(mB,BroodYear)
+	
 
 	# mdf <- melt(mdf,id.vars=c("Model","Year","Gear","Area","Group","Sex","AgeErr"))
 	# BroodYear <- mdf$Year-as.double(mdf$variable)
@@ -76,10 +78,11 @@ plotAgeComps <- function( M ){
 	# print(head(mdf,3))
 
 	p <- ggplot(mB,aes((Year),variable,size=value))
-	p <- p + geom_point(alpha=0.75,aes(colour=factor(BroodYear))) 
+	p <- p + geom_point(alpha=0.75,aes(colour=as.factor(sign(value)))) 
 	p <- p + scale_size_area(max_size=5)
 	p <- p + labs(x="Year",y="length",size="bias")
 	p <- p + facet_wrap(~Scenario,scales="free")
-	p <- p + scale_colour_discrete(guide="none")
+	#p <- p + scale_colour_discrete(guide="none")
+	p <- p + theme_bw(11)
 	print(p)
 }

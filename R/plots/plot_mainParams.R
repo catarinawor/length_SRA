@@ -31,11 +31,12 @@ plot_params <- function( M )
 	
 
 
-	conv_n= 0
+	conv_n<-numeric(length=length(scn))
+
 	for(i in 1:n){
 
 		if(M[[i]]$SApar$maxgrad<1.0e-04){
-			conv_n <-  conv_n + 1
+			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
 
 
 			est<-c(M[[i]]$SArep$Ro,
@@ -86,7 +87,7 @@ plot_params <- function( M )
 	p <- p + theme_bw(11) 
 	p <- p + ylim(-0.5, 0.5)
 	p <- p + facet_wrap(~scenario)
-	p <- p + annotate("text" , x = 1, y = 0.4, label = paste("n = ",conv_n))
+	p <- p + annotate("text" , x = 1.2, y = 0.4, label = paste("n = ",conv_n))
 	print(p)
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
