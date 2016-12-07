@@ -65,6 +65,8 @@ plot_params <- function( M )
 			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
 
 			df <- data.frame(Ro=bias[1],  kappa=bias[2],Linf=bias[3],k=bias[4],to=bias[5],cvl=bias[6], scenario=scn[M[[i]]$OM$scnNumber])
+			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7], scenario=scn[M[[i]]$OM$scnNumber])
+
 			mdf <- rbind(mdf,df)
 
 			#af <- data.frame(true = true, est = est, param=c("Ro", "Rinit","kappa","Linf","k","to","cvl"))
