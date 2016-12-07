@@ -50,6 +50,7 @@ DATA_SECTION
 	//init_int phz_growth;				// phase for growth parameters
 	//init_int use_prior;					// add priors to the likehoods ? (1 or 0)
 
+	init_number u_init;					
 	init_int dend;
 	
 	
@@ -104,6 +105,7 @@ DATA_SECTION
 	
 	LOC_CALCS
 		
+
 		theta_ival  = column(theta_control,1);
 		theta_lb    = column(theta_control,2);
 		theta_ub    = column(theta_control,3);
@@ -111,7 +113,6 @@ DATA_SECTION
 		theta_prior = ivector(column(theta_control,5));
 
 
-		
 	END_CALCS
 
 INITIALIZATION_SECTION
@@ -138,12 +139,16 @@ PARAMETER_SECTION
 	//!! log_Ro=log(iRo);
 
 	// log of recruitment deviation
+		
 	init_bounded_dev_vector log_wt(syr+1,eyr,-5.,5.,2); 
+	!!cout<< "chegou aqui"<<endl;
 	//init_bounded_dev_vector log_wt_init(sage+1,nage,-10.,10.,2); 
 
 
 
  	!! log_wt = log(iwt);
+
+
  	//!! log_wt_init = log(iwt_init);
 
 	objective_function_value nll;
@@ -158,6 +163,8 @@ PARAMETER_SECTION
 	//number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
 	
+
+
 	number ssvul; 						// it is the sum sq devs for the length vul deviations (mean va(L) - va(L,t))^2
 	
 	//number Eo;							// unfished egg deposition
@@ -196,6 +203,7 @@ PRELIMINARY_CALCS_SECTION
 
 PROCEDURE_SECTION
     
+    
     trans_parms();
 	incidence_functions();
 	propAgeAtLengh();
@@ -221,10 +229,10 @@ FUNCTION trans_parms
 	to =  theta(5,1) ;
 	cvl = exp( theta(6,1) );
 	
-	wt = exp( log_wt );
+	wt = exp( log_wt);
 	//wt_init = exp( log_wt_init );
 
-	
+	//cout<<"ok after trans_parms"<<endl;
 
 
 	
@@ -302,7 +310,13 @@ FUNCTION initialYear
 	}		
 	Nat( syr, nage ) /= 1. - Sa;
 
-	//Nat(syr,sage)= Rinit* (wt(syr));	
+	//Nat(syr,sage)= Rinit * (wt(syr));
+	//for( int a = 2; a <= nage; a++ )
+	//{
+	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1. - u_init);	// initial age-structure
+	//}		
+	//Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
+
 	//Nat(syr)(sage+1,nage) = Rinit* wt_init;
 	//Nat(syr)(sage+1,nage) = elem_prod(Nat(syr)(sage+1,nage), lxo(sage+1,nage));
 
@@ -335,7 +349,7 @@ FUNCTION SRA
 	  
 		dvariable sbt = fec * Nat(y - 1);				// eggs in year-y
 	    	
-		Nat( y, sage ) = reca * sbt / ( 1. + recb * sbt) * wt( y );	// B-H recruitment
+		Nat( y, sage ) = reca * sbt / ( 1. + recb * sbt) * (wt( y ) );	///mfexp( sigR*sigR/2.) B-H recruitment
 		
 		
 		// age-distribution post-recruitment
@@ -380,9 +394,6 @@ FUNCTION SRA
 
 	}
 	
-
-
-
 		for( int b = 1; b <= nlen; b++ )
 		{ 
 			//  exploitation rate relative to fully recruited U(expected value?) at length over al years
@@ -522,8 +533,8 @@ FUNCTION objective_function
 	
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
-	nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen*1000;
-	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen;
+	nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen;
+	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen*1000;
 	
 	//nll = sum(lvec) +  sum(pvec);
 
@@ -573,7 +584,6 @@ REPORT_SECTION
 	REPORT(len);
 	REPORT(q);
 	REPORT(Sa);
-	REPORT(vul);
 	REPORT(la);
 	REPORT(vul);
 	REPORT(Nlt);

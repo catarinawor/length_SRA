@@ -1,4 +1,6 @@
+#NoObsErr
+#ObsErr
 baseCase
+#OneWayTrip
 #lowU
-#lowsigVulbase
-#lowsigVullowU
+#constantU

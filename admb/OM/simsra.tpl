@@ -64,7 +64,7 @@ DATA_SECTION
 	init_number Ulensd;					// sd for selectivity at lenght
 
 
-	init_vector va(sage,nage);        // vector of vulnerabilities at age
+	init_vector va(sage,nage);        // vector of survey vulnerabilities at age
 	init_vector ut(syr,eyr);		// exploitation rate pattern
 	init_vector iyr(1,niyr);     	// years for which a survey is available
 
@@ -260,7 +260,7 @@ FUNCTION propAgeAtLengh
 
 FUNCTION initialYear
 	
-	Nat( syr, sage )= Ro;
+	Nat( syr, sage )= Ro;//*exp((wt(syr)-sigR*sigR/2)*proc_err);
 	for( int a = sage+1; a <= nage; a++ )
 	{
 		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa ;	// initial age-structure
@@ -290,10 +290,10 @@ FUNCTION initialYear
 
 	addErrorClt(syr);
 
-	vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * mfexp(eps(syr)*obs_err); // cpue
+	vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * mfexp((eps(syr)-tau*tau/2.)*obs_err); // cpue
 	
 	// Add process error to all ages in initial year
-	bt(syr) = Nat(syr)* wa * mfexp(eps(syr)*obs_err); 				     // survey
+	bt(syr) = Nat(syr)* wa * mfexp((eps(syr)-tau*tau/2.)*obs_err); 				     // survey
 	
 	//spawning biomass
 	sbt(syr) = fec * Nat(syr);
@@ -317,7 +317,7 @@ FUNCTION populationDynamics
 	    
 	   
 	    //recruitment
-	    Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp(wt(i+1)*proc_err);
+	    Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp((wt(i+1)-sigR*sigR/2)*proc_err);
 	    
 	    //ages 2 -nage
 	    Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(sage,nage-1)*Sa,1.-Uage(i)(sage,nage-1));
@@ -344,10 +344,10 @@ FUNCTION populationDynamics
 		maxUy(i+1)=max(ObsUlength(i+1));
 
 		// Vulnerable biomass for survey
-		vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * exp(eps(i+1)*obs_err); // cpue
+		vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * exp((eps(i+1)-tau*tau/2.)*obs_err); // cpue
 		
 		//Total biomass - what is this additional obs error representing? 
-		bt(i+1) = Nat(i+1)* wa * exp(eps(i+1)*obs_err); 
+		bt(i+1) = Nat(i+1)* wa * exp((eps(i+1)-tau*tau/2.)*obs_err); 
 		
 		//spawning biomass
 		sbt(i+1) = fec * Nat(i+1);				     // survey
@@ -472,6 +472,7 @@ FUNCTION output_ctl
 	mfs<<"##                      -3 beta         (p1=alpha,p2=beta)                              ##"<< endl;
 	mfs<<"##                      -4 gamma        (p1=alpha,p2=beta)                              ##"<< endl;	
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
+	//mfs<<"## npar"<<endl<< "7"<< endl;
 	mfs<<"## npar"<<endl<< "6"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
@@ -485,7 +486,7 @@ FUNCTION output_ctl
    	mfs<< -2.525729  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	-4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
     mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<<"##initial values for recruitment deviations ##"<< endl;
-	mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr-(nage-sage+1))*proc_err) <<endl<<exp(wt(eyr-(nage-sage+1),eyr)*0.)<< endl;;
+	mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr-(nage-sage+1)-1)-sigR*sigR/2*proc_err) <<endl<<exp(wt(eyr-(nage-sage+1),eyr)*0.)<< endl;;
 	mfs<<"##initial values for recruitment deviations in first year ##"<< endl;
 	//mfs<<"# wt_init "<< endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)) <<endl;
 
@@ -522,12 +523,14 @@ FUNCTION output_data
 	//ofs<<"# icvl " << endl << cvl <<endl;
 	//ofs<<"# ireck "<< endl << reck <<endl;
 	//ofs<<"# iRo "<< endl << Ro <<endl;
+
 	ofs<<"# cv_it " << endl << tau <<endl;
 	ofs<<"# sigR " << endl << sigR <<endl;
 	ofs<<"# sigVul " << endl << sigVul <<endl;
 	//ofs<<"# phz_reck "<< endl << 2 <<endl;
 	//ofs<<"# phz_growth  "<< endl << -4  <<endl;
 	//ofs<<"# use_prior  "<< endl << 0 <<endl;
+	ofs<<"# u_init " << endl << 0.0 <<endl;
 	ofs<<"# eof " << endl << 999 <<endl;
 
 	cout<<"OK after otput_dat"<<endl;
@@ -555,7 +558,7 @@ FUNCTION output_true
 	ofs<<"Clt" << endl << Clt.sub(syr,eyr) <<endl;
 	ofs<<"Ro" << endl << Ro <<endl;
 	ofs<<"Rbar" << endl << tRbar <<endl;	
-	ofs<<"Rinit" << endl << Nat(rep_yr)(sage)/mfexp(wt(rep_yr)*proc_err) <<endl;
+	//ofs<<"Rinit" << endl << Nat(rep_yr)(sage)/mfexp(wt(rep_yr)*proc_err) <<endl;
 	ofs<<"reck" << endl << reck <<endl;
 	ofs<<"Linf" << endl << Linf <<endl;
 	ofs<<"k" << endl << k <<endl;

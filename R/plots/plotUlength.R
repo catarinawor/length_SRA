@@ -68,7 +68,7 @@ plotAgeComps <- function( M )
 		# colnames(A) <- c("Model","Year","Gear","Area","Group","Sex","AgeErr",paste(age))
 		# mdf <- rbind(mdf,A)
 
-	}
+	#}
 	mB  <- melt(B,id.vars=c("Scenario","Year"))
 	
 

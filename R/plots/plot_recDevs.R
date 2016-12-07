@@ -21,7 +21,7 @@ source("/Users/catarinawor/Documents/Length_SRA/R/plots/readscn.R")
 
 plot_Recdevs <- function( M )
 {
-	cat("plot_params")
+	cat("plot_recDevs")
 
 	n <- length( M )
 	mdf <- NULL
@@ -30,18 +30,19 @@ plot_Recdevs <- function( M )
 
 
 
-	conv_n= 0
+	conv_n<-numeric(length=length(scn))
+	
 	for(i in 1:n){
 
 		if(M[[i]]$SApar$maxgrad<1.0e-04){
-			conv_n <-  conv_n + 1
+			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
 
 			
 			est<-c(M[[i]]$SArep$wt)
 
-			#st<-M[[i]]$OM$rep_yr-M[[i]]$OM$syr+1
+			tt<-M[[i]]$OM$rep_yr-M[[i]]$OM$syr+1
 
-			true<-c(M[[i]]$OM$wt)
+			true<-c(M[[i]]$OM$wt[1:length(M[[i]]$OM$wt)])
 			
 
 
