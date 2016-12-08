@@ -160,7 +160,7 @@ PARAMETER_SECTION
 	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
 	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
-	//number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
+	number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
 	
 
@@ -216,18 +216,18 @@ FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
 	Ro = exp( theta(1,1) );
-	//Rinit = exp( theta(2,1) );
-	//reck = exp( theta(3,1) );
-	//Linf = exp( theta(4,1) );
-	//k = exp( theta(5,1) );
-	//to =  theta(6,1) ;
-	//cvl = exp( theta(7,1) );
+	Rinit = exp( theta(2,1) );
+	reck = exp( theta(3,1) );
+	Linf = exp( theta(4,1) );
+	k = exp( theta(5,1) );
+	to =  theta(6,1) ;
+	cvl = exp( theta(7,1) );
 
-	reck = exp( theta(2,1) );
-	Linf = exp( theta(3,1) );
-	k = exp( theta(4,1) );
-	to =  theta(5,1) ;
-	cvl = exp( theta(6,1) );
+	//reck = exp( theta(2,1) );
+	//Linf = exp( theta(3,1) );
+	//k = exp( theta(4,1) );
+	//to =  theta(5,1) ;
+	//cvl = exp( theta(6,1) );
 	
 	wt = exp( log_wt);
 	//wt_init = exp( log_wt_init );
@@ -303,19 +303,19 @@ FUNCTION initialYear
 	// INITIAL YEAR (no fishing assumed)
 
 
-	Nat( syr, sage )= Ro;
-	for( int a = 2; a <= nage; a++ )
-	{
-		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
-	}		
-	Nat( syr, nage ) /= 1. - Sa;
-
-	//Nat(syr,sage)= Rinit * (wt(syr));
+	//Nat( syr, sage )= Ro;
 	//for( int a = 2; a <= nage; a++ )
 	//{
-	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1. - u_init);	// initial age-structure
+	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	//}		
-	//Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
+	//Nat( syr, nage ) /= 1. - Sa;
+
+	Nat(syr,sage)= Rinit;// * (wt(syr));
+	for( int a = 2; a <= nage; a++ )
+	{
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1. - u_init);	// initial age-structure
+	}		
+	Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
 
 	//Nat(syr)(sage+1,nage) = Rinit* wt_init;
 	//Nat(syr)(sage+1,nage) = elem_prod(Nat(syr)(sage+1,nage), lxo(sage+1,nage));
@@ -548,7 +548,7 @@ REPORT_SECTION
 	
 	
 	REPORT(Ro);
-	//REPORT(Rinit);
+	REPORT(Rinit);
 	REPORT(reck);
 	REPORT(reca);
 	REPORT(recb);
