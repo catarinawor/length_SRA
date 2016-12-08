@@ -291,7 +291,8 @@ FUNCTION initialYear
 	addErrorClt(syr);
 
 	vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * mfexp((eps(syr)-tau*tau/2.)*obs_err); // cpue
-	
+	//vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * mfexp((eps(syr))*obs_err); // cpue
+		
 	// Add process error to all ages in initial year
 	bt(syr) = Nat(syr)* wa * mfexp((eps(syr)-tau*tau/2.)*obs_err); 				     // survey
 	
@@ -317,7 +318,9 @@ FUNCTION populationDynamics
 	    
 	   
 	    //recruitment
-	    Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp((wt(i+1)-sigR*sigR/2)*proc_err);
+	    Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp((wt(i+1)-sigR*sigR/2.)*proc_err);
+	   
+	    //Nat(i+1,1) = (reca*sbt(i)/(1.+recb*sbt(i)))*exp((wt(i+1))*proc_err);
 	    
 	    //ages 2 -nage
 	    Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(sage,nage-1)*Sa,1.-Uage(i)(sage,nage-1));
@@ -345,7 +348,9 @@ FUNCTION populationDynamics
 
 		// Vulnerable biomass for survey
 		vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * exp((eps(i+1)-tau*tau/2.)*obs_err); // cpue
+		//vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * exp((eps(i+1))*obs_err); // cpue
 		
+
 		//Total biomass - what is this additional obs error representing? 
 		bt(i+1) = Nat(i+1)* wa * exp((eps(i+1)-tau*tau/2.)*obs_err); 
 		
@@ -472,13 +477,13 @@ FUNCTION output_ctl
 	mfs<<"##                      -3 beta         (p1=alpha,p2=beta)                              ##"<< endl;
 	mfs<<"##                      -4 gamma        (p1=alpha,p2=beta)                              ##"<< endl;	
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	//mfs<<"## npar"<<endl<< "7"<< endl;
-	mfs<<"## npar"<<endl<< "6"<< endl;
+	mfs<<"## npar"<<endl<< "7"<< endl;
+	//mfs<<"## npar"<<endl<< "6"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_ro   	##"<<endl;
 	//mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_rbar   	##"<<endl;
-   	//mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
+   	mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
    	mfs<< 2.302585 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
    	mfs<< 2.302585   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
    	mfs<< -1.203973  <<"\t"<< -3.0 <<"\t"<< -0.2  <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
@@ -558,7 +563,7 @@ FUNCTION output_true
 	ofs<<"Clt" << endl << Clt.sub(syr,eyr) <<endl;
 	ofs<<"Ro" << endl << Ro <<endl;
 	ofs<<"Rbar" << endl << tRbar <<endl;	
-	//ofs<<"Rinit" << endl << Nat(rep_yr)(sage)/mfexp(wt(rep_yr)*proc_err) <<endl;
+	ofs<<"Rinit" << endl << Nat(rep_yr)(sage)/mfexp(wt(rep_yr)*proc_err) <<endl;
 	ofs<<"reck" << endl << reck <<endl;
 	ofs<<"Linf" << endl << Linf <<endl;
 	ofs<<"k" << endl << k <<endl;
