@@ -28,8 +28,8 @@ DATA_SECTION
 	init_int sage;
 	init_int nage;
 	init_int nlen;
-	init_int slen;
-	init_number lstp;
+	//init_int slen;
+	init_int lstp;
 	init_int niyr;
 
 	init_int proc_err;
@@ -169,7 +169,7 @@ DATA_SECTION
 		eps.fill_randn(rng);
 		eps*=tau;
 		age.fill_seqadd(sage,1);
-		len.fill_seqadd(slen,lstp);
+		len.fill_seqadd(lstp,lstp);
 		Am1=nage-1;	
 		tiny=1.e-20;
 
@@ -214,7 +214,7 @@ FUNCTION incidence_functions
 		lxo(a) = lxo(a-1)*Sa; // proportion of individuals at age surviving M only
 	}
 	lxo(nage) /= (1.-Sa); // age plus group
-	
+
 	wa = alw * pow(la,blw); //weight at age
 
  	for(int w=sage; w<=nage;w++)
@@ -328,7 +328,7 @@ FUNCTION populationDynamics
 	    //ages 2 -nage
 	    Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(sage,nage-1)*Sa,1.-Uage(i)(sage,nage-1));
 	    
-		Nat( i+1, nage ) /= (1. -  Sa* (1.-Uage(i+1)(nage) ) );
+		Nat( i+1, nage ) /= (1. - ( Sa* (1.-Uage(i)(nage) ) ) );
 		
 		//Proportion of individuals at length 
 		//note admb matrix multiplication is yj = \sum_i xi * mij 
@@ -382,12 +382,12 @@ FUNCTION  calcSellen
 	for(int si=1;si<=nselch;si++){
 		for(int b=1;b<=nlen;b++){
 			
-			//sellen(si)(b) = (1/(1-selg(si)))*
-			//				pow((1-selg(si))/selg(si),selg(si))*
-			//				((exp(sela(si)*selg(si)*(selb(si)-len(b))))/
-			//				(1+exp(sela(si)*(selb(si)-len(b)))));
+			sellen(si)(b) = (1/(1-selg(si)))*
+							pow((1-selg(si))/selg(si),selg(si))*
+							((exp(sela(si)*selg(si)*(selb(si)-len(b))))/
+							(1+exp(sela(si)*(selb(si)-len(b)))));
 
-			sellen(si)(b) = 1.;///(1.+mfexp(-1.7*(len(b)-4.)/0.1));
+			//sellen(si)(b) = 1.;///(1.+mfexp(-1.7*(len(b)-4.)/0.1));
 		}
 	}
 
@@ -484,7 +484,7 @@ FUNCTION output_ctl
 	mfs<<"## npar"<<endl<< "6"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	mfs<< log(1.50)  		 <<"\t"<< -2 <<"\t"<< 8.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -2	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
+	mfs<< log(1.50)  		 <<"\t"<< -4.0 <<"\t"<< 8.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
 	//mfs<< log(Ro)  		 <<"\t"<< -2 <<"\t"<< 8.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -2	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
 	//mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_rbar   	##"<<endl;
    	//mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;

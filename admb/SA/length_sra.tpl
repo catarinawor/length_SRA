@@ -114,9 +114,6 @@ DATA_SECTION
 		theta_prior = ivector(column(theta_control,5));
 
 
-
-		cout<<"thetaival is : "<< theta_ival <<endl;
-
 	END_CALCS
 
 INITIALIZATION_SECTION
@@ -190,7 +187,9 @@ PARAMETER_SECTION
 	vector wa(sage,nage);					// weight-at-age
 	vector lxo(sage,nage);					// unfished survivorship at age
 	//vector lz(sage,nage);					// unfished survivorship at age
-	vector sbt(syr,eyr);
+	
+	//PB added after bias correction
+	vector sbt(syr,eyr);					
 	
 	
 	vector maxUy(syr,eyr);				// maximum U over length classes for each year?
@@ -278,7 +277,7 @@ FUNCTION incidence_functions
 	{
 		lxo( a ) = lxo(a-1)*Sa;
 	}	
-	lxo( nage ) /= (1. - Sa);
+	lxo( nage ) /= (1. - Sa); // PB: added parenthesis here
 
 	
 	
@@ -330,7 +329,7 @@ FUNCTION initialYear
 	{
 		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	}		
-	Nat( syr, nage ) /= (1. - Sa);
+	Nat( syr, nage ) /= (1. - Sa); //PB: added parenthesis
 
 	//Nat(syr,sage)= Rinit;// * (wt(syr));
 	//for( int a = 2; a <= nage; a++ )
@@ -357,6 +356,7 @@ FUNCTION initialYear
 	// exploitation by age
 	Uage( syr ) = Ulength( syr ) * P_la;
 
+	//PB:added after bias correction
 	sbt(syr) = fec * Nat(syr);				// eggs in year-y
 	
 	//cout<<"wt_init"<<endl<<wt_init<<endl;
@@ -413,6 +413,7 @@ FUNCTION SRA
 		// max exploitation (fully selected) across lengths
 		maxUy( y ) = max( Ulength( y ));
 
+		//PB: added
 		sbt(y) = fec * Nat(y);				// eggs in year-y
 
 		//cout<<"Uage"<<endl<<Uage( syr)<<endl;
@@ -458,8 +459,8 @@ FUNCTION SRA
 
 FUNCTION observation_model
 
-
-	dvar_vector datry(sage,nage);
+	//PB comented out this one
+	//dvar_vector datry(sage,nage);
 	for( int i = 1; i <= nyt ; i++ )
 	{
 		zstat(i)=log(survB(i))-log(psurvB(iyr(i)));
@@ -475,11 +476,11 @@ FUNCTION observation_model
 	
 FUNCTION objective_function 
 
-	dvar_vector lvec(1,2);
+	dvar_vector lvec(1,1);
 	lvec.initialize();
 
 	lvec(1)=dnorm(zstat,cv_it)	;
-	lvec(2)=dnorm(log_wt,sigR);
+	//lvec(2)=dnorm(log_wt,sigR);
 	//lvec(2)=0.;
 
 	
@@ -539,15 +540,15 @@ FUNCTION objective_function
 	//	
    	//}
 	
-	//if(last_phase())
-	//{		
-	//	pvec(1)=dnorm(log_wt,sigR); 	// estimate recruitment deviations with dnorm function
-	//}
-	//else
-	//{
-	//	pvec(1)=norm2(log_wt);///1000.0; 	
-	//}
-	//pvec(1)=0;
+	if(last_phase())
+	{		
+		pvec(1)=dnorm(log_wt,sigR); 	// estimate recruitment deviations with dnorm function
+	}
+	else
+	{
+		pvec(1)=norm2(log_wt);///1000.0; 	
+	}
+	pvec(1)=0;
 
 	//cout<<"fpen is "<<endl<<fpen<<endl;
 	//if(last_phase())
@@ -575,8 +576,8 @@ FUNCTION objective_function
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
 	//nll = (sum(lvec) + sum(npvec)+ sum(pvec) +fpen);// + sum(Upow) ;
-	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen;
-	nll = sum(lvec) + sum(pvec)+fpen;
+	nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen;
+	//nll = sum(lvec) + sum(pvec)+fpen;
 	
 	cout<<"nll is "<< nll<<endl;
 
