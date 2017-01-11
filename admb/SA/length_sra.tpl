@@ -475,11 +475,11 @@ FUNCTION observation_model
 	
 FUNCTION objective_function 
 
-	dvar_vector lvec(1,1);
+	dvar_vector lvec(1,2);
 	lvec.initialize();
 
 	lvec(1)=dnorm(zstat,cv_it)	;
-	//lvec(2)=dnorm(log_wt,sigR);
+	lvec(2)=dnorm(log_wt,sigR);
 	//lvec(2)=0.;
 
 	
@@ -539,14 +539,14 @@ FUNCTION objective_function
 	//	
    	//}
 	
-	if(last_phase())
-	{		
-		pvec(1)=dnorm(log_wt,sigR); 	// estimate recruitment deviations with dnorm function
-	}
-	else
-	{
-		pvec(1)=norm2(log_wt);///1000.0; 	
-	}
+	//if(last_phase())
+	//{		
+	//	pvec(1)=dnorm(log_wt,sigR); 	// estimate recruitment deviations with dnorm function
+	//}
+	//else
+	//{
+	//	pvec(1)=norm2(log_wt);///1000.0; 	
+	//}
 	//pvec(1)=0;
 
 	//cout<<"fpen is "<<endl<<fpen<<endl;
@@ -575,7 +575,8 @@ FUNCTION objective_function
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
 	//nll = (sum(lvec) + sum(npvec)+ sum(pvec) +fpen);// + sum(Upow) ;
-	nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen;
+	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen;
+	nll = sum(lvec) + sum(pvec)+fpen;
 	
 	cout<<"nll is "<< nll<<endl;
 
