@@ -7,27 +7,23 @@
 # ==============================================
 #for testing delete, when done
 
+source("/Users/catarinawor/Documents/Length_SRA/R/plots/calc_quantile.R")
 source("/Users/catarinawor/Documents/Length_SRA/R/plots/readscn.R")
 
+require(reshape2)
+require(tidyr)
+require(ggplot2)
 
 
-plotAgeComps <- function( M )
+plotLengthComps <- function( M )
 {
 	#n <- length(M)
-	cat(".plotAgeComps\n")
+	cat("plotLengthComps\n")
 	
 
-	#M<-SIMSdat[[802]]
+	#M<-SIMSdat
 
-
-	names(M)
-	names(M$SArep)
-	names(M$OM)
-
-	st<- M$OM$rep_yr-M$OM$syr+1
-
-	dim(M$SArep$Clt)
-	dim(M$OM$Clt[st:nrow(M$SArep$Clt),])
+	st<- M[[1]]$OM$rep_yr-M[[1]]$OM$syr+1
 
 	
 
@@ -36,53 +32,75 @@ plotAgeComps <- function( M )
 	scn<-read_scnnames()
 
 
-
-
-	#for( i in 1:n ){
+	n<-length(M)
+	allB<-NULL
 
 
 		
 
+		
+		
+		#B   <- lapply(1:length(id),getDF)
+		
+	for( i in 1:n ){
+
 		getDF <- function()
 		{
-			#ix <- M$SArep$Clt
 			
-			df <- data.frame((M$SArep$Ulength-M$OM$Ulength[st:nrow(M$SArep$Ulength),])/M$OM$Ulength[st:nrow(M$SArep$Ulength),])
-			df <- data.frame(scenario=scn[M$OM$scnNumber],year=M$SArep$yr,df)
-			len <- M$SArep$len
+			df <- data.frame((M[[i]]$SArep$Ulength-M[[i]]$OM$Ulength[st:nrow(M[[i]]$SArep$Ulength),])/M[[i]]$OM$Ulength[st:nrow(M[[i]]$SArep$Ulength),])
+			df <- data.frame(scenario=scn[M[[i]]$OM$scnNumber],year=M[[i]]$SArep$yr,df)
+			len <- M[[i]]$SArep$len
 			colnames(df) <- c("Scenario","Year",paste(len))
 			
 			return(df)
 		}
-		
-		#B   <- lapply(1:length(id),getDF)
+
 		B<-getDF()
-
-
-		# A   <- data.frame(M[[i]]$d3_A)
-		# # Ensure proportions are being plotted.
-		# A[,-1:-6] <- A[,-1:-6]/rowSums(A[,-1:-6],na.rm=TRUE)
-		# age <- seq(min(M[[i]]$n_A_sage),max(M[[i]]$n_A_nage))
-		# # year gear area group sex
-		# A   <- data.frame(Model=names(M)[i],A)
-		# colnames(A) <- c("Model","Year","Gear","Area","Group","Sex","AgeErr",paste(age))
-		# mdf <- rbind(mdf,A)
-
-	#}
-	mB  <- melt(B,id.vars=c("Scenario","Year"))
+		
+		
 	
+		allB <- rbind(allB,B)
+	}
 
+	anos<-unique(allB$Year)
+
+	head(allB)
+	dim(allB)
+
+	median<-NULL
+
+	for(ss in 1:length(scn)){
+		for(y in 1:length(anos)){
+
+		tmpy<-allB[allB$Scenario==scn[ss]&allB$Year==anos[y],-c(1,2)]
+
+		qq<-apply(tmpy,2,calc_quantile)
+
+		median<-rbind(median,cbind(data.frame(scenario=scn[ss],year=anos[y],level="median"),t(qq["50%",])))
+		#low<-rbind(low,cbind(data.frame(scenario=scn[ss],year=anos[y],level="low"),t(qq["2.5%",])))
+		#high<-rbind(high,cbind(data.frame(scenario=scn[ss],year=anos[y],level="high"),t(qq["97.5%",])))
+		
+	}
+}
+	#totB<-rbind(median,low,high)
+	
+	mB  <- melt(median,id.vars=c("scenario","year","level"))
 	# mdf <- melt(mdf,id.vars=c("Model","Year","Gear","Area","Group","Sex","AgeErr"))
 	# BroodYear <- mdf$Year-as.double(mdf$variable)
 	# mdf <- cbind(mdf,BroodYear)
 	# print(head(mdf,3))
 
-	p <- ggplot(mB,aes((Year),variable,size=value))
-	p <- p + geom_point(alpha=0.75,aes(colour=as.factor(sign(value)))) 
+	p <- ggplot(mB,aes((year),variable,size=value))
+	p <- p + geom_point(aes(colour=as.factor(sign(value))),alpha=0.75) 
+	#p <- p + geom_point(alpha=0.75,) 
+
 	p <- p + scale_size_area(max_size=5)
 	p <- p + labs(x="Year",y="length",size="bias")
-	p <- p + facet_wrap(~Scenario,scales="free")
+	p <- p + facet_wrap(~scenario,scales="free")
 	#p <- p + scale_colour_discrete(guide="none")
 	p <- p + theme_bw(11)
 	print(p)
+
+	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
+	ggsave("UlengthMedian.pdf", plot=p)
 }

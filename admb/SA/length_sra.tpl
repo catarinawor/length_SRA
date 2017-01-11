@@ -100,6 +100,7 @@ DATA_SECTION
 	ivector   theta_phz(1,npar);
 	ivector theta_prior(1,npar);
 
+
 	init_vector iwt(syr+1,eyr);         // Recruitment deviations
 	//init_vector iwt_init(sage+1,nage);         // Recruitment deviations in initial year
 	
@@ -113,12 +114,14 @@ DATA_SECTION
 		theta_prior = ivector(column(theta_control,5));
 
 
+
+		cout<<"thetaival is : "<< theta_ival <<endl;
+
 	END_CALCS
 
 INITIALIZATION_SECTION
- 	 theta theta_ival;
  	 
-
+ 	 theta theta_ival;
 
 
 PARAMETER_SECTION
@@ -138,10 +141,13 @@ PARAMETER_SECTION
 	//!! log_reck=log(ireck);
 	//!! log_Ro=log(iRo);
 
+	
+
+
 	// log of recruitment deviation
 		
 	init_bounded_dev_vector log_wt(syr+1,eyr,-5.,5.,2); 
-	!!cout<< "chegou aqui"<<endl;
+	
 	//init_bounded_dev_vector log_wt_init(sage+1,nage,-10.,10.,2); 
 
 
@@ -160,7 +166,7 @@ PARAMETER_SECTION
 	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
 	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
-	number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
+	//number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
 	
 
@@ -184,12 +190,14 @@ PARAMETER_SECTION
 	vector wa(sage,nage);					// weight-at-age
 	vector lxo(sage,nage);					// unfished survivorship at age
 	//vector lz(sage,nage);					// unfished survivorship at age
+	vector sbt(syr,eyr);
 	
 	
 	vector maxUy(syr,eyr);				// maximum U over length classes for each year?
 	vector muUl(1,nlen);				// RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
 	
  	vector psurvB(syr,eyr);				// predicted survey biomass
+ 	//vector Upow(syr,eyr);				// penalty for Ulength above 1
 	
 	matrix Nlt(syr,eyr,1,nlen); 		// Matrix of numbers at length class
 	matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class
@@ -197,6 +205,10 @@ PARAMETER_SECTION
 	matrix Nat(syr,eyr,1,nage);			// Numbers of individuals at age
 	matrix Ulength(syr,eyr,1,nlen); 	// U (explitation rate) for each length class
 	matrix Uage(syr,eyr,1,nage);		// U (explitation rate) for each age
+	
+	//matrix Upen(syr,eyr,1,nlen); 
+	//
+
 
 PRELIMINARY_CALCS_SECTION
 
@@ -212,22 +224,30 @@ PROCEDURE_SECTION
 	observation_model();
 	objective_function();
 
+	//output_runone();
+
+	//cout<<"maxUy"<<endl<<maxUy<<endl;
+	//exit(1);
+
 FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
 	Ro = exp( theta(1,1) );
-	Rinit = exp( theta(2,1) );
-	reck = exp( theta(3,1) );
-	Linf = exp( theta(4,1) );
-	k = exp( theta(5,1) );
-	to =  theta(6,1) ;
-	cvl = exp( theta(7,1) );
 
-	//reck = exp( theta(2,1) );
-	//Linf = exp( theta(3,1) );
-	//k = exp( theta(4,1) );
-	//to =  theta(5,1) ;
-	//cvl = exp( theta(6,1) );
+	
+	//Rinit = exp( theta(2,1) );
+	//reck = exp( theta(3,1) );
+	//Linf = exp( theta(4,1) );
+	//k = exp( theta(5,1) );
+	//to =  theta(6,1) ;
+	//cvl = exp( theta(7,1) );
+
+	reck = exp( theta(2,1) );
+	Linf = exp( theta(3,1) );
+	k = exp( theta(4,1) );
+	to =  theta(5,1) ;
+	cvl = exp( theta(6,1) );
+
 	
 	wt = exp( log_wt);
 	//wt_init = exp( log_wt_init );
@@ -258,7 +278,7 @@ FUNCTION incidence_functions
 	{
 		lxo( a ) = lxo(a-1)*Sa;
 	}	
-	lxo( nage ) /= 1. - Sa;
+	lxo( nage ) /= (1. - Sa);
 
 	
 	
@@ -267,6 +287,8 @@ FUNCTION incidence_functions
 	phie = lxo * fec;
 
 	reca = reck/phie;
+
+
 	recb = (reck - 1.)/(Ro*phie); 
 	sbo  = Ro*phie;
 
@@ -303,19 +325,19 @@ FUNCTION initialYear
 	// INITIAL YEAR (no fishing assumed)
 
 
-	//Nat( syr, sage )= Ro;
-	//for( int a = 2; a <= nage; a++ )
-	//{
-	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
-	//}		
-	//Nat( syr, nage ) /= 1. - Sa;
-
-	Nat(syr,sage)= Rinit;// * (wt(syr));
+	Nat( syr, sage )= Ro;
 	for( int a = 2; a <= nage; a++ )
 	{
-		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1. - u_init);	// initial age-structure
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	}		
-	Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
+	Nat( syr, nage ) /= (1. - Sa);
+
+	//Nat(syr,sage)= Rinit;// * (wt(syr));
+	//for( int a = 2; a <= nage; a++ )
+	//{
+	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1. - u_init);	// initial age-structure
+	//}		
+	//Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
 
 	//Nat(syr)(sage+1,nage) = Rinit* wt_init;
 	//Nat(syr)(sage+1,nage) = elem_prod(Nat(syr)(sage+1,nage), lxo(sage+1,nage));
@@ -327,11 +349,15 @@ FUNCTION initialYear
 	// exploitation by length		
 	Ulength( syr ) = elem_div(Clt( syr ), Nlt( syr ));
 
+	// Upow( syr ) = sum(pow(Ulength( syr ),10.));
+
 	// exploitation rate for fully recruited age class
 	maxUy( syr ) = max( Ulength( syr ));
 	
 	// exploitation by age
 	Uage( syr ) = Ulength( syr ) * P_la;
+
+	sbt(syr) = fec * Nat(syr);				// eggs in year-y
 	
 	//cout<<"wt_init"<<endl<<wt_init<<endl;
 	//cout<<"Nat"<<endl<<Nat( syr)<<endl;
@@ -345,22 +371,19 @@ FUNCTION SRA
 
 	// SUBSEQUENT YEARS
 	for( int y = syr + 1; y <= eyr; y++ )
-	{
-	  
-		dvariable sbt = fec * Nat(y - 1);				// eggs in year-y
+	{	
 	    	
-		Nat( y, sage ) = reca * sbt / ( 1. + recb * sbt) * (wt( y ) );	///mfexp( sigR*sigR/2.) B-H recruitment
-		
+		Nat( y, sage ) = (reca * sbt(y-1) / ( 1. + recb * sbt(y-1))) * (wt( y ) );	///mfexp( sigR*sigR/2.) B-H recruitment
+						
 		
 		// age-distribution post-recruitment
-
+		//Nat(y)(sage+1,nage) = ++elem_prod(Nat(y-1)(sage,nage-1)*Sa,1.-Uage(y - 1)(sage,nage-1));
+		
 		for( int a = sage +1; a <= nage; a++ ){
-
-			Nat( y )( a ) =  Nat( y - 1 )( a - 1 )* Sa * (1. - Uage( y - 1 )( a -1 ));
-				
+			Nat( y )( a ) =  Nat( y - 1 )( a - 1 )* Sa * (1. - Uage( y - 1 )( a -1 ));			
 		}
 			
-		Nat( y, nage ) /= (1. - Sa * ( 1. - Uage( y - 1, nage)));
+		Nat( y, nage ) /= (1. - Sa * ( 1. - Uage( y, nage)));
 
 		
 		for( int aa = sage; aa <= nage; aa++ ){
@@ -381,6 +404,8 @@ FUNCTION SRA
 			Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	// BvP put this back in to keep values from going over one
 			//Ulength( y, b ) = Clt( y, b ) / Nlt( y, b );	
 		}
+
+		//Upow( y ) = sum(pow(Ulength( y ),10));
 			
 		// exploitation by age
 		Uage( y) = Ulength( y ) * P_la;			
@@ -388,12 +413,22 @@ FUNCTION SRA
 		// max exploitation (fully selected) across lengths
 		maxUy( y ) = max( Ulength( y ));
 
+		sbt(y) = fec * Nat(y);				// eggs in year-y
+
 		//cout<<"Uage"<<endl<<Uage( syr)<<endl;
 		//cout<<"Nat"<<endl<<Nat( y)<<endl;
 	
 
 	}
 	
+	//cout<<"maxUy"<<endl<<maxUy<<endl;
+	//cout<<"Ro"<<endl<<Ro<<endl;
+	//cout<<"reck"<<endl<<reck<<endl;
+	//cout<<"wt"<<endl<<wt<<endl;
+	//cout<<"Nat"<<endl<<Nat<<endl;
+	//
+	//exit(1);
+
 		for( int b = 1; b <= nlen; b++ )
 		{ 
 			//  exploitation rate relative to fully recruited U(expected value?) at length over al years
@@ -443,9 +478,11 @@ FUNCTION objective_function
 	dvar_vector lvec(1,1);
 	lvec.initialize();
 
-	lvec(1)=dnorm(zstat,cv_it);
+	lvec(1)=dnorm(zstat,cv_it)	;
 	//lvec(2)=dnorm(log_wt,sigR);
 	//lvec(2)=0.;
+
+	
 
 	dvar_vector npvec(1,npar);
 	npvec.initialize();
@@ -508,11 +545,11 @@ FUNCTION objective_function
 	}
 	else
 	{
-		pvec(1)=norm2(log_wt);//1000;///1000.0; 	
+		pvec(1)=norm2(log_wt);///1000.0; 	
 	}
 	//pvec(1)=0;
 
-
+	//cout<<"fpen is "<<endl<<fpen<<endl;
 	//if(last_phase())
 	//{
 	//	cout<<"log_wt is: "<<log_wt<<endl;
@@ -524,6 +561,10 @@ FUNCTION objective_function
 	//pergunta:
 	// 
 	pvec(2) = ssvul/sigVul;
+	//cout<<"pvec2"<<endl<<pvec(2)<<endl;
+
+	//cout<<"ssvul"<<endl<<ssvul<<endl;
+
 
 
 	//cout<<"sum(npvec) "<<endl<<sum(npvec)<<endl;
@@ -533,13 +574,34 @@ FUNCTION objective_function
 	
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
+	//nll = (sum(lvec) + sum(npvec)+ sum(pvec) +fpen);// + sum(Upow) ;
 	nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen;
-	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen*1000;
 	
+	cout<<"nll is "<< nll<<endl;
+
 	//nll = sum(lvec) +  sum(pvec);
 
 	
+
+FUNCTION output_runone
 	
+
+	ofstream ofs("runone.rep");
+	ofs<<"Nat" << endl << Nat <<endl;
+	ofs<<"Nlt " << endl << Nlt <<endl;
+	ofs<<"maxUy "<< endl << maxUy <<endl;
+	ofs<<"Ulength "<< endl << Ulength <<endl;
+	ofs<<"Ro "<< endl << Ro <<endl;
+	ofs<<"reck "<< endl << reck <<endl;
+	ofs<<"wt "<< endl << wt <<endl;
+	ofs<<"reca "<< endl << reca <<endl;
+	ofs<<"recb "<< endl << recb <<endl;
+	ofs<<"phie "<< endl << phie <<endl;
+	ofs<<"sbt "<< endl << sbt <<endl;
+		
+
+	cout<<"OK after otput_runone"<<endl;
+		
 
 	
 	
@@ -548,7 +610,7 @@ REPORT_SECTION
 	
 	
 	REPORT(Ro);
-	REPORT(Rinit);
+	//REPORT(Rinit);
 	REPORT(reck);
 	REPORT(reca);
 	REPORT(recb);
@@ -571,9 +633,8 @@ REPORT_SECTION
 	REPORT(Ulength);
 	REPORT(Uage);
 	REPORT(Clt);
- 	dvector sbt=value(Nat.sub(syr,eyr)*fec);
  	REPORT(sbt);
-	double depletion = sbt(eyr)/sbt(syr);
+	double depletion = value(sbt(eyr)/sbt(syr));
 	REPORT(depletion);
 //	REPORT(depletion);
  	ivector yr(syr,eyr);
