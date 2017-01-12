@@ -216,10 +216,10 @@ PROCEDURE_SECTION
 	observation_model();
 	objective_function();
 
-	output_runone();
+	//output_runone();
 
 	//cout<<"maxUy"<<endl<<maxUy<<endl;
-	exit(1);
+	//exit(1);
 
 FUNCTION trans_parms
 	
@@ -581,6 +581,8 @@ FUNCTION output_runone
 	ofs<<"recb "<< endl << recb <<endl;
 	ofs<<"phie "<< endl << phie <<endl;
 	ofs<<"sbt "<< endl << sbt <<endl;
+	ofs<<"pit "<< endl << psurvB <<endl;
+		
 		
 
 	cout<<"OK after otput_runone"<<endl;
