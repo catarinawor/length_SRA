@@ -24,15 +24,21 @@ names(est)
 #plot parameter values
 ompar<-c(om$Ro,om$reck)
 omwt<-om$wt
+omit<-om$it
 
 estpar<-c(est$Ro,est$reck)
 estwt<-est$wt
+estit<-est$pit
 
-par(mfrow=c(1,2))
+estpar<-c(est$Ro,est$reck)
+
+par(mfrow=c(2,2))
 plot(ompar, pch=16, ylab="parameter values", xlab="Ro and kappa")
 points(estpar,col="red")
 plot(omwt, pch=16,  ylab="recruitment deviations",xlab="years")
 lines(estwt, lwd=2, col="blue")
+plot(omit, pch=16,  ylab="recruitment deviations",xlab="years")
+lines(estit, lwd=2, col="blue")
 
 #plot derived quantities
 omdq<-c(om$reca,om$recb,om$phie)
@@ -59,7 +65,7 @@ lines(est$maxUy, lwd=2, col="blue")
 
 
 par(mfrow=c(1,1))
-plot((est$maxUy-om$maxUy)/om$maxUy, pch=16, title="umax deviations")
+plot((est$maxUy-om$maxUy)/om$maxUy, pch=16, main="umax deviations")
 
 
 
