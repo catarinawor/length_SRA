@@ -93,6 +93,6 @@ plot_SBiomass <- function( M )
 
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-	ggsave("Sbiomass.pdf", plot=p)
+	ggsave("fig4_landing.pdf", plot=p)
 	
 }

@@ -283,7 +283,13 @@ FUNCTION initialYear
 
 
 	//Exploitation rate at age
-	Uage(syr) = Ulength(syr)*P_la;
+	//Uage(syr) = Ulength(syr)*P_la;
+
+	for( int au = sage; au <= nage; au++ ){
+			Uage( syr )(au) = Ulength( syr ) * P_al(au);
+
+		}
+
 	
 	Clt(syr) = elem_prod(Nlt(syr),Ulength(syr));
 
@@ -340,7 +346,14 @@ FUNCTION populationDynamics
 		Ulength(i+1) = ut(i+1)*sellen(indselyr(i+1));
 
 		//exploitation rate at age
-		Uage(i+1) = Ulength(i+1)*P_la;
+		//Uage(i+1) = Ulength(i+1)*P_la;
+
+		for( int au = sage; au <= nage; au++ ){
+			Uage( i+1 )(au) = Ulength( i+1 ) * P_al(au);
+
+		}
+	
+
 		Clt(i+1) = elem_prod(Nlt(i+1),Ulength(i+1));
 
 		addErrorClt(i+1);
@@ -484,21 +497,21 @@ FUNCTION output_ctl
 	mfs<<"## npar"<<endl<< "6"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	mfs<< log(1500)  		 <<"\t"<< -4.0 <<"\t"<< 9.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0	<<"\t"<< 9.0   	<<"\t"<<"#log_ro   	##"<<endl;
-	//mfs<< log(Ro)  		 <<"\t"<< -2 <<"\t"<< 8.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -2	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
+	//mfs<< log(1500)  		 <<"\t"<< -4.0 <<"\t"<< 9.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0	<<"\t"<< 9.0   	<<"\t"<<"#log_ro   	##"<<endl;
+	mfs<< log(Ro)  		 <<"\t"<< -2 <<"\t"<< 8.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -2	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
 	//mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_rbar   	##"<<endl;
    	//mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
-   	mfs<< log(8) 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
-   	//mfs<< log(reck) 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
+   	//mfs<< log(8) 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
+   	mfs<< log(reck) 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
    	mfs<< log(Linf)   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
    	mfs<< log(k)  <<"\t"<< -3.0 <<"\t"<< -0.2  <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
    	mfs<< to  	<<"\t"<< -2.0 <<"\t"<< 0.0   <<"\t"<<   -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.0  	<<"\t"<<"#to 	##"<<endl;
    	mfs<< log(cvl)  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	-4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
     mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<<"##initial values for recruitment deviations ##"<< endl;
-	//mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr)) <<endl;
+	mfs<<"# wt "<< endl << mfexp(wt(rep_yr+1,eyr)*proc_err) <<endl;
 	
-	mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr-(nage-sage+1)-1)) <<endl<<exp(wt(eyr-(nage-sage+1),eyr)*0.)<< endl;
+	//mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr-(nage-sage+1)-1)) <<endl<<exp(wt(eyr-(nage-sage+1),eyr)*0.)<< endl;
 	mfs<<"##initial values for recruitment deviations in first year ##"<< endl;
 	//mfs<<"# wt_init "<< endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)) <<endl;
 
