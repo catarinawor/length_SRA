@@ -216,10 +216,10 @@ PROCEDURE_SECTION
 	observation_model();
 	objective_function();
 
-	//output_runone();
+	output_runone();
 
 	//cout<<"maxUy"<<endl<<maxUy<<endl;
-	//exit(1);
+	exit(1);
 
 FUNCTION trans_parms
 	
@@ -339,8 +339,17 @@ FUNCTION initialYear
 	// exploitation rate for fully recruited age class
 	maxUy( syr ) = max( Ulength( syr ));
 	
-	// exploitation by age
-	Uage( syr ) = Ulength( syr ) * P_la;
+	// exploitation by age CW i think this is wrong
+	//Uage( syr ) = Ulength( syr ) * P_la;
+
+
+	for( int au = sage; au <= nage; au++ ){
+		Uage( syr )(au) = Ulength( syr ) * P_al(au);
+
+	}
+	
+
+
 
 	sbt(syr) = fec * Nat(syr);
 	
@@ -359,7 +368,7 @@ FUNCTION SRA
 	{	
 	    dvariable sbtm = fec * Nat(y - 1);	
 
-		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * (wt( y ) );	///mfexp( sigR*sigR/2.) B-H recruitment
+		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * (wt( y ));	///mfexp( sigR*sigR/2.) B-H recruitment
 						
 		
 		// age-distribution post-recruitment
@@ -393,8 +402,14 @@ FUNCTION SRA
 
 		//Upow( y ) = sum(pow(Ulength( y ),10));
 			
-		// exploitation by age
-		Uage( y) = Ulength( y ) * P_la;			
+		// exploitation by age -- isthis wrong??
+		//Uage( y) = Ulength( y ) * P_la;	
+
+		for( int au = sage; au <= nage; au++ ){
+			Uage( y )(au) = Ulength( y ) * P_al(au);
+
+		}
+			
 		
 		// max exploitation (fully selected) across lengths
 		maxUy( y ) = max( Ulength( y ));
