@@ -34,9 +34,9 @@ DATA_SECTION
 	init_matrix Clt(syr,eyr,1,nlen);	// catch at length and year
 
 	//known growth and recruitment parameters	
-	//init_number ilinf; 					// Linf for VB growth curve
-	//init_number ik; 					// growth rate parameter fro VB growth curve
-	//init_number to; 					// time of length 0 for VB growth curve
+	init_number Linf; 					// Linf for VB growth curve
+	init_number k; 					// growth rate parameter fro VB growth curve
+	init_number to; 					// time of length 0 for VB growth curve
 	//init_number icvl;					// coefficient of variantion for age at length curve
 	//init_number ireck;					// recruitment compensation ratio		
 	//init_number iRo; 					// Avearge unfished recruitment
@@ -50,7 +50,9 @@ DATA_SECTION
 	//init_int phz_growth;				// phase for growth parameters
 	//init_int use_prior;					// add priors to the likehoods ? (1 or 0)
 
-	init_number u_init;					
+	init_number u_init;	
+
+	init_matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class				
 	init_int dend;
 
 	
@@ -79,7 +81,7 @@ DATA_SECTION
 
 		nag = nage-sage;
 		Am1=nage-1;
-		tiny=1.e-40;
+		tiny=1.e-20;
 	END_CALCS
 
 		!! ad_comm::change_datafile_name("length_sra.ctl");
@@ -147,15 +149,17 @@ PARAMETER_SECTION
  	!! log_wt = log(iwt);
 
 
+
+
  	//!! log_wt_init = log(iwt_init);
 
 
 	objective_function_value nll;
 	
 	number fpen;						// penalty to be added to likelihood when posfun is used
-	number Linf;						// von Bertalanffy asymptotic length (estimated - based on log_linf)
-	number k;							// von Bertalanffy metabolic parameter (estimated - based on log_k)
-	number to;
+	//number Linf;						// von Bertalanffy asymptotic length (estimated - based on log_linf)
+	//number k;							// von Bertalanffy metabolic parameter (estimated - based on log_k)
+	//number to;
 	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
 	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
@@ -194,7 +198,7 @@ PARAMETER_SECTION
  	vector psurvB(syr,eyr);				// predicted survey biomass
 	
 	matrix Nlt(syr,eyr,1,nlen); 		// Matrix of numbers at length class
-	matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class
+	//matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class
 	matrix P_la(1,nlen,sage,nage);			// transpose of above
 	matrix Nat(syr,eyr,1,nage);			// Numbers of individuals at age
 	matrix Ulength(syr,eyr,1,nlen); 	// U (explitation rate) for each length class
@@ -203,12 +207,14 @@ PARAMETER_SECTION
 
 
 PRELIMINARY_CALCS_SECTION
-
+	
 
 PROCEDURE_SECTION
     
+	
     
     trans_parms();
+
 	incidence_functions();
 	propAgeAtLengh();
 	initialYear();   
@@ -216,15 +222,18 @@ PROCEDURE_SECTION
 	observation_model();
 	objective_function();
 
-	output_runone();
+	//if(last_phase())
+	//{
+	//	output_runone();
+	//}
 
 	//cout<<"maxUy"<<endl<<maxUy<<endl;
-	exit(1);
+	//exit(1);
 
 FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
-	Ro = exp( theta(1,1) );
+	Ro = mfexp( theta(1,1) );
 	//Rinit = exp( theta(2,1) );
 	//reck = exp( theta(3,1) );
 	//Linf = exp( theta(4,1) );
@@ -232,13 +241,13 @@ FUNCTION trans_parms
 	//to =  theta(6,1) ;
 	//cvl = exp( theta(7,1) );
 
-	reck = exp( theta(2,1) );
-	Linf = exp( theta(3,1) );
-	k = exp( theta(4,1) );
-	to =  theta(5,1) ;
-	cvl = exp( theta(6,1) );
+	reck = mfexp( theta(2,1) );
+	//Linf = exp( theta(3,1) );
+	//k = exp( theta(4,1) );
+	//to =  theta(5,1) ;
+	cvl = mfexp( theta(3,1) );
 	
-	wt = exp( log_wt);
+	wt = mfexp( log_wt);//-sigR*sigR/2.
 	//wt_init = exp( log_wt_init );
 
 	//cout<<"ok after trans_parms"<<endl;
@@ -256,7 +265,7 @@ FUNCTION incidence_functions
 	
 	
 
-	la = Linf * ( 1. - exp( -k * ( age - to )));
+	la = Linf * ( 1. - mfexp( -k * ( age - to )));
 	std = la * cvl;
 	
 	Sa = exp(-m);
@@ -288,19 +297,19 @@ FUNCTION propAgeAtLengh
  	dvar_vector z1( 1, nlen );
 	dvar_vector z2( 1, nlen );
 
- 	for( int a = 1; a <= nage; a++ )
-	{
-		
-		// Calculate the integral for proportion age at each length
-		z1 = (( len - lstp * 0.5 )-( la( a )))/( std( a ));
-		z2 = (( len + lstp * 0.5 )-( la( a )))/( std( a ));
-		
-		for( int b=1; b<= nlen; b++ )
-		{
-			P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
-		}
-		
-	}
+ 	//for( int a = 1; a <= nage; a++ )
+	//{
+	//	
+	//	// Calculate the integral for proportion age at each length
+	//	z1 = (( len - lstp * 0.5 )- la( a ))/( std( a ));
+	//	z2 = (( len + lstp * 0.5 )- la( a ))/( std( a ));
+	//	
+	//	for( int b=1; b<= nlen; b++ )
+	//	{
+	//		P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
+	//	}
+	//	
+	//}
 	
 	P_la = trans( P_al );	
 
@@ -470,6 +479,7 @@ FUNCTION observation_model
 	q=exp(mean(zstat));
 	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
 	
+	//zstat += cv_it*cv_it/2.;
 	//cout<<"survB "<<endl<<survB <<endl;
 	//cout<<"psurvB "<<endl<<psurvB <<endl;
 	//cout<<"zstat "<<endl<<zstat <<endl;
@@ -477,10 +487,11 @@ FUNCTION observation_model
 	
 FUNCTION objective_function 
 
-	dvar_vector lvec(1,1);
+	dvar_vector lvec(1,2);
 	lvec.initialize();
 
 	lvec(1)=dnorm(zstat,cv_it);
+	
 	//lvec(2)=dnorm(log_wt,sigR);
 	//lvec(2)=0.;
 
@@ -547,7 +558,7 @@ FUNCTION objective_function
 	{
 		pvec(1)=norm2(log_wt);//1000;///1000.0; 	
 	}
-	//pvec(1)=0;
+	//pvec(1)=0.;
 
 
 	//if(last_phase())
@@ -597,10 +608,11 @@ FUNCTION output_runone
 	ofs<<"phie "<< endl << phie <<endl;
 	ofs<<"sbt "<< endl << sbt <<endl;
 	ofs<<"pit "<< endl << psurvB <<endl;
+	ofs<<"P_al "<< endl << P_al <<endl;
 		
 		
 
-	cout<<"OK after otput_runone"<<endl;
+	//cout<<"OK after otput_runone"<<endl;
 		
 
 	
