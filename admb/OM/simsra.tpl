@@ -171,7 +171,7 @@ DATA_SECTION
 		age.fill_seqadd(sage,1);
 		len.fill_seqadd(lstp,lstp);
 		Am1=nage-1;	
-		tiny=1.e-20;
+		tiny=1.e-40;
 
 
 	END_CALCS
@@ -204,7 +204,7 @@ FUNCTION incidence_functions
  	la.initialize();
  	std.initialize();
 
-	la = Linf*(1.-exp(-k*(age-to)));  //average length at age
+	la = Linf*(1.-mfexp(-k*(age-to)));  //average length at age
 	std = la*cvl;  		  //std for length at age
 
 
@@ -332,8 +332,14 @@ FUNCTION populationDynamics
 	    Nat(i+1,sage) = (reca*sbt(i)/(1.+recb*sbt(i)))*mfexp((wt(i+1))*proc_err);
 	    
 	    //ages 2 -nage
-	    Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(sage,nage-1)*Sa,1.-Uage(i)(sage,nage-1));
+	    //Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(sage,nage-1)*Sa,1.-Uage(i)(sage,nage-1));
 	    
+	    for( int a = sage +1; a <= nage; a++ ){
+			Nat( i+1 )( a ) =  Nat( i )( a - 1 )* Sa * (1. - Uage( i)( a -1 ));
+				
+		}
+			
+
 		Nat( i+1, nage ) /= (1. - ( Sa* (1.-Uage(i)(nage) ) ) );
 		
 		//Proportion of individuals at length 
@@ -494,7 +500,7 @@ FUNCTION output_ctl
 	mfs<<"##                      -4 gamma        (p1=alpha,p2=beta)                              ##"<< endl;	
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	//mfs<<"## npar"<<endl<< "7"<< endl;
-	mfs<<"## npar"<<endl<< "6"<< endl;
+	mfs<<"## npar"<<endl<< "3"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	//mfs<< log(1500)  		 <<"\t"<< -4.0 <<"\t"<< 9.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0	<<"\t"<< 9.0   	<<"\t"<<"#log_ro   	##"<<endl;
@@ -503,9 +509,9 @@ FUNCTION output_ctl
    	//mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
    	//mfs<< log(8) 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
    	mfs<< log(reck) 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
-   	mfs<< log(Linf)   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
-   	mfs<< log(k)  <<"\t"<< -3.0 <<"\t"<< -0.2  <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
-   	mfs<< to  	<<"\t"<< -2.0 <<"\t"<< 0.0   <<"\t"<<   -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.0  	<<"\t"<<"#to 	##"<<endl;
+   	//mfs<< log(Linf)   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
+   	//mfs<< log(k)  <<"\t"<< -3.0 <<"\t"<< -0.2  <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
+   	//mfs<< to  	<<"\t"<< -2.0 <<"\t"<< 0.0   <<"\t"<<   -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.0  	<<"\t"<<"#to 	##"<<endl;
    	mfs<< log(cvl)  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	-4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
     mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<<"##initial values for recruitment deviations ##"<< endl;
@@ -542,9 +548,9 @@ FUNCTION output_data
 	ofs<<"# yt " << endl << vbt(rep_yr,eyr)  <<endl;
 	//ofs<<"# Clt"<< endl << obsClt.sub(rep_yr,eyr) <<endl;
 	ofs<<"# Clt"<< endl << Clt.sub(rep_yr,eyr) <<endl;
-	//ofs<<"# ilinf "<< endl << Linf <<endl;
-	//ofs<<"# ik "<< endl << k <<endl;
-	//ofs<<"# it0 " << endl << to <<endl;
+	ofs<<"# linf "<< endl << Linf <<endl;
+	ofs<<"# k "<< endl << k <<endl;
+	ofs<<"# to " << endl << to <<endl;
 	//ofs<<"# icvl " << endl << cvl <<endl;
 	//ofs<<"# ireck "<< endl << reck <<endl;
 	//ofs<<"# iRo "<< endl << Ro <<endl;
@@ -556,6 +562,7 @@ FUNCTION output_data
 	//ofs<<"# phz_growth  "<< endl << -4  <<endl;
 	//ofs<<"# use_prior  "<< endl << 0 <<endl;
 	ofs<<"# u_init " << endl << 0.0 <<endl;
+	ofs<<"# P_al " << endl << P_al <<endl;
 	ofs<<"# eof " << endl << 999 <<endl;
 
 	cout<<"OK after otput_dat"<<endl;
@@ -609,6 +616,7 @@ FUNCTION output_true
 	ofs<<"recb"<<endl << recb<< endl;
 	ofs<<"phie"<<endl << phie << endl;
 	ofs<<"it " << endl << vbt(rep_yr,eyr)  <<endl;
+	ofs<<"P_al " << endl <<P_al  <<endl;
 
 
 
