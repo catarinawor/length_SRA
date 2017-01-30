@@ -37,13 +37,13 @@ DATA_SECTION
 	init_number Linf; 					// Linf for VB growth curve
 	init_number k; 					// growth rate parameter fro VB growth curve
 	init_number to; 					// time of length 0 for VB growth curve
-	//init_number icvl;					// coefficient of variantion for age at length curve
+	init_number cvl;					// coefficient of variantion for age at length curve
 	//init_number ireck;					// recruitment compensation ratio		
 	//init_number iRo; 					// Avearge unfished recruitment
 
 	init_number cv_it;					// sd for survey
-
 	init_number sigR;					// sigma for recruitment deviations, fixed? RL: yes, it is better fix this parameter than using the Error in Variable (EIV) approach. otherwise the likelihoods are going to be more complicated and messy 
+	
 	init_number sigVul;					// RL: it is the parameter control the variability for the vulnerability. low values means that the vul doesn't change much over time...I guess
 	
 	//init_int phz_reck;					// phase for estimating reck
@@ -52,7 +52,7 @@ DATA_SECTION
 
 	init_number u_init;	
 
-	init_matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class				
+	//init_matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class				
 	init_int dend;
 
 	
@@ -62,7 +62,6 @@ DATA_SECTION
 		{
 			cout<<"Error reading data.\n Fix it."<<endl;
 			cout<< "dend is:"<<dend<<endl;
-			cout<< "sigR is:"<<sigR<<endl;
 			ad_exit(1);
 		}
 
@@ -81,7 +80,7 @@ DATA_SECTION
 
 		nag = nage-sage;
 		Am1=nage-1;
-		tiny=1.e-20;
+		tiny=1.e-3;
 	END_CALCS
 
 		!! ad_comm::change_datafile_name("length_sra.ctl");
@@ -137,34 +136,41 @@ PARAMETER_SECTION
 	//!! log_cvl=log(icvl);
 	//!! log_reck=log(ireck);
 	//!! log_Ro=log(iRo);
-
-	// log of recruitment deviation
+ 	
 		
-	init_bounded_dev_vector log_wt(syr+1,eyr,-5.,5.,2); 
+	init_bounded_dev_vector log_wt(syr+1,eyr,-5.,5.,3); 
+	//init_bounded_vector log_wt(syr+1,eyr,-5.,5.,3); 
+	
 	//!!cout<< "chegou aqui"<<endl;
 	//init_bounded_dev_vector log_wt_init(sage+1,nage,-10.,10.,2); 
 
 
 
  	!! log_wt = log(iwt);
+ 	
 
 
 
 
  	//!! log_wt_init = log(iwt_init);
 
-
+ 	vector lvec(1,2);
+ 	vector pvec(1,2);
 	objective_function_value nll;
 	
 	number fpen;						// penalty to be added to likelihood when posfun is used
+	number ffpen;	
 	//number Linf;						// von Bertalanffy asymptotic length (estimated - based on log_linf)
 	//number k;							// von Bertalanffy metabolic parameter (estimated - based on log_k)
 	//number to;
-	number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
+	//number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
 	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
+	number Rbar;	
 	//number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
+	//number sigR;
+	//number cv_it;
 	
 
 
@@ -191,27 +197,27 @@ PARAMETER_SECTION
 	//PB added after bias correction
 	vector sbt(syr,eyr);					
 	
-	
+	//vector Ulpen(syr,eyr);
 	vector maxUy(syr,eyr);				// maximum U over length classes for each year?
+	vector avgUy(syr,eyr);
 	vector muUl(1,nlen);				// RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
-	
+	//vector Recs(syr+1,eyr);
+	//vector Rdevz(syr+1,eyr);
+ 	//vector delta(syr,eyr);
  	vector psurvB(syr,eyr);				// predicted survey biomass
 	
 	matrix Nlt(syr,eyr,1,nlen); 		// Matrix of numbers at length class
-	//matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class
+	matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class
 	matrix P_la(1,nlen,sage,nage);			// transpose of above
 	matrix Nat(syr,eyr,1,nage);			// Numbers of individuals at age
 	matrix Ulength(syr,eyr,1,nlen); 	// U (explitation rate) for each length class
 	matrix Uage(syr,eyr,1,nage);		// U (explitation rate) for each age
 
 
-
 PRELIMINARY_CALCS_SECTION
 	
 
 PROCEDURE_SECTION
-    
-	
     
     trans_parms();
 
@@ -224,7 +230,7 @@ PROCEDURE_SECTION
 
 	//if(last_phase())
 	//{
-	//	output_runone();
+		output_runone();
 	//}
 
 	//cout<<"maxUy"<<endl<<maxUy<<endl;
@@ -234,6 +240,7 @@ FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
 	Ro = mfexp( theta(1,1) );
+	//Rbar = mfexp( theta(2,1) );
 	//Rinit = exp( theta(2,1) );
 	//reck = exp( theta(3,1) );
 	//Linf = exp( theta(4,1) );
@@ -241,13 +248,15 @@ FUNCTION trans_parms
 	//to =  theta(6,1) ;
 	//cvl = exp( theta(7,1) );
 
-	reck = mfexp( theta(2,1) );
-	//Linf = exp( theta(3,1) );
-	//k = exp( theta(4,1) );
-	//to =  theta(5,1) ;
-	cvl = mfexp( theta(3,1) );
 	
-	wt = mfexp( log_wt);//-sigR*sigR/2.
+	reck = mfexp( theta(2,1) );
+	
+
+	//cvl = mfexp( theta(3,1) );
+	//sigR = mfexp(theta(3,1)) ; 
+	//cv_it = mfexp(theta(3,1)) ; 
+	
+	wt = mfexp( log_wt  );//- sigR*sigR/2.
 	//wt_init = exp( log_wt_init );
 
 	//cout<<"ok after trans_parms"<<endl;
@@ -257,11 +266,14 @@ FUNCTION trans_parms
 FUNCTION incidence_functions
 	
 	
-	fpen=0.;
+	fpen.initialize();
+	ffpen.initialize();
+
 
 	la.initialize();
  	std.initialize();
  	Nat.initialize();
+ 	//Ulpen.initialize();
 	
 	
 
@@ -297,19 +309,19 @@ FUNCTION propAgeAtLengh
  	dvar_vector z1( 1, nlen );
 	dvar_vector z2( 1, nlen );
 
- 	//for( int a = 1; a <= nage; a++ )
-	//{
-	//	
-	//	// Calculate the integral for proportion age at each length
-	//	z1 = (( len - lstp * 0.5 )- la( a ))/( std( a ));
-	//	z2 = (( len + lstp * 0.5 )- la( a ))/( std( a ));
-	//	
-	//	for( int b=1; b<= nlen; b++ )
-	//	{
-	//		P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
-	//	}
-	//	
-	//}
+ 	for( int a = 1; a <= nage; a++ )
+	{
+		
+		// Calculate the integral for proportion age at each length
+		z1 = (( len - lstp * 0.5 )- la( a ))/( std( a ));
+		z2 = (( len + lstp * 0.5 )- la( a ))/( std( a ));
+		
+		for( int b=1; b<= nlen; b++ )
+		{
+			P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
+		}
+		
+	}
 	
 	P_la = trans( P_al );	
 
@@ -320,6 +332,7 @@ FUNCTION initialYear
 	
 	// INITIAL YEAR (no fishing assumed)
 
+	
 
 	Nat( syr, sage )= Ro;
 	for( int a = 2; a <= nage; a++ )
@@ -327,6 +340,12 @@ FUNCTION initialYear
 		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	}		
 	Nat( syr, nage ) /= 1. - Sa;
+
+	//for( int aa = sage; aa <= nage; aa++ ){
+	//		Nat( syr )( aa ) =  posfun( Nat( syr )( aa ), tiny, fpen);
+	//}
+
+
 
 	//Nat(syr,sage)= Rinit * (wt(syr));
 	//for( int a = 2; a <= nage; a++ )
@@ -342,11 +361,15 @@ FUNCTION initialYear
 	// length-structure in year-1
 	Nlt( syr) = Nat( syr ) * P_al;	
 	
-	// exploitation by length		
-	Ulength( syr ) = elem_div(Clt( syr ), Nlt( syr ));
+	// exploitation by lengt
+	for( int b = 1; b <= nlen; b++ )
+	{		
+		Ulength( syr )(b) = Clt( syr, b ) / posfun( Nlt( syr, b ), Clt( syr, b ), fpen);
+	}
 
 	// exploitation rate for fully recruited age class
 	maxUy( syr ) = max( Ulength( syr ));
+	avgUy( syr ) = mean( Ulength( syr ));
 	
 	// exploitation by age CW i think this is wrong
 	//Uage( syr ) = Ulength( syr ) * P_la;
@@ -356,9 +379,8 @@ FUNCTION initialYear
 		Uage( syr )(au) = Ulength( syr ) * P_al(au);
 
 	}
+
 	
-
-
 
 	sbt(syr) = fec * Nat(syr);
 	
@@ -377,7 +399,15 @@ FUNCTION SRA
 	{	
 	    dvariable sbtm = fec * Nat(y - 1);	
 
-		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * (wt( y ));	///mfexp( sigR*sigR/2.) B-H recruitment
+		//Recs( y ) = (reca * sbtm / ( 1. + recb * sbtm)) ;	///mfexp( sigR*sigR/2.) B-H recruitment
+		//
+		//Rdevz( y ) =  Rbar*wt( y );
+		//
+		//Nat( y, sage ) = Rdevz( y );
+
+			
+
+		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * wt( y );	///mfexp( sigR*sigR/2.) B-H recruitment
 						
 		
 		// age-distribution post-recruitment
@@ -395,6 +425,8 @@ FUNCTION SRA
 		}
 
 
+
+
 		//=====================================================================================
 		//Numbers at lengh
 
@@ -404,14 +436,14 @@ FUNCTION SRA
 			// length-distribution by year
 			
 			// exploitation by length										
-			Ulength( y, b ) = Clt( y, b ) / posfun( Nlt( y, b ), Clt( y, b ), fpen);	// BvP put this back in to keep values from going over one
-			//Ulength( y, b ) = Clt( y, b ) / Nlt( y, b );	
+			Ulength( y, b ) = Clt( y, b ) / posfun2( Nlt( y, b ), Clt( y, b ), fpen);	// BvP put this back in to keep values from going over one
+			
 		}
 
 
 		//Upow( y ) = sum(pow(Ulength( y ),10));
 			
-		// exploitation by age -- isthis wrong??
+		// exploitation by age -- is this wrong??
 		//Uage( y) = Ulength( y ) * P_la;	
 
 		for( int au = sage; au <= nage; au++ ){
@@ -422,9 +454,9 @@ FUNCTION SRA
 		
 		// max exploitation (fully selected) across lengths
 		maxUy( y ) = max( Ulength( y ));
+		avgUy( y ) = mean( Ulength( y ));
 		
 
-		//PB: added
 		sbt(y) = fec * Nat(y);				// eggs in year-y
 
 		//cout<<"Uage"<<endl<<Uage( syr)<<endl;
@@ -445,14 +477,16 @@ FUNCTION SRA
 		{ 
 			//  exploitation rate relative to fully recruited U(expected value?) at length over al years
 			// RL: It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
-			muUl(b) = sum(elem_div( column(Ulength,b),maxUy ) ) / size_count(maxUy);		
+			muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);	
+			//muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);		
+
 		}
 		
 		for( int y = syr; y <= eyr; y++ )
 		{
 			// penalty against dramatic changes in vulnerability?? 
-			Upen( y ) = pow( Ulength( y ) / posfun( maxUy( y ), tiny, fpen ) - muUl, 2. );	
-			//Upen( y ) = pow( Ulength( y ) /  maxUy( y ) - muUl, 2. );	
+			//Upen( y ) = pow( Ulength( y ) / posfun( avgUy( y ), tiny, fpen ) - muUl, 2. );	
+			Upen( y ) = pow( Ulength( y ) /  avgUy( y ) - muUl, 2. );	
 		}
 		ssvul = sum( Upen );				// vulnerability penalty
 
@@ -465,6 +499,20 @@ FUNCTION SRA
 	//psurvB = Nat * wa;
 
 
+
+
+
+
+
+FUNCTION stock_recruit_residuals
+
+
+	//delta = log(Recs)-log(Recz);//+0.5*sigR*sigR;
+	//for( int y = syr + 1; y <= eyr; y++ )
+	//{	
+	 //   dvariable sbtm = fec * Nat(y - 1);
+
+ 	//Recs = (reca * sbtm / ( 1. + recb * sbtm)) * (wt( y ));
 	
 	
 
@@ -477,9 +525,9 @@ FUNCTION observation_model
 	}
 			
 	q=exp(mean(zstat));
-	zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
+	//zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
 	
-	//zstat += cv_it*cv_it/2.;
+	//zstat -= cv_it*cv_it/2.;
 	//cout<<"survB "<<endl<<survB <<endl;
 	//cout<<"psurvB "<<endl<<psurvB <<endl;
 	//cout<<"zstat "<<endl<<zstat <<endl;
@@ -487,18 +535,20 @@ FUNCTION observation_model
 	
 FUNCTION objective_function 
 
-	dvar_vector lvec(1,2);
+	//dvar_vector lvec(1,1);
 	lvec.initialize();
 
-	lvec(1)=dnorm(zstat,cv_it);
+	lvec(1)=dnorm(zstat,cv_it);///100;
 	
+	//lvec(2)=dnorm(delta,sigR);
 	//lvec(2)=dnorm(log_wt,sigR);
-	//lvec(2)=0.;
+	//lvec(2)=norm2(zstat);
+	lvec(2)=0;
 
 	dvar_vector npvec(1,npar);
 	npvec.initialize();
 	
-	dvar_vector pvec(1,npar);
+	//dvar_vector pvec(1,1);
 	pvec.initialize();
 
 	
@@ -529,8 +579,8 @@ FUNCTION objective_function
 					
 				default:	//uniform density
 					dvariable dummy;
-					dummy = posfun(theta(i,1),theta_control(i,2),fpen);   // BvP added to keep parameter within bounds
-					dummy = posfun(theta_control(i,3)-theta(i,1),0.0,fpen);   // BvP added to keep parameter within bounds
+					dummy = posfun(theta(i,1),theta_control(i,2),ffpen);   // BvP added to keep parameter within bounds
+					dummy = posfun(theta_control(i,3)-theta(i,1),0.0,ffpen);   // BvP added to keep parameter within bounds
 					npvec(i) = log(1./(theta_control(i,3)-theta_control(i,2)));
 					//npvec(i) = (1./(theta_control(i,3)-theta_control(i,2)));
 					break;
@@ -550,15 +600,16 @@ FUNCTION objective_function
 	//	
    	//}
 	
-	if(last_phase())
-	{		
+	//if(last_phase())
+	//{		
 		pvec(1)=dnorm(log_wt,sigR); 	// estimate recruitment deviations with dnorm function
-	}
-	else
-	{
-		pvec(1)=norm2(log_wt);//1000;///1000.0; 	
-	}
-	//pvec(1)=0.;
+	//}
+	//else
+	//{
+	//pvec(1)=norm2(delta);///1000.0; 	
+	//pvec(2)=(norm2(log_wt));///1000.0; 	
+	//}
+	pvec(2)=0.;
 
 
 	//if(last_phase())
@@ -570,8 +621,10 @@ FUNCTION objective_function
 
 	//=====================================================================================
 	//pergunta:
-	// 
-	pvec(2) = ssvul/sigVul;
+	//
+	
+	//pvec(2) = (ssvul/sigVul)/100;
+	//pvec(2) = 0.0;
 
 
 	//cout<<"sum(npvec) "<<endl<<sum(npvec)<<endl;
@@ -581,12 +634,14 @@ FUNCTION objective_function
 	
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
-	nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen;
-	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen*1000;
+	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen+sum(Ulpen);
+	nll = sum(lvec) + sum(npvec) + sum(pvec) + pow(fpen+1.,12.)+ffpen ;
 	
 	//nll = sum(lvec) +  sum(pvec);
 
-	//cout<<"nll is "<< nll<<endl;
+	//cout<<"pvec is "<< sum(pvec)<<endl;
+	//cout<<"lvec is "<< sum(lvec)<<endl;
+
 
 	//nll = sum(lvec) +  sum(pvec);
 
@@ -599,16 +654,23 @@ FUNCTION output_runone
 	ofs<<"Nat" << endl << Nat <<endl;
 	ofs<<"Nlt " << endl << Nlt <<endl;
 	ofs<<"maxUy "<< endl << maxUy <<endl;
+	ofs<<"avgUy "<< endl << avgUy <<endl;
 	ofs<<"Ulength "<< endl << Ulength <<endl;
 	ofs<<"Ro "<< endl << Ro <<endl;
 	ofs<<"reck "<< endl << reck <<endl;
-	ofs<<"wt "<< endl << wt <<endl;
+	ofs<<"wt "<< endl << log_wt <<endl;
 	ofs<<"reca "<< endl << reca <<endl;
 	ofs<<"recb "<< endl << recb <<endl;
 	ofs<<"phie "<< endl << phie <<endl;
 	ofs<<"sbt "<< endl << sbt <<endl;
 	ofs<<"pit "<< endl << psurvB <<endl;
 	ofs<<"P_al "<< endl << P_al <<endl;
+	ofs<<"zstat "<< endl << zstat <<endl;
+	ofs<<"fpen "<< endl << fpen <<endl;ofs<<"fpen "<< endl << fpen <<endl;
+	ofs<<"lvec "<< endl << sum(lvec) <<endl;
+	ofs<<"pvec"<< endl << sum(pvec) <<endl;
+	//ofs<<"Ulpen "<< endl << Ulpen <<endl;
+
 		
 		
 
@@ -620,10 +682,15 @@ FUNCTION output_runone
 
 REPORT_SECTION
 	
+	output_runone();
+
 	
 	REPORT(Ro);
+	//REPORT(Rbar);
 	//REPORT(Rinit);
 	REPORT(reck);
+	REPORT(cv_it);
+	REPORT(sigR);
 	REPORT(reca);
 	REPORT(recb);
 	REPORT(sbo);
@@ -641,6 +708,7 @@ REPORT_SECTION
  	REPORT(yield);
 	REPORT(muUl);
 	REPORT(maxUy);
+	REPORT(avgUy);
  	REPORT(Nat);
 	REPORT(Ulength);
 	REPORT(Uage);
@@ -661,6 +729,8 @@ REPORT_SECTION
 	REPORT(vul);
 	REPORT(Nlt);
 	REPORT(log_wt);
+	REPORT(lvec);
+	REPORT(pvec);
 	
 
 TOP_OF_MAIN_SECTION

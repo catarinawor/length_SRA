@@ -40,21 +40,15 @@ plot_params <- function( M )
 
 
 			est<-c(M[[i]]$SArep$Ro,
-				#M[[i]]$SArep$Rinit,
+				#M[[i]]$SArep$Rbar,
 				M[[i]]$SArep$reck,
-				M[[i]]$SArep$Linf,
-				M[[i]]$SArep$k,
-				M[[i]]$SArep$to,
-				M[[i]]$SArep$cvl)
+				M[[i]]$SArep$cv_it)
 				#M[[i]]$SArep$maxUy[length(M[[i]]$SArep$maxUy)])
 
 			true<-c(M[[i]]$OM$Ro,
-				#M[[i]]$OM$Rinit,
+				#M[[i]]$OM$Rbar,
 				M[[i]]$OM$reck,
-				M[[i]]$OM$Linf,
-				M[[i]]$OM$k,
-				M[[i]]$OM$to,
-				M[[i]]$OM$cvl)
+				M[[i]]$OM$cv_it)
 				#M[[i]]$OM$true_depl[length(M[[i]]$OM$true_depl)], 
 				#M[[i]]$OM$true_q,
 				#M[[i]]$OM$true_ut[length(M[[i]]$OM$true_ut)])
@@ -64,13 +58,13 @@ plot_params <- function( M )
 			
 			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
 
-			df <- data.frame(Ro=bias[1],  kappa=bias[2],Linf=bias[3],k=bias[4],to=bias[5],cvl=bias[6], scenario=scn[M[[i]]$OM$scnNumber])
+			df <- data.frame(Ro=bias[1],  kappa=bias[2], cv_it=bias[3], scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
 			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7], scenario=scn[M[[i]]$OM$scnNumber])
 
 			mdf <- rbind(mdf,df)
 
 			#af <- data.frame(true = true, est = est, param=c("Ro", "Rinit","kappa","Linf","k","to","cvl"))
-			af <- data.frame(true = true, est = est, param=c("Ro", "kappa","Linf","k","to","cvl"), scenario=scn[M[[i]]$OM$scnNumber])
+			af <- data.frame(true = true, est = est, param=c("Ro",  "kappa", "cv_it"), scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
 			
 			adf <- rbind(adf,af)
 		}
@@ -78,8 +72,9 @@ plot_params <- function( M )
 
 
 	
-	df2<-melt(mdf,variable.name = "parameter",id="scenario")
+	df2<-melt(mdf,variable.name = "parameter",id=c("scenario","scnnumber"))
 
+	df2$converge<-conv_n[df2$scnnumber]
 
 	
 	p <- ggplot(df2) 
@@ -89,8 +84,10 @@ plot_params <- function( M )
 	p <- p + theme_bw(11) 
 	p <- p + ylim(-0.5, 0.5)
 	p <- p + facet_wrap(~scenario)
-	p <- p + annotate("text" , x = 1.2, y = 0.4, label = paste("n = ",conv_n))
+	p <- p + geom_text(data=df2, aes(x=1.0, y=0.44, label=converge), parse=TRUE)
 	print(p)
+
+
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
 	ggsave("main_params.pdf", plot=p)

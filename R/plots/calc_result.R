@@ -45,7 +45,9 @@ plot_derivQuant( SIMSdat )
 plot_SBiomass( SIMSdat )
 plot_udevs( SIMSdat )
 plot_Recdevs( SIMSdat )
-plotLengthComps( SIMSdat )	
+plot_LLvals( SIMSdat )
+#plot_expRecdevs( SIMSdat )
+#plotLengthComps( SIMSdat )	
 
 
 

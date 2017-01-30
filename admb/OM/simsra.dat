@@ -1,6 +1,6 @@
 #Scenario number
-1
-#syr
+2
+#sy
 1
 #eyr
 50
@@ -23,13 +23,13 @@
 #obs_err
 1
 #sigR
-0.2
+0.4
 #sigVul
-100
+1
 #low
 #10
 #tau
-0.1
+0.2
 #tau_length
 0.1
 #surv
@@ -54,7 +54,7 @@
 #reck
 10
 #Ro
-1000
+100.0
 #q
 1
 #Selectivity parameters
@@ -62,12 +62,12 @@
 3
 #Selectivity control - 3 param selectivity curve from Thompson 1994
 # year | b | a | g
-#30       6    0.9  0.001
+#30     4.5  0.9  0.001
 #40		4.5  0.9  0.001
-#50      3	 0.9  0.001
-30      4.5    0.9  0.001
-40		4.5  0.9  0.001
-50      4.5	 0.9  0.001
+#50     4.5	 0.9  0.001
+30      3.0  0.9  0.01
+40		4.5  0.9  0.01
+50      6	 0.9  0.001
 #Ulenmu
 4
 #Ulensd

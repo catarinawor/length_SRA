@@ -1,11 +1,4 @@
-RocontrastSel1
-#RinitContrast
-#RinitOneWayTrip
-#RoContrast
-#RoOneWayTrip
-#NoObsErr
-#ObsErr
-#baseCase
-#OneWayTrip
-#lowU
-#constantU
+base
+timeVarSel
+#recLL
+#pen1000
