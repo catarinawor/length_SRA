@@ -13,7 +13,7 @@ DATA_SECTION
 	LOC_CALCS
 		ifstream ifs( "../seed.txt" ); // if this file is available
 		ifs>>seed; //read in the seed
-		seed += 13; // add 10 to the seed
+		seed += 3; // add 10 to the seed
 		ofstream ofs( "../seed.txt" ); //put out to seed.txt
 		ofs<<seed<<endl; //the new value of the seed
 	END_CALCS
@@ -134,7 +134,8 @@ DATA_SECTION
 	vector sbt(syr,eyr); 			// spawning biomass
 	vector depl(syr,eyr);			// depletion based on spawning biomass
 	vector maxUy(syr,eyr);   		// annual U based on vulberable biomass
-	
+	vector avgUy(syr,eyr);
+
 	vector len(1,nlen); 			// length classes
 	vector lxo(sage,nage); 			// Equilibrium unfished numbers ata age
 	vector wa(sage,nage); 				// Weight at age
@@ -178,11 +179,16 @@ DATA_SECTION
 	
 PARAMETER_SECTION
 
+	init_number atemoia;
+
 	number fpen;
 	objective_function_value no_f; 
 
 PRELIMINARY_CALCS_SECTION	  
  	
+	
+PROCEDURE_SECTION
+
 	incidence_functions();
 	propAgeAtLengh();
 	initialYear();
@@ -194,8 +200,7 @@ PRELIMINARY_CALCS_SECTION
 	output_ctl();
 	output_true();
 	exit(1);
-	
-PROCEDURE_SECTION
+
 
 FUNCTION incidence_functions
 	
@@ -296,14 +301,15 @@ FUNCTION initialYear
 	ObsUlength(syr) = elem_div(Clt(syr),elem_prod(Nlt(syr),sellen(indselyr(syr))));
 
 	maxUy(syr)=max(ObsUlength(syr));
+	avgUy(syr)=mean(ObsUlength(syr));
 
 	addErrorClt(syr);
 
-	vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * mfexp((eps(syr)-tau*tau/2.)*obs_err); // cpue
+	vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * mfexp((eps(syr))*obs_err); // cpue -tau*tau/2.
 	//vbt(syr) = q * Nat(syr)*elem_prod(wa,va) * mfexp((eps(syr))*obs_err); // cpue
 		
 	// Add process error to all ages in initial year
-	bt(syr) = Nat(syr)* wa * mfexp((eps(syr)-tau*tau/2.)*obs_err); 				     // survey
+	bt(syr) = Nat(syr)* wa * mfexp((eps(syr)-tau*tau/2.)*obs_err); //-tau*tau/2.				     // survey
 	
 	//spawning biomass
 	sbt(syr) = fec * Nat(syr);
@@ -329,7 +335,7 @@ FUNCTION populationDynamics
 	    //recruitment
 	    //Nat(i+1,sage) = (reca*sbt(i)/(1.+recb*sbt(i)))*mfexp((wt(i+1)-sigR*sigR/2.)*proc_err);
 	   
-	    Nat(i+1,sage) = (reca*sbt(i)/(1.+recb*sbt(i)))*mfexp((wt(i+1))*proc_err);
+	    Nat(i+1,sage) = (reca*sbt(i)/(1.+recb*sbt(i)))*mfexp((wt(i+1)-sigR*sigR/2.)*proc_err);
 	    
 	    //ages 2 -nage
 	    //Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(sage,nage-1)*Sa,1.-Uage(i)(sage,nage-1));
@@ -367,9 +373,10 @@ FUNCTION populationDynamics
 		ObsUlength(i+1) = elem_div(Clt(i+1),Nlt(i+1));
 
 		maxUy(i+1)=max(ObsUlength(i+1));
+		avgUy(i+1)=mean(ObsUlength(i+1));
 
 		// Vulnerable biomass for survey
-		vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * mfexp((eps(i+1)-tau*tau/2.)*obs_err); // cpue
+		vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * mfexp((eps(i+1)-tau*tau/2.)*obs_err); // cpue -tau*tau/2.
 		//vbt(i+1) = q * Nat(i+1)*elem_prod(wa,va) * exp((eps(i+1))*obs_err); // cpue
 		
 
@@ -485,6 +492,9 @@ FUNCTION calc_msy
 
 FUNCTION output_ctl
 	
+	dvariable rb;
+	rb=mean(column(Nat,sage));
+
 
 	ofstream mfs("../SA/length_sra.ctl");
 	mfs<<"## ------------------------------------------------------------------------------------ ##"<< endl;
@@ -500,24 +510,27 @@ FUNCTION output_ctl
 	mfs<<"##                      -4 gamma        (p1=alpha,p2=beta)                              ##"<< endl;	
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	//mfs<<"## npar"<<endl<< "7"<< endl;
-	mfs<<"## npar"<<endl<< "3"<< endl;
+	mfs<<"## npar"<<endl<< "2"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	//mfs<< log(1500)  		 <<"\t"<< -4.0 <<"\t"<< 9.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0	<<"\t"<< 9.0   	<<"\t"<<"#log_ro   	##"<<endl;
-	mfs<< log(Ro)  		 <<"\t"<< -2 <<"\t"<< 8.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -2	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
-	//mfs<< 0.0  		 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 4.0   	<<"\t"<<"#log_rbar   	##"<<endl;
+	//mfs<< log(Ro)  		 <<"\t"<< -2.0 <<"\t"<< 8.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -2.0	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
+	mfs<< log(2)  		 <<"\t"<< -2.0 <<"\t"<< 8.0   <<"\t"<<  2  <<"\t"<< 0  <<"\t"<< -2.0	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
+	//mfs<< log(rb)  		 <<"\t"<< -4.0 <<"\t"<< 8.0   <<"\t"<<  -2  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 8.0   	<<"\t"<<"#log_rbar   	##"<<endl;
+   	//mfs<< log(1200)  		 <<"\t"<< -4.0 <<"\t"<< 8.0   <<"\t"<<  2  <<"\t"<< 0  <<"\t"<< -4.0	<<"\t"<< 8.0   	<<"\t"<<"#log_rbar   	##"<<endl;
    	//mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
-   	//mfs<< log(8) 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
-   	mfs<< log(reck) 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
+   	mfs<< log(12) 	 <<"\t"<<  1.6 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  1.6 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
+   	//mfs<< log(reck) 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
    	//mfs<< log(Linf)   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
    	//mfs<< log(k)  <<"\t"<< -3.0 <<"\t"<< -0.2  <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
    	//mfs<< to  	<<"\t"<< -2.0 <<"\t"<< 0.0   <<"\t"<<   -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.0  	<<"\t"<<"#to 	##"<<endl;
-   	mfs<< log(cvl)  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	-4  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
+   	//mfs<< log(cvl)  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	-3  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
+   	//mfs<< log(sigR) <<"\t"<< -4.0 <<"\t"<< 8.0  <<"\t"<< 	2  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< 8.0	<<"\t"<<"#log_sigR   ##"<<endl;
+    //mfs<< log(tau)  <<"\t"<< -7.0 <<"\t"<< 8.0 <<"\t"<< 	2  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< 8.0	<<"\t"<<"#log_cv_it   ##"<<endl;
     mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<<"##initial values for recruitment deviations ##"<< endl;
-	mfs<<"# wt "<< endl << mfexp(wt(rep_yr+1,eyr)*proc_err) <<endl;
+	//mfs<<"# wt "<< endl << mfexp(wt(rep_yr+1,eyr)*proc_err) <<endl;
 	
-	//mfs<<"# wt "<< endl << exp(wt(rep_yr+1,eyr-(nage-sage+1)-1)) <<endl<<exp(wt(eyr-(nage-sage+1),eyr)*0.)<< endl;
+	mfs<<"# wt "<< endl << mfexp(wt(rep_yr+1,eyr-(nage-sage+1)-1)*proc_err) <<endl<<mfexp(wt(eyr-(nage-sage+1),eyr)*0.)<< endl;
 	mfs<<"##initial values for recruitment deviations in first year ##"<< endl;
 	//mfs<<"# wt_init "<< endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)) <<endl;
 
@@ -551,7 +564,7 @@ FUNCTION output_data
 	ofs<<"# linf "<< endl << Linf <<endl;
 	ofs<<"# k "<< endl << k <<endl;
 	ofs<<"# to " << endl << to <<endl;
-	//ofs<<"# icvl " << endl << cvl <<endl;
+	ofs<<"# cvl " << endl << cvl <<endl;
 	//ofs<<"# ireck "<< endl << reck <<endl;
 	//ofs<<"# iRo "<< endl << Ro <<endl;
 
@@ -562,7 +575,7 @@ FUNCTION output_data
 	//ofs<<"# phz_growth  "<< endl << -4  <<endl;
 	//ofs<<"# use_prior  "<< endl << 0 <<endl;
 	ofs<<"# u_init " << endl << 0.0 <<endl;
-	ofs<<"# P_al " << endl << P_al <<endl;
+	//ofs<<"# P_al " << endl << P_al <<endl;
 	ofs<<"# eof " << endl << 999 <<endl;
 
 	cout<<"OK after otput_dat"<<endl;
@@ -577,7 +590,7 @@ FUNCTION output_true
 	for(int ni=rep_yr;ni<=eyr;ni++){
 
 		
-		tRbar += (Nat(ni)(sage))/mfexp(wt(ni)*proc_err);
+		tRbar += (Nat(ni)(sage))/mfexp((wt(ni)-sigR*sigR/2.)*proc_err);//-sigR*sigR/2.
 
 	}
 	tRbar /= (eyr-rep_yr+1);
@@ -590,12 +603,13 @@ FUNCTION output_true
 	ofs<<"Clt" << endl << Clt.sub(syr,eyr) <<endl;
 	ofs<<"Ro" << endl << Ro <<endl;
 	ofs<<"Rbar" << endl << tRbar <<endl;	
-	ofs<<"Rinit" << endl << Nat(rep_yr)(sage)/mfexp(wt(rep_yr)*proc_err) <<endl;
+	ofs<<"Rinit" << endl << Nat(rep_yr)(sage)/mfexp((wt(rep_yr)-sigR*sigR/2.)*proc_err) <<endl;
 	ofs<<"reck" << endl << reck <<endl;
+	ofs<<"cvl" << endl << cvl <<endl;
+	ofs<<"cv_it" << endl << tau <<endl;
 	ofs<<"Linf" << endl << Linf <<endl;
 	ofs<<"k" << endl << k <<endl;
 	ofs<<"to" << endl << to <<endl;
-	ofs<<"cvl" << endl << cvl <<endl;
 	ofs<<"sbt" << endl << sbt <<endl;
 	ofs<<"depl" << endl << depl <<endl;
 	ofs<<"q" << endl << q <<endl;	
@@ -603,7 +617,8 @@ FUNCTION output_true
 	ofs<<"syr" << endl << syr <<endl;
 	ofs<<"eyr" << endl << eyr <<endl;
 	ofs<<"rep_yr" << endl << rep_yr <<endl;	
-	ofs<<"wt" << endl << mfexp(wt(rep_yr+1,eyr)*proc_err) <<endl;	
+	ofs<<"wt" << endl << ((wt(rep_yr+1,eyr))*proc_err) <<endl;	//-sigR*sigR/2.
+	ofs<<"expwt" << endl << mfexp((wt(rep_yr+1,eyr)-sigR*sigR/2.)*proc_err) <<endl;
 	ofs<<"lxo" << endl << lxo <<endl;
 	ofs<<"fec" << endl << fec <<endl;	
 	ofs<<"wa" << endl << wa <<endl;	
@@ -612,6 +627,7 @@ FUNCTION output_true
 	ofs<<"Ulength" << endl << Ulength <<endl;	
 	ofs<<"ObsUlength"<<endl << ObsUlength<< endl;
 	ofs<<"maxUy"<<endl << maxUy<< endl;
+	ofs<<"avgUy"<<endl << avgUy<< endl;
 	ofs<<"reca"<<endl << reca<< endl;
 	ofs<<"recb"<<endl << recb<< endl;
 	ofs<<"phie"<<endl << phie << endl;

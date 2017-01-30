@@ -17,6 +17,7 @@ est <- read.rep("SA/runone.rep")
 om <- read.rep("OM/true_data_lsra.rep")
 
 
+sum(est$zstat)
 names(om)
 names(est)
 
@@ -26,33 +27,56 @@ est$P_al-om$P_al
 #plot parameter values
 ompar<-c(om$Ro,om$reck)
 omwt<-om$wt
+
+sum(om$wt)
+
+plot(om$wt)
+abline(h=0.0, lwd=2)
+
 omit<-om$it
+
 
 estpar<-c(est$Ro,est$reck)
 estwt<-est$wt
 estit<-est$pit
 
+est$lvec
+est$pvec
+
+
 estpar-ompar
-estwt-omwt
+sum(estwt-omwt)
 
 par(mfrow=c(1,1))
 plot(ompar, pch=16, ylab="parameter values", xlab="Ro and kappa")
 points(estpar,col="red")
 
-setwd("/Users/catarinawor/Documents/length_SRA/report")
+#setwd("/Users/catarinawor/Documents/length_SRA/report")
 #pdf("rec_it_devs.pdf")
 #pdf("rec_it_devs_werr.pdf")
-pdf("rec_it_devs_SA.pdf")
+#pdf("rec_it_devs_SA.pdf")
 par(mfrow=c(2,2))
 plot(omwt, pch=16,  ylab="recruitment deviations",xlab="years")
 lines(estwt, lwd=2, col="blue")
-plot(omit, pch=16,  ylab="it deviations",xlab="years")
-lines(estit, lwd=2, col="blue")
+plot(log(omit), pch=16,  ylab="it deviations",xlab="years")
+lines(log(estit), lwd=2, col="blue")
+plot((estwt-omwt), pch=16,  ylab="recruitment bias",xlab="years")
+abline(h=0,lw=2, col="red")
+plot((log(estit)-log(omit)), pch=16,  ylab="it bias",xlab="years")
+abline(h=0,lw=2, col="red")
+#dev.off()
+
+
+par(mfrow=c(2,2))
+plot(omwt, pch=16,  ylab="recruitment deviations",xlab="years")
+lines(estwt, lwd=2, col="blue")
+plot((omit), pch=16,  ylab="it deviations",xlab="years")
+lines((estit), lwd=2, col="blue")
 plot((estwt-omwt)/omwt, pch=16,  ylab="recruitment deviations",xlab="years")
 abline(h=0,lw=2, col="red")
-plot((estit-omit)/omit, pch=16,  ylab="it deviations",xlab="years")
+plot(((estit)-(omit))/(omit), pch=16,  ylab="it deviations",xlab="years")
 abline(h=0,lw=2, col="red")
-dev.off()
+
 
 sum(estit-omit)
 	(estit-omit)/omit
@@ -81,13 +105,19 @@ plot((est$sbt-om$sbt)/om$sbt, pch=16, main="Spawning biomass error")
 #plot annual U
 #pdf("umax_devs.pdf")
 #pdf("umax_devs_werr.pdf")
-pdf("umax_devs_SA.pdf")
+#pdf("umax_devs_SA.pdf")
 par(mfrow=c(2,1))
 plot(om$maxUy, pch=16,ylim=range(c(om$maxUy,est$maxUy)),ylab="Umax")
 lines(est$maxUy, lwd=2, col="blue")
 plot((est$maxUy-om$maxUy)/om$maxUy, pch=16, ylab="umax deviations")
 abline(h=0.0,col="red",lwd=3)
-dev.off()
+#dev.off()
+
+par(mfrow=c(2,1))
+plot(om$avgUy, pch=16,ylim=range(c(om$avgUy,est$avgUy)),ylab="Uavg")
+lines(est$avgUy, lwd=2, col="blue")
+plot((est$avgUy-om$avgUy)/om$avgUy, pch=16, ylab="uavg deviations")
+abline(h=0.0,col="red",lwd=3)
 
 
 
@@ -162,7 +192,7 @@ head(mBU)
 	pU <- pU + geom_point(aes(colour=as.factor(sign(value))),alpha=0.75)
 	pU <- pU + ylab("deviations in U at length")
 	pU 
-ggsave("Ulength_SA.pdf", plot = pU)
+#ggsave("Ulength_SA.pdf", plot = pU)
 #ggsave("Ulength_werr.pdf", plot = pU)
 #ggsave("Ulength.pdf", plot = pU)
 	#p <- p + geom_point(alpha=0.75,) 

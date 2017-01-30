@@ -47,13 +47,16 @@ plot_derivQuant <- function( M )
 
 			bias<- (est- true) / true
 
-			df <- data.frame(Depletion=bias[1],q=bias[2],Uend=bias[3],scenario=scn[M[[i]]$OM$scnNumber])
+			df <- data.frame(Depletion=bias[1],q=bias[2],Uend=bias[3],scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
 			mdf <- rbind(mdf,df)
 		}
 	}
 
 	
-	df2<-melt(mdf,variable.name = "parameter",id="scenario")
+	df2<-melt(mdf,variable.name = "parameter",id=c("scenario","scnnumber"))
+
+	df2$converge<-conv_n[df2$scnnumber]
+
 
 
 	
@@ -64,7 +67,8 @@ plot_derivQuant <- function( M )
 	p <- p + ylim(-0.5, 0.5)
 	p <- p + theme_bw(11)
 	p <- p + facet_wrap(~scenario)
-	p <- p + annotate("text" , x = 1.2, y = 0.4, label = paste("n = ",conv_n))
+	p <- p + geom_text(data=df2, aes(x=1.0, y=0.44, label=converge), parse=TRUE)
+	#p <- p + annotate("text" , x = 1.2, y = 0.4, label = paste("n = ",conv_n))
 	print(p)
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")

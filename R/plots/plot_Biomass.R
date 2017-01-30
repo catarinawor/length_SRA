@@ -88,7 +88,7 @@ plot_SBiomass <- function( M )
 	p <- p + labs(x="Year",y="Total Biomass")
 	p <- p + ylim(min(fdf$Low),max(fdf$High))
 	p <- p + theme_bw(11)
-	p <- p + facet_wrap(~scenario)
+	p <- p + facet_wrap(~scenario,scale="free)
 	print(p)
 
 
