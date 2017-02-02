@@ -138,8 +138,8 @@ PARAMETER_SECTION
 	//!! log_Ro=log(iRo);
  	
 		
-	init_bounded_dev_vector log_wt(syr+1,eyr,-5.,5.,3); 
-	//init_bounded_vector log_wt(syr+1,eyr,-5.,5.,3); 
+	//init_bounded_dev_vector log_wt(syr+1,eyr,-5.,5.,3); 
+	init_bounded_vector log_wt(syr+1,eyr,-5.,5.,3); 
 	
 	//!!cout<< "chegou aqui"<<endl;
 	//init_bounded_dev_vector log_wt_init(sage+1,nage,-10.,10.,2); 
@@ -154,8 +154,8 @@ PARAMETER_SECTION
 
  	//!! log_wt_init = log(iwt_init);
 
- 	vector lvec(1,2);
- 	vector pvec(1,2);
+ 	vector lvec(1,1);
+ 	vector pvec(1,1);
 	objective_function_value nll;
 	
 	number fpen;						// penalty to be added to likelihood when posfun is used
@@ -256,7 +256,7 @@ FUNCTION trans_parms
 	//sigR = mfexp(theta(3,1)) ; 
 	//cv_it = mfexp(theta(3,1)) ; 
 	
-	wt = mfexp( log_wt  );//- sigR*sigR/2.
+	wt = mfexp( log_wt- sigR*sigR/2.  );//- sigR*sigR/2.
 	//wt_init = exp( log_wt_init );
 
 	//cout<<"ok after trans_parms"<<endl;
@@ -341,9 +341,9 @@ FUNCTION initialYear
 	}		
 	Nat( syr, nage ) /= 1. - Sa;
 
-	//for( int aa = sage; aa <= nage; aa++ ){
-	//		Nat( syr )( aa ) =  posfun( Nat( syr )( aa ), tiny, fpen);
-	//}
+	for( int aa = sage; aa <= nage; aa++ ){
+		Nat( syr )( aa ) =  posfun( Nat( syr )( aa ), tiny, fpen);
+	}
 
 
 
@@ -364,7 +364,8 @@ FUNCTION initialYear
 	// exploitation by lengt
 	for( int b = 1; b <= nlen; b++ )
 	{		
-		Ulength( syr )(b) = Clt( syr, b ) / posfun( Nlt( syr, b ), Clt( syr, b ), fpen);
+		Ulength( syr )(b) = Clt( syr, b ) / posfun2( Nlt( syr, b ), Clt( syr, b ), fpen);
+		//Ulength( syr )(b) = Clt( syr, b ) /  Nlt( syr, b );
 	}
 
 	// exploitation rate for fully recruited age class
@@ -399,12 +400,6 @@ FUNCTION SRA
 	{	
 	    dvariable sbtm = fec * Nat(y - 1);	
 
-		//Recs( y ) = (reca * sbtm / ( 1. + recb * sbtm)) ;	///mfexp( sigR*sigR/2.) B-H recruitment
-		//
-		//Rdevz( y ) =  Rbar*wt( y );
-		//
-		//Nat( y, sage ) = Rdevz( y );
-
 			
 
 		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * wt( y );	///mfexp( sigR*sigR/2.) B-H recruitment
@@ -437,6 +432,7 @@ FUNCTION SRA
 			
 			// exploitation by length										
 			Ulength( y, b ) = Clt( y, b ) / posfun2( Nlt( y, b ), Clt( y, b ), fpen);	// BvP put this back in to keep values from going over one
+			//Ulength( y, b ) = Clt( y, b ) /  Nlt( y, b );	// BvP put this back in to keep values from going over one
 			
 		}
 
@@ -492,12 +488,6 @@ FUNCTION SRA
 
 
 	 	psurvB = Nat * elem_prod(wa,vul);
-	 	//cout<<"Nat "<<endl<<Nat <<endl;
-	 	//cout<<"psurvB "<<endl<<psurvB <<endl;
-	 	//exit(1);
-	 	
-	//psurvB = Nat * wa;
-
 
 
 
@@ -521,7 +511,7 @@ FUNCTION observation_model
 	dvar_vector datry(sage,nage);
 	for( int i = 1; i <= nyt ; i++ )
 	{
-		zstat(i)=log(survB(i))-log(psurvB(iyr(i)));
+		zstat(i)=log(survB(i))-log(psurvB(iyr(i)));//-cv_it*cv_it/2.
 	}
 			
 	q=exp(mean(zstat));
@@ -543,7 +533,7 @@ FUNCTION objective_function
 	//lvec(2)=dnorm(delta,sigR);
 	//lvec(2)=dnorm(log_wt,sigR);
 	//lvec(2)=norm2(zstat);
-	lvec(2)=0;
+	//lvec(2)=0;
 
 	dvar_vector npvec(1,npar);
 	npvec.initialize();
@@ -609,7 +599,7 @@ FUNCTION objective_function
 	//pvec(1)=norm2(delta);///1000.0; 	
 	//pvec(2)=(norm2(log_wt));///1000.0; 	
 	//}
-	pvec(2)=0.;
+	//pvec(2)=0.;
 
 
 	//if(last_phase())
@@ -635,7 +625,7 @@ FUNCTION objective_function
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen+sum(Ulpen);
-	nll = sum(lvec) + sum(npvec) + sum(pvec) + pow(fpen+1.,12.)+ffpen ;
+	nll = sum(lvec) + sum(npvec) + sum(pvec) + fpen +ffpen;//pow(fpen+1.,12.)
 	
 	//nll = sum(lvec) +  sum(pvec);
 

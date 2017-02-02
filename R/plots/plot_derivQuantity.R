@@ -39,11 +39,11 @@ plot_derivQuant <- function( M )
 
 			est<-c(M[[i]]$SArep$depletion[length(M[[i]]$SArep$depletion)], 
 				M[[i]]$SArep$q,
-				M[[i]]$SArep$maxUy[length(M[[i]]$SArep$maxUy)])
+				M[[i]]$SArep$avgUy[length(M[[i]]$SArep$avgUy)])
 
 			true<-c(M[[i]]$OM$depl[length(M[[i]]$OM$depl)], 
 				M[[i]]$OM$q,
-				M[[i]]$OM$maxUy[length(M[[i]]$OM$maxUy)])
+				M[[i]]$OM$avgUy[length(M[[i]]$OM$avgUy)])
 
 			bias<- (est- true) / true
 
