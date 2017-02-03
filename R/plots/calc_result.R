@@ -10,7 +10,9 @@
 #
 
  
-DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base"
+DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit"
+
 
 plotlib<-"/Users/catarinawor/Documents/Length_SRA/R/plots"
 #.RFILES     <- list.files(.LIB,pattern="\\.[Rr]$")
@@ -40,12 +42,13 @@ for(p in 1:length(plotfiles)){
 
 length(SIMSdat)
 	
-plot_params( SIMSdat )
+plot_params( SIMSdat ,Rinit=TRUE)
 plot_derivQuant( SIMSdat )
 plot_SBiomass( SIMSdat )
 plot_udevs( SIMSdat )
 plot_Recdevs( SIMSdat )
 plot_LLvals( SIMSdat )
+plot_Sel( SIMSdat )
 #plot_expRecdevs( SIMSdat )
 #plotLengthComps( SIMSdat )	
 

@@ -101,9 +101,11 @@ DATA_SECTION
 	ivector   theta_phz(1,npar);
 	ivector theta_prior(1,npar);
 
-	init_vector iwt(syr+1,eyr);         // Recruitment deviations
+	//init_vector iwt(syr+1,eyr);         // Recruitment deviations
 	//init_vector iwt_init(sage+1,nage);         // Recruitment deviations in initial year
 	
+	init_vector iwt(syr-nag,eyr);   
+
 	LOC_CALCS
 		
 
@@ -139,19 +141,14 @@ PARAMETER_SECTION
  	
 		
 	//init_bounded_dev_vector log_wt(syr+1,eyr,-5.,5.,3); 
-	init_bounded_vector log_wt(syr+1,eyr,-5.,5.,3); 
+	init_bounded_vector log_wt(syr-nag,eyr,-5.,5.,3); 
 	
 	//!!cout<< "chegou aqui"<<endl;
-	//init_bounded_dev_vector log_wt_init(sage+1,nage,-10.,10.,2); 
+	//init_bounded_dev_vector log_wt_init(sage+1,nage,-5.,5.,3); 
 
 
 
  	!! log_wt = log(iwt);
- 	
-
-
-
-
  	//!! log_wt_init = log(iwt_init);
 
  	vector lvec(1,1);
@@ -166,8 +163,8 @@ PARAMETER_SECTION
 	//number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
 	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	number Ro;							// unfished recruitment (estimated - based on log_Ro)
-	number Rbar;	
-	//number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
+	//number Rbar;	
+	number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
 	//number sigR;
 	//number cv_it;
@@ -184,7 +181,7 @@ PARAMETER_SECTION
 	number Sa;							// survival-at-age (assume constant across ages)
 
 	vector zstat(1,nyt);				// MLE of q
-	vector wt(syr+1,eyr);					// recruitment anomalies
+	vector wt(syr-nag,eyr);					// recruitment anomalies
 	//vector wt_init(sage+1,nage);				// recruitment anomalies for initial year
 	
  	//vector vul(1,nage);					// age-specific vulnerabilities
@@ -240,24 +237,14 @@ FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
 	Ro = mfexp( theta(1,1) );
-	//Rbar = mfexp( theta(2,1) );
-	//Rinit = exp( theta(2,1) );
-	//reck = exp( theta(3,1) );
-	//Linf = exp( theta(4,1) );
-	//k = exp( theta(5,1) );
-	//to =  theta(6,1) ;
-	//cvl = exp( theta(7,1) );
-
-	
-	reck = mfexp( theta(2,1) );
+	Rinit = mfexp( theta(2,1) );
 	
 
-	//cvl = mfexp( theta(3,1) );
-	//sigR = mfexp(theta(3,1)) ; 
-	//cv_it = mfexp(theta(3,1)) ; 
+	
+	reck = mfexp( theta(3,1) );
 	
 	wt = mfexp( log_wt- sigR*sigR/2.  );//- sigR*sigR/2.
-	//wt_init = exp( log_wt_init );
+	//wt_init = mfexp( log_wt_init-sigR*sigR/2. );
 
 	//cout<<"ok after trans_parms"<<endl;
 
@@ -334,25 +321,27 @@ FUNCTION initialYear
 
 	
 
-	Nat( syr, sage )= Ro;
+	//Nat( syr, sage )= Ro;
+	//for( int a = 2; a <= nage; a++ )
+	//{
+	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
+	//}		
+	//Nat( syr, nage ) /= 1. - Sa;
+
+
+
+
+	Nat(syr,sage)= Rinit * wt(syr);
 	for( int a = 2; a <= nage; a++ )
 	{
-		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1. - u_init) * wt(syr-a+1);	// initial age-structure
 	}		
-	Nat( syr, nage ) /= 1. - Sa;
+	Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
 
 	for( int aa = sage; aa <= nage; aa++ ){
 		Nat( syr )( aa ) =  posfun( Nat( syr )( aa ), tiny, fpen);
 	}
-
-
-
-	//Nat(syr,sage)= Rinit * (wt(syr));
-	//for( int a = 2; a <= nage; a++ )
-	//{
-	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1. - u_init);	// initial age-structure
-	//}		
-	//Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
+	
 
 	//Nat(syr)(sage+1,nage) = Rinit* wt_init;
 	//Nat(syr)(sage+1,nage) = elem_prod(Nat(syr)(sage+1,nage), lxo(sage+1,nage));
@@ -400,8 +389,7 @@ FUNCTION SRA
 	{	
 	    dvariable sbtm = fec * Nat(y - 1);	
 
-			
-
+		
 		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * wt( y );	///mfexp( sigR*sigR/2.) B-H recruitment
 						
 		
@@ -647,6 +635,7 @@ FUNCTION output_runone
 	ofs<<"avgUy "<< endl << avgUy <<endl;
 	ofs<<"Ulength "<< endl << Ulength <<endl;
 	ofs<<"Ro "<< endl << Ro <<endl;
+	ofs<<"Rinit "<< endl << Rinit <<endl;
 	ofs<<"reck "<< endl << reck <<endl;
 	ofs<<"wt "<< endl << log_wt <<endl;
 	ofs<<"reca "<< endl << reca <<endl;
@@ -677,7 +666,7 @@ REPORT_SECTION
 	
 	REPORT(Ro);
 	//REPORT(Rbar);
-	//REPORT(Rinit);
+	REPORT(Rinit);
 	REPORT(reck);
 	REPORT(cv_it);
 	REPORT(sigR);

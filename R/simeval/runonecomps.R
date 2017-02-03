@@ -17,7 +17,6 @@ est <- read.rep("SA/runone.rep")
 om <- read.rep("OM/true_data_lsra.rep")
 
 
-sum(est$zstat)
 names(om)
 names(est)
 
@@ -25,7 +24,7 @@ names(est)
 est$P_al-om$P_al
 
 #plot parameter values
-ompar<-c(om$Ro,om$reck)
+ompar<-c(om$Ro,om$Rinit,om$reck)
 omwt<-om$wt
 
 sum(om$wt)
@@ -36,9 +35,13 @@ abline(h=0.0, lwd=2)
 omit<-om$it
 
 
-estpar<-c(est$Ro,est$reck)
+estpar<-c(est$Ro,est$Rinit,est$reck)
+estpar
 estwt<-est$wt
 estit<-est$pit
+
+
+exp(est$wt[1])
 
 est$lvec
 est$pvec

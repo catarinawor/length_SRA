@@ -156,7 +156,7 @@
 
 
 \title{Stock Reduction Analysis using catch at length data}            
-\author{Catarina Wor, Brett van Poorten, Roberto Licandeo, Carl Walters}
+\author{Catarina Wor, Roberto Licandeo,  Brett van Poorten, Carl Walters}
 %\pgfrealjobname{pgfSweave-vignette}
 %pgfSweave-vignette
 \begin{document}
@@ -174,7 +174,9 @@
 Modern stock assessments typically attempt to fit population dynamics models to catch at age and catch at length data, in hopes of extracting information from these data about age/size vulnerability and fishing mortality patterns \citep{methot_stock_2013,hilborn_quantitative_1992}.  In cases where age data are lacking, softwares like MULTIFAN-CL attempt to obtain estimates of vulnerability and fishing mortality only from size distribution data \citep{fournier_multifan-cl:_1998}. Combined with a few assumptions regarding the structure and variability in length at age, this procedure can even be used to attempt to recover information about changes in body growth patterns if there is a strong age-class signal in the length frequency data \citep{fournier_multifan-cl:_1998}.  Some older assessment methods attempt to put aside the length frequency data, by converting these data to age compositions using age-from-length tables, perhaps using iterative methods to estimate proportions of fish at age for each length interval (e.g. Shirippa and Goodyear, ref.).  It is typical for assessment results from length-based assessment models to show substantial deviations between predicted and observed length distributions of catches, reflecting both sampling variation in the length composition data and incorrect assumptions about stability of both growth and vulnerability patterns. 
  
 
- Here we suggest an alternative approach to assessment modeling that begins by assuming that the assessment model should exactly reproduce the observed catch at length distribution.  This is similar to the classical assumption in virtual population analysis that reconstructed numbers at age should exactly match observed catch at age data, or the suggestion by Schnute (ref) that statistical catch at age models might best be run in a “conditioned on catch” format by subtracting observed catches at age from modeled numbers at age in estimation of numbers at age over time.  The suggested approach may have two key advantages over statistical catch at age and/or catch at length models: (1) it does not require estimation of age or size vulnerability schedules, and (2) catch at length data are commonly available for every year, even when age composition sampling has not been conducted.  
+ Here we suggest an alternative approach to assessment modeling that begins by assuming that the assessment model should exactly reproduce the observed catch at length distribution.  This is similar to the classical assumption in virtual population analysis that reconstructed numbers at age should exactly match observed catch at age data, or the suggestion by Schnute (ref) that statistical catch at age models might best be run in a “conditioned on catch” format by subtracting observed catches at age from modeled numbers at age in estimation of numbers at age over time.  The suggested approach may have two key advantages over statistical catch at age and/or catch at length models: (1) it does not require estimation of age or size vulnerability schedules, and (2) catch at length data are commonly available for every year, even when age composition sampling has not been conducted. 
+
+ We demonstrate the performance of this model with a simulation-evaluation analysis and apply it to real fisheries data from the Chilean jack mackerel and Pacific Hake fisheries. 
 
 
 
@@ -224,13 +226,12 @@ The stock reduction analysis described here starts by calculating , the proporti
     \normalEq
 \end{table}
 
-{}
-Once the length composition at age has been determined it can be used to convert the length based quantities in the model into age based quantities.  , The next step is to propagate the population dynamics forward with a age structured population dynamics model. We assume that recruitment follows a Beverton and Holt type recruitment curve, that harvesting occurs over a short, discrete season in each time step (year or shorter time period) and that natural survival rate is stable over time (Table \ref{tab:pop_dyn})
+ The proportions of length at age is used to convert the length based quantities into age based quantities which are used to propagate the age structured population dynamics forward. We assume that recruitment follows a Beverton and Holt type recruitment curve, that harvesting occurs over a short, discrete season in each time step (year or shorter time period) and that natural survival rate is stable over time (Table \ref{tab:pop_dyn})
 	
 \begin{table}
   %\centering
   \Large
-\caption{ \large Age at Length}\label{tab:pop_dyn} 
+\caption{ \large Population dynamics}\label{tab:pop_dyn} 
 \tableEq
     \begin{align}
            \hline
@@ -254,21 +255,39 @@ Once the length composition at age has been determined it can be used to convert
     \normalEq
 \end{table}
 
-The model is then fit to data, this particular model includes 5 likelihoods components.  
+The parameters of the model are estmated with two likelihood components: Index of abundance and Recruitment deviations
+
 \subsection{Simulation routines and scenarios}
+
+In order to test the performance of the model under a range of known scenarios 
+
+three exploitation rates trajectories and two selectivity scenarios
+
+30 years of data and 200 simulation runs for each scenario.
 
 \subsection{Real data examples}
 
-equations and data description go here
+Two species were chosen to illustrate the application of the model to real datasets: Chilean jack mackerel and Pacific Hake
+
+
 
 
 \section{Results}
 
-show figures with real and simulated data
+\subsection{Simulation-evalulation}
+
+and simulated data
+
+\subsection{Real data examples}
+
+show figures with real 
 
 \section{Discussion}
 
-Does the model work
+Does the model work?
+
+assumption regarding Umsy -> changes with selectivity
+
 
 \clearpage
 

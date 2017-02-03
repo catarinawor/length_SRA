@@ -26,10 +26,11 @@ readOutput <- function(dir)
 	
 	sims<-readOutput("/Users/catarinawor/Documents/length_SRA/admb/")
 	
-	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base/")
+	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/Rinit/")
 
 	file.name <- paste("base",seed,".Rdata",sep="")
-
+	
 	save(sims,file=file.name)
 
 
