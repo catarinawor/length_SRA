@@ -18,7 +18,7 @@ require(tidyr)
 require(ggplot2)
 
 
-plot_params <- function( M )
+plot_params <- function( M , Rinit=F )
 {
 	cat("plot_params")
 
@@ -33,7 +33,44 @@ plot_params <- function( M )
 
 	conv_n<-numeric(length=length(scn))
 
-	for(i in 1:n){
+	if(Rinit==TRUE){
+
+		for(i in 1:n){
+
+		if(M[[i]]$SApar$maxgrad<1.0e-04){
+			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
+
+
+			est<-c(M[[i]]$SArep$Ro,
+				M[[i]]$SArep$Rinit,
+				M[[i]]$SArep$reck)
+				
+			true<-c(M[[i]]$OM$Ro,
+				M[[i]]$OM$Rinit,
+				M[[i]]$OM$reck)
+				
+			
+				bias<- (est- true) / true
+			
+			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
+
+			df <- data.frame(Ro=bias[1],  Rinit=bias[2], kappa=bias[3], scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7], scenario=scn[M[[i]]$OM$scnNumber])
+
+			mdf <- rbind(mdf,df)
+
+			#af <- data.frame(true = true, est = est, param=c("Ro", "Rinit","kappa","Linf","k","to","cvl"))
+			af <- data.frame(true = true, est = est, param=c("Ro", "Rinit" , "kappa"), scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			
+			adf <- rbind(adf,af)
+		}
+	}
+
+
+
+	}else{
+
+		for(i in 1:n){
 
 		if(M[[i]]$SApar$maxgrad<1.0e-04){
 			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
@@ -71,6 +108,9 @@ plot_params <- function( M )
 	}
 
 
+
+	}
+	
 	
 	df2<-melt(mdf,variable.name = "parameter",id=c("scenario","scnnumber"))
 

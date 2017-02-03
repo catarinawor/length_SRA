@@ -91,6 +91,7 @@ DATA_SECTION
 	number sbo;						// Unfished stock spawning biomass
 	//number test;					// test to see if S-R function is calculated correctly, should return Ro 
 	number tiny;						// very small number to be used in the fpen function
+	number sampleSigR;
 
 	//selectivity parameters
 	vector selyr(1,nselch);
@@ -167,6 +168,8 @@ DATA_SECTION
 		random_number_generator rng(seed);
 		wt.fill_randn(rng);
 		wt*=sigR;
+
+
 		eps.fill_randn(rng);
 		eps*=tau;
 		age.fill_seqadd(sage,1);
@@ -203,6 +206,8 @@ PROCEDURE_SECTION
 
 
 FUNCTION incidence_functions
+
+	sampleSigR=sqrt(((wt-mean(wt))*(wt-mean(wt)))/size_count(wt));
 	
 			
 
@@ -413,7 +418,6 @@ FUNCTION  calcSellen
 							pow((1-selg(si))/selg(si),selg(si))*
 							((exp(sela(si)*selg(si)*(selb(si)-len(b))))/
 							(1+exp(sela(si)*(selb(si)-len(b)))));
-
 			//sellen(si)(b) = 1.;///(1.+mfexp(-1.7*(len(b)-4.)/0.1));
 		}
 	}
@@ -424,8 +428,8 @@ FUNCTION  calcSellen
 
 FUNCTION calc_msy
 
-	dvector utest(1,101);
-	utest.fill_seqadd(0,0.01);
+	dvector utest(1,1001);
+	utest.fill_seqadd(0,0.001);
 
  //This function calculates MSY in the lazy and slow way. 
  	int k, kk ;
@@ -496,6 +500,9 @@ FUNCTION output_ctl
 	dvariable rb;
 	rb=mean(column(Nat,sage));
 
+	dvariable rini;
+	rini=Nat(rep_yr,sage)/mfexp(wt(rep_yr));
+
 
 	ofstream mfs("../SA/length_sra.ctl");
 	mfs<<"## ------------------------------------------------------------------------------------ ##"<< endl;
@@ -511,16 +518,13 @@ FUNCTION output_ctl
 	mfs<<"##                      -4 gamma        (p1=alpha,p2=beta)                              ##"<< endl;	
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	//mfs<<"## npar"<<endl<< "7"<< endl;
-	mfs<<"## npar"<<endl<< "2"<< endl;
+	mfs<<"## npar"<<endl<< "3"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	mfs<< log(Ro)  		 <<"\t"<< -2.0 <<"\t"<< 8.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -2.0	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
-	//mfs<< log(2)  		 <<"\t"<< -2.0 <<"\t"<< 8.0   <<"\t"<<  2  <<"\t"<< 0  <<"\t"<< -2.0	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
-	//mfs<< log(rb)  		 <<"\t"<< -4.0 <<"\t"<< 8.0   <<"\t"<<  -2  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 8.0   	<<"\t"<<"#log_rbar   	##"<<endl;
-   	//mfs<< log(1200)  		 <<"\t"<< -4.0 <<"\t"<< 8.0   <<"\t"<<  2  <<"\t"<< 0  <<"\t"<< -4.0	<<"\t"<< 8.0   	<<"\t"<<"#log_rbar   	##"<<endl;
-   	//mfs<< 0.0  	 	 <<"\t"<< -4.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<< 0.0 	<<"\t"<< 0.5   	<<"\t"<<"#log_rinit   	##"<<endl;
+	mfs<< log(Ro+0.2*Ro)  		 <<"\t"<< -2.0 <<"\t"<< 8.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< -2.0	<<"\t"<< 8.0   	<<"\t"<<"#log_ro   	##"<<endl;
+	mfs<< log(rini)  	 	 <<"\t"<< -2.0 <<"\t"<< 8.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<< -2.0 	<<"\t"<< 8.0   	<<"\t"<<"#log_rinit   	##"<<endl;
    	//mfs<< log(12) 	 <<"\t"<<  1.6 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  1.6 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
-   	mfs<< log(reck) 	 <<"\t"<<  0.0 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  0.0 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
+   	mfs<< log(12) 	 <<"\t"<<  1.6 <<"\t"<< 4.0   <<"\t"<<  2  <<"\t"<< 0  <<"\t"<<  1.6 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
    	//mfs<< log(Linf)   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
    	//mfs<< log(k)  <<"\t"<< -3.0 <<"\t"<< -0.2  <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
    	//mfs<< to  	<<"\t"<< -2.0 <<"\t"<< 0.0   <<"\t"<<   -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.0  	<<"\t"<<"#to 	##"<<endl;
@@ -529,11 +533,11 @@ FUNCTION output_ctl
     //mfs<< log(tau)  <<"\t"<< -7.0 <<"\t"<< 8.0 <<"\t"<< 	2  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< 8.0	<<"\t"<<"#log_cv_it   ##"<<endl;
     mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<<"##initial values for recruitment deviations ##"<< endl;
-	mfs<<"# wt "<< endl << mfexp(wt(rep_yr+1,eyr)*proc_err) <<endl;
+	//mfs<<"# wt "<< endl << mfexp(wt(rep_yr+1,eyr)*proc_err) <<endl;
 	
-	//mfs<<"# wt "<< endl << mfexp(wt(rep_yr+1,eyr-(nage-sage+1)-1)*proc_err) <<endl<<mfexp(wt(eyr-(nage-sage+1),eyr)*0.)<< endl;
+	mfs<<"# wt "<< endl << mfexp(wt(rep_yr-(nage-sage),eyr-(nage-sage+1)-1)*0) <<endl<<mfexp(wt(eyr-(nage-sage+1),eyr)*0.)<< endl;
 	mfs<<"##initial values for recruitment deviations in first year ##"<< endl;
-	//mfs<<"# wt_init "<< endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)) <<endl;
+	//mfs<<"# wt_init "<< endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)*0) <<endl;
 
 	//cout<<"OK after otput_ctl"<<endl;
 	  
@@ -575,11 +579,11 @@ FUNCTION output_data
 	//ofs<<"# phz_reck "<< endl << 2 <<endl;
 	//ofs<<"# phz_growth  "<< endl << -4  <<endl;
 	//ofs<<"# use_prior  "<< endl << 0 <<endl;
-	ofs<<"# u_init " << endl << 0.0 <<endl;
+	ofs<<"# u_init " << endl << 0.1 <<endl; //umsy(rep_yr)*.5
 	//ofs<<"# P_al " << endl << P_al <<endl;
 	ofs<<"# eof " << endl << 999 <<endl;
 
-	cout<<"OK after otput_dat"<<endl;
+	cout<<"OK after output_dat"<<endl;
 	
 	
 FUNCTION output_true
@@ -604,7 +608,7 @@ FUNCTION output_true
 	ofs<<"Clt" << endl << Clt.sub(syr,eyr) <<endl;
 	ofs<<"Ro" << endl << Ro <<endl;
 	ofs<<"Rbar" << endl << tRbar <<endl;	
-	ofs<<"Rinit" << endl << Nat(rep_yr)(sage)/mfexp((wt(rep_yr)-sigR*sigR/2.)*proc_err) <<endl;
+	ofs<<"Rinit" << endl << Nat(rep_yr)(sage) <<endl;
 	ofs<<"reck" << endl << reck <<endl;
 	ofs<<"cvl" << endl << cvl <<endl;
 	ofs<<"cv_it" << endl << tau <<endl;
@@ -618,8 +622,10 @@ FUNCTION output_true
 	ofs<<"syr" << endl << syr <<endl;
 	ofs<<"eyr" << endl << eyr <<endl;
 	ofs<<"rep_yr" << endl << rep_yr <<endl;	
-	ofs<<"wt" << endl << ((wt(rep_yr+1,eyr))*proc_err) <<endl;	//-sigR*sigR/2.
-	ofs<<"expwt" << endl << mfexp((wt(rep_yr+1,eyr))*proc_err) <<endl;
+	ofs<<"wt" << endl << ((wt(rep_yr-(nage-sage),eyr))*proc_err) <<endl;	//-sigR*sigR/2.
+	ofs<<"expwt" << endl << mfexp((wt(rep_yr-(nage-sage),eyr))*proc_err) <<endl;
+	//ofs<<"wt_init" << endl << wt(rep_yr-(nage-sage),rep_yr-1)*proc_err <<endl;	//-sigR*sigR/2.
+	//ofs<<"expwt_init" << endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)*proc_err) <<endl;
 	ofs<<"lxo" << endl << lxo <<endl;
 	ofs<<"fec" << endl << fec <<endl;	
 	ofs<<"wa" << endl << wa <<endl;	
@@ -634,6 +640,7 @@ FUNCTION output_true
 	ofs<<"phie"<<endl << phie << endl;
 	ofs<<"it " << endl << vbt(rep_yr,eyr)  <<endl;
 	ofs<<"P_al " << endl <<P_al  <<endl;
+	ofs<<"sampleSigR " << endl <<sampleSigR  <<endl;
 
 
 
