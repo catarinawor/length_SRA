@@ -40,9 +40,9 @@ plot_Recdevs <- function( M )
 			
 			est<-c(M[[i]]$SArep$log_wt)
 
-			tt<-M[[i]]$OM$rep_yr-M[[i]]$OM$syr+1
+			#tt<-M[[i]]$OM$rep_yr-M[[i]]$OM$syr+1
 
-			true<-c(M[[i]]$OM$wt[1:length(M[[i]]$OM$wt)])
+			true<-c(M[[i]]$OM$wt)
 			
 
 
@@ -50,7 +50,7 @@ plot_Recdevs <- function( M )
 			
 			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
 
-			df <- data.frame(bias=bias,  true =true,est=est,year=M[[i]]$SArep$yr[2:length(M[[i]]$SArep$yr)],scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			df <- data.frame(bias=bias,  true =true,est=est,year=c((M[[i]]$SArep$yr[1]-9):M[[i]]$SArep$yr[1],M[[i]]$SArep$yr[2:length(M[[i]]$SArep$yr)]),scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
 			mdf <- rbind(mdf,df)
 
 			

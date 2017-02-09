@@ -16,6 +16,8 @@ DATA_SECTION
 		seed += 3; // add 10 to the seed
 		ofstream ofs( "../seed.txt" ); //put out to seed.txt
 		ofs<<seed<<endl; //the new value of the seed
+
+
 	END_CALCS
 
 	//scenario name
@@ -79,6 +81,7 @@ DATA_SECTION
 			cout<< dend <<endl;
 			ad_exit(1);
 		}
+		cout<<"out???"<<endl;
 	END_CALCS
 
 
@@ -192,6 +195,8 @@ PRELIMINARY_CALCS_SECTION
 	
 PROCEDURE_SECTION
 
+
+	cout<<"aqui"<<endl;
 	incidence_functions();
 	propAgeAtLengh();
 	initialYear();
@@ -564,8 +569,8 @@ FUNCTION output_data
 	ofs<<"# nyt "<< endl << niyr <<endl;
 	ofs<<"# iyr " << endl << iyr <<endl;
 	ofs<<"# yt " << endl << vbt(rep_yr,eyr)  <<endl;
-	//ofs<<"# Clt"<< endl << obsClt.sub(rep_yr,eyr) <<endl;
-	ofs<<"# Clt"<< endl << Clt.sub(rep_yr,eyr) <<endl;
+	ofs<<"# Clt"<< endl << obsClt.sub(rep_yr,eyr) <<endl;
+	//ofs<<"# Clt"<< endl << Clt.sub(rep_yr,eyr) <<endl;
 	ofs<<"# linf "<< endl << Linf <<endl;
 	ofs<<"# k "<< endl << k <<endl;
 	ofs<<"# to " << endl << to <<endl;

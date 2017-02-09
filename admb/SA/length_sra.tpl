@@ -520,7 +520,7 @@ FUNCTION objective_function
 	
 	//lvec(2)=dnorm(delta,sigR);
 	//lvec(2)=dnorm(log_wt,sigR);
-	//lvec(2)=norm2(zstat);
+	//lvec(1)=norm2(zstat)/cv_it;
 	//lvec(2)=0;
 
 	dvar_vector npvec(1,npar);
