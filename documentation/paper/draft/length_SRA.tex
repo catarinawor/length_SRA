@@ -236,7 +236,14 @@ The stock reduction analysis described here starts by calculating , the proporti
     \begin{align}
            \hline
        		&\mbox{Variable definition} \nonumber \\ 
-            &\mbox{$N_{a,t}$ = Numbers of fish at age and time} &\nonumber\\ 
+            &\mbox{$N_{a,t}$ = Numbers of fish at age and time} &\nonumber\\
+            &\mbox{$SB_{t}$ = Spawning biomass at time t} &\nonumber\\
+            &\mbox{$wt$ = Normally distributed recruitmenet deviations} &\nonumber\\
+            &\mbox{$S_a$ = Survival rate at age} &\nonumber\\
+            &\mbox{$U_{a,t}$ = Exploitation rate at age and time} &\nonumber\\
+            &\mbox{$U_{l,t}$ = Exploitation rate at length and time} &\nonumber\\
+            &\mbox{$C_{l,t}$ = Catch at length and time} &\nonumber\\
+             &\mbox{$N_{l,t}$ = Numbers at length and time} &\nonumber\\
            \hline \nonumber \\
         &\mbox{Age-schedule information} \nonumber \\ \nonumber \\
             %
@@ -246,21 +253,30 @@ The stock reduction analysis described here starts by calculating , the proporti
             %
             \frac{N_{a-1,t-1} \cdot S_{a} \cdot (1-U_{a-1,t-1})}{1- S_{a} \cdot 1-U{a,t}},&\quad a=A \\
             \end{cases}\label{T2.1}\\
-            U_{a,t}=\sum_a{(P_{l|a}\cdot U_{l,t})}\label{T2.2}\\
-            U_{l,t}=\frac{C_{l,t}}{N_{l,t}}\label{T2.3}\\
-            N_{l,t}=\sum_a{(P_{l|a}\cdot N_{a,t})}\label{T2.3}\\
+            U_{a,t}&=\sum_a{(P_{l|a}\cdot U_{l,t})}\label{T2.2}\\
+            U_{l,t}&=\frac{C_{l,t}}{N_{l,t}}\label{T2.3}\\
+            N_{l,t}&=\sum_a{(P_{l|a}\cdot N_{a,t})}\label{T2.3}\\
+            SB_{t}&= \sum_a(fec_a \cdot w_a \cdot N_{a,t})
             \nonumber \\
         \hline \hline \nonumber
     \end{align}
     \normalEq
 \end{table}
 
-The parameters of the model are estmated with two likelihood components: Index of abundance and Recruitment deviations
+The model estimates three main parameters: the average unexploited recruitment $R_0$, teh recruiment compensation ratio $k_rec$  and the recruitment in the initial year $R_init $. In addition, the recruitment deviations are estimated for all cohorts observed in the model, that is, the number of recruitment deviations is equal to the number of years in the time series plus the number of age classes greater that recruitment age. 
+The parameters of the model are estimated with two likelihood components: Index of abundance and Recruitment deviations, both are assumed to be lognormally distributed with fixed variances.
+
+
 
 \subsection{Simulation routines and scenarios}
 
-In order to test the performance of the model under a range of known scenarios 
 
+We tested the model perfomance under three exploitation rates trajectories. The first exploitation rate trajectoty is the contrast trajectory. U is 
+
+
+In order to test the performance of the model under a known  
+Three 
+In order to test the performance of the model under a range of known scenarios 
 three exploitation rates trajectories and two selectivity scenarios
 
 30 years of data and 200 simulation runs for each scenario.
