@@ -48,7 +48,7 @@ plot_SBiomass( SIMSdat )
 plot_udevs( SIMSdat )
 plot_Recdevs( SIMSdat )
 plot_LLvals( SIMSdat )
-plot_Sel( SIMSdat )
+#plot_Sel( SIMSdat )
 #plot_expRecdevs( SIMSdat )
 #plotLengthComps( SIMSdat )	
 

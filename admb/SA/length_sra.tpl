@@ -8,11 +8,18 @@
 	
 DATA_SECTION
 
+
+	init_adstring DataFile;      ///< String for the input datafile name.
+	/// | ControlFile.ctl        : controls for phases, selectivity options 
+	init_adstring ControlFile;	 ///< String for the control file.
+	
+	!! ad_comm::change_datafile_name(DataFile);
 	// model dimensions 	
 	init_int syr;						// start year of survey data
 	init_int eyr;						// end year of survey data
 	init_int sage;						// first age
 	init_int nage;						// last age
+	init_int slen;						// start length bin
 	init_int nlen;						// number of length-bins (assume start at 0)
 	init_int lstp;						// width of length-bins
 	init_int SR;						// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker  BvP: not used
@@ -52,7 +59,7 @@ DATA_SECTION
 
 	init_number u_init;	
 
-	//init_matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class				
+	
 	init_int dend;
 
 	
@@ -76,14 +83,14 @@ DATA_SECTION
 	LOC_CALCS
 		// FILL IN SEQUENCE VECTORS
 		age.fill_seqadd( sage, 1 );
-		len.fill_seqadd( lstp, lstp );
+		len.fill_seqadd( slen, lstp );
 
 		nag = nage-sage;
 		Am1=nage-1;
 		tiny=1.e-3;
 	END_CALCS
 
-		!! ad_comm::change_datafile_name("length_sra.ctl");
+		!! ad_comm::change_datafile_name(ControlFile);
 	
 	// |---------------------------------------------------------------------------------|
 	// | Control File - parameter intitial values and prior info
@@ -665,7 +672,6 @@ REPORT_SECTION
 
 	
 	REPORT(Ro);
-	//REPORT(Rbar);
 	REPORT(Rinit);
 	REPORT(reck);
 	REPORT(cv_it);
@@ -678,7 +684,7 @@ REPORT_SECTION
 	REPORT(to);
 	REPORT(cvl);
  	REPORT(wt);
- 	//REPORT(wt_init);
+ 
 	REPORT(psurvB);
 	REPORT(survB);
 	
@@ -693,7 +699,8 @@ REPORT_SECTION
 	REPORT(Uage);
 	REPORT(Clt);
  	REPORT(sbt);
-	double depletion = value(sbt(eyr)/sbt(syr));
+
+	double depletion = value(sbt(eyr)/sbo);
 	REPORT(depletion);
 //	REPORT(depletion);
  	ivector yr(syr,eyr);
@@ -710,6 +717,7 @@ REPORT_SECTION
 	REPORT(log_wt);
 	REPORT(lvec);
 	REPORT(pvec);
+	
 	
 
 TOP_OF_MAIN_SECTION
