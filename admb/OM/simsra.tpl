@@ -30,7 +30,7 @@ DATA_SECTION
 	init_int sage;
 	init_int nage;
 	init_int nlen;
-	//init_int slen;
+	init_int slen;
 	init_int lstp;
 	init_int niyr;
 
@@ -81,7 +81,7 @@ DATA_SECTION
 			cout<< dend <<endl;
 			ad_exit(1);
 		}
-		cout<<"out???"<<endl;
+		
 	END_CALCS
 
 
@@ -176,7 +176,7 @@ DATA_SECTION
 		eps.fill_randn(rng);
 		eps*=tau;
 		age.fill_seqadd(sage,1);
-		len.fill_seqadd(lstp,lstp);
+		len.fill_seqadd(slen,lstp);
 		Am1=nage-1;	
 		tiny=1.e-40;
 
@@ -196,7 +196,7 @@ PRELIMINARY_CALCS_SECTION
 PROCEDURE_SECTION
 
 
-	cout<<"aqui"<<endl;
+	
 	incidence_functions();
 	propAgeAtLengh();
 	initialYear();
@@ -247,7 +247,7 @@ FUNCTION incidence_functions
 	
 	reca = reck/phie; 
 	recb = (reck - 1.)/(Ro*phie); 
-	cout<<"recb is"<<recb<<endl;
+	//cout<<"recb is"<<recb<<endl;
 	sbo  = Ro*phie;
 
 	fpen = 0.;
@@ -329,7 +329,7 @@ FUNCTION initialYear
 	//cout<<"fec"<<endl<<fec<<endl;
 
 	//spawning biomass depletion
-	depl(syr) = sbt(syr)/sbt(syr);
+	depl(syr) = sbt(syr)/sbo;
 
 	cout<<"OK after initialYear"<<endl;
 
@@ -397,18 +397,22 @@ FUNCTION populationDynamics
 		//spawning biomass
 		sbt(i+1) = fec * Nat(i+1);				     // survey
 		//spawning biomass depletion
-		depl(i+1) = sbt(i+1)/sbt(syr);
+		depl(i+1) = sbt(i+1)/sbo;
 	}
 	//cout<<"Nat"<<endl<<Nat<<endl;
 
-	cout<<"OK after populationDynamics"<<endl;
+	//cout<<"OK after populationDynamics"<<endl;
 
 FUNCTION void addErrorClt(const int& ii)
 
-       		//dvector ppl(1,nlen);
-       		//ppl.initialize();
-       		
-			obsClt(ii) = rmvlogistic(Clt(ii),tau_length,seed+ii);
+       		dvector ppl(1,nlen);
+       		ppl.initialize();
+
+       		// this is wrong - need to find a way to generate catch with erro
+			obsClt(ii) = rmvlogistic(Clt(ii),tau_length,seed+ii)* sum(Clt(ii));
+			//cout<<"Clt(ii) is"<<endl<<Clt(ii)<<endl;
+			//cout<<"obsClt(ii) is"<<endl<<obsClt(ii)<<endl;
+			
       	
 
 FUNCTION  calcSellen
@@ -509,7 +513,7 @@ FUNCTION output_ctl
 	rini=Nat(rep_yr,sage)/mfexp(wt(rep_yr));
 
 
-	ofstream mfs("../SA/length_sra.ctl");
+	ofstream mfs("../SA/LSRA.ctl");
 	mfs<<"## ------------------------------------------------------------------------------------ ##"<< endl;
 	mfs<<"## CONTROL FILE TEMPLATE                                                                ##"<< endl;
 	mfs<<"## ------------------------------------------------------------------------------------ ##"<< endl;
@@ -549,11 +553,12 @@ FUNCTION output_ctl
 FUNCTION output_data
 	
 
-	ofstream ofs("../SA/length_sra.dat");
+	ofstream ofs("../SA/LSRA.dat");
 	ofs<<"# syr " << endl << rep_yr <<endl;
 	ofs<<"# eyr " << endl << eyr <<endl;
 	ofs<<"# sage "<< endl << sage <<endl;
 	ofs<<"# nage "<< endl << nage <<endl;
+	ofs<<"# slen "<< endl << slen <<endl;
 	ofs<<"# nlen "<< endl << nlen <<endl;
 	ofs<<"# lstp "<< endl << lstp <<endl;
 	ofs<<"# SR function " << endl << 1 <<endl;
@@ -584,11 +589,11 @@ FUNCTION output_data
 	//ofs<<"# phz_reck "<< endl << 2 <<endl;
 	//ofs<<"# phz_growth  "<< endl << -4  <<endl;
 	//ofs<<"# use_prior  "<< endl << 0 <<endl;
-	ofs<<"# u_init " << endl << 0.1 <<endl; //umsy(rep_yr)*.5
+	ofs<<"# u_init " << endl << ut(rep_yr) <<endl; //umsy(rep_yr)*.5
 	//ofs<<"# P_al " << endl << P_al <<endl;
 	ofs<<"# eof " << endl << 999 <<endl;
 
-	cout<<"OK after output_dat"<<endl;
+	//cout<<"OK after output_dat"<<endl;
 	
 	
 FUNCTION output_true
