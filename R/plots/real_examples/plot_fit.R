@@ -12,30 +12,25 @@ require(ggplot2)
 
 
 #development stage
+source("/Users/catarinawor/Documents/length_SRA/R/read.admb.R")
 
 example_dir<-"/Users/catarinawor/Documents/length_SRA/examples/hake"
 
-
-source("/Users/catarinawor/Documents/length_SRA/R/read.admb.R")
-
-
 setwd(example_dir)
-example<-read.rep("length_SRA.rep")
+hake<-read.rep("length_SRA.rep")
+ names( hake)
 
-names(example)
-
-sv<-logical(length=length(example$yr))
-o<-1
-for(i in 1:length(example$yr)){
-	if(example$yr[i]==example$iyr[o]){
-		sv[i]<-TRUE
-		o<-o+1
-	}
-}
+example_dir<-"/Users/catarinawor/Documents/length_SRA/examples/jack_mackerel"
+setwd(example_dir)
+jm<-read.rep("length_SRA.rep")
+ names(jm)
 
 
-plot(example$iyr,example$survB)
-lines(example$iyr,example$psurvB[sv])
+par(mfrow=c(1,2))
+plot(hake$iyr,hake$survB, pch=16)
+lines(hake$iyr,hake$predSurvB,lwd=2)
+plot(jm$iyr,jm$survB,pch=16)
+lines(jm$iyr,jm$predSurvB,lwd=2)
 
 
 

@@ -172,8 +172,7 @@
 %(old intro written by Carl Walters)
 Modern stock assessments typically attempt to fit population dynamics models to catch at age and catch at length data, in hopes of extracting information from these data about age/size vulnerability and fishing mortality patterns \citep{methot_stock_2013,hilborn_quantitative_1992}.  In cases where age data are lacking, models like MULTIFAN-CL attempt to obtain estimates of vulnerability and fishing mortality only from size distribution data \citep{fournier_multifan-cl:_1998}. Combined with a few assumptions regarding the structure and variability in length at age, this procedure can even be used to attempt to recover information about changes in body growth patterns if there is a strong age-class signal in the length frequency data \citep{fournier_multifan-cl:_1998}.  Some assessment methods attempt to put aside the length frequency data, by converting these data to age compositions using age-from-length tables, perhaps using iterative methods to estimate proportions of fish at age for each length interval \citep{kimura_mixtures_1987}.  It is typical for assessment results from length-based assessment models to show substantial deviations between predicted and observed length distributions of catches, reflecting both sampling variation in the length composition data and incorrect assumptions about stability of growth and vulnerability patterns (reference). 
  
-The vulnerability process is the combination of two processes: selectivity of the fishing gear and availability of the fished population in the area being fished. Both processes can vary over time and therefore modify the resulting selectivity. Although selectivity process can often be directly measured through gear experiments, availability is generally harder to measure as it depends on the distribution of the exploited population. Changes in availability occur when changes in the spatial distribution of the fleet in relation to the fished population happen. These changes can be caused by changes in fish distribution, fleet distribution or both. Fish distribution can change over time due to environmental forces or changes in population size or age structure. Changes in fleet distribution can occur due to new regulation (e.g. bycatch avoidance, closed areas, etc) of due to targeting of abundant cohorts if the fished population segregates by size or age. Time varying vulnerability is therefore, not uncommon. However it can be difficult to track such changes as it can be very hard to separate the effects of changes in fishing mortality and changes in selectivity in most currently available age and length based stock assessment methods. For this reason, many assessment methods rely on ad hoc parametric vulnerability models that may or may not include changes over time. If misspecified, such models might lead to severe bias in fishing mortality estimates, which could result in misleading management advice. 
-
+The vulnerability process is the combination of two processes: selectivity of the fishing gear and availability of the fished population in the area being fished \citep{beverton_dynamics_1957}. Both processes can vary over time and therefore modify the resulting selectivity. Although selectivity process can often be directly measured through gear experiments, availability is generally harder to measure as it depends on the distribution of the exploited population. Changes in availability occur when changes in the spatial distribution of the fleet in relation to the fished population happen. Availability changes can be caused by fish movement, changes in fish distribution, and by changes in fleet distribution. Changes in vulnerability are not uncommon \citep{sampson_exploration_2012} but are usually difficult to track overtime. This difficulty is associated with the inability to distinguish between changes in fishing mortality and changes in vulnerability in most age and length based stock assessment methods. For this reason, many assessment methods rely on ad hoc parametric vulnerability models that may or may not include changes over time \citep{maunder_selectivity:_2014}. If misspecified, such models might lead to severe bias in fishing mortality estimates, which could result in misleading management advice \citep{martell_towards_2014}. 
 
  Here we suggest an alternative approach to assessment modeling that begins by assuming that the assessment model should exactly reproduce the observed catch at length distribution. This is similar to the classical assumption in virtual population analysis that reconstructed numbers at age should exactly match observed catch at age data \citep{hilborn_quantitative_1992}. This assumption is also analogous to the suggestion by \citet{schnute_general_1994} that statistical catch at age models might best be run in a``conditioned on catch'' format by subtracting observed catches at age from modeled numbers at age in estimation of numbers at age over time.  The suggested approach may have two key advantages over statistical catch at age and/or catch at length models: (1) it does not require estimation of age or size vulnerability schedules, and (2) catch at length data are commonly available for every year, even when age composition sampling has not been conducted. 
 
@@ -183,7 +182,7 @@ The vulnerability process is the combination of two processes: selectivity of th
 
 \section{Methods}
 
-In this section we describe the stock reduction analysis with catch at length data, describe the simulation analysis and scenarios used to test the model and provide a description of the real data used to illustrate the model applicability.
+In this section we describe the stock reduction analysis with catch at length data (Length-SRA), describe the simulation analysis and scenarios used to test the model and provide a description of the real data used to illustrate the model applicability.
 
 
 \subsection{Stock reduction analysis with catch at length data}
@@ -193,7 +192,7 @@ The stock reduction analysis described here starts by calculating , the proporti
 	
 \begin{table}
   %\centering
-  \Large
+  \large
 \caption{ \large Age at Length}\label{tab:length_age} 
 \tableEq
     \begin{align}
@@ -211,9 +210,7 @@ The stock reduction analysis described here starts by calculating , the proporti
             &\mbox{${t_o}$ =  Theoretical time in which length of individuals is zero}&\nonumber\\ 
             &\mbox{$cvL$ = Coefficient of variation for length curve}&\\
         \hline \nonumber \\
-            &\mbox{Age-schedule information} \nonumber \\ \nonumber \\
-            %
-            P_{l|a}&= \int_{z1_{a,l}}^{z2_{a,l}}{ \mathcal{N}(0,1)}  \label{T1.1}\\
+             P_{l|a}&= \int_{z1_{a,l}}^{z2_{a,l}}{ \mathcal{N}(0,1)}  \label{T1.1}\\
             z1_{a,l} &= \frac{b1_{l} - \bar{L}_{a}}{\sigma_{L_{a}}} \label{T1.2}\\
             z2_{a,l} &= \frac{b2_{l} - \bar{L}_{a}}{\sigma_{L_{a}}} \label{T1.3}\\
             \bar{L}_{a} &= L_{inf} \cdot (1 - \exp^{(-k\cdot(a-t_o))})  \label{T1.4}\\
@@ -224,11 +221,11 @@ The stock reduction analysis described here starts by calculating , the proporti
     \normalEq
 \end{table}
 
- The proportions of length at age is used to convert the length based quantities into age based quantities which are used to propagate the age structured population dynamics forward (Table \ref{tab:pop_dyn}). We assume that recruitment follows a Beverton \& Holt type recruitment curve (eq. \ref{T2.1}), that harvesting occurs over a short, discrete season in each time step (year or shorter time period) and that natural survival rate is stable over time (eqs. \ref{T2.1}-\ref{T2.5}). Differences in the population dynamics equations in the initial year as well as incidence functions are shown in  Table \ref{tab:pop_dyn_syr}.
+ The proportions of length at age is used to convert the length based quantities into age based quantities which are used to propagate the age structured population dynamics forward (Table \ref{tab:pop_dyn}). We assume that recruitment follows a Beverton \& Holt type recruitment curve (eq. \ref{T2.1}), that harvesting occurs over a short, discrete season in each time step (year or shorter time period) and that natural survival rate is stable over time (eqs. \ref{T2.1}-\ref{T2.5}). Differences in the population dynamics equations in the initial year as well as incidence functions are shown in  Table \ref{tab:pop_dyn}.
 	
 \begin{table}
   %\centering
-  \Large
+  \large
 \caption{ \large Population dynamics}\label{tab:pop_dyn} 
 \tableEq
     \begin{align}
@@ -237,6 +234,7 @@ The stock reduction analysis described here starts by calculating , the proporti
             &\mbox{$N_{a,t}$ = Numbers of fish at age and time} &\nonumber\\
             &\mbox{$SB_{t}$ = Spawning biomass at time t} &\nonumber\\
             &\mbox{$a_{rec}, b_{rec}$ = Beverton  \& Holt stock recruitment parameters } &\nonumber\\
+            &\mbox{$\kappa$ = Goodyear recruitment compensation ratio} &\nonumber\\
             &\mbox{$wt$ = Normally distributed recruitment deviations} &\nonumber\\
             &\mbox{$S_a$ = Survival rate at age} &\nonumber\\
             &\mbox{$U_{a,t}$ = Exploitation rate at age and time} &\nonumber\\
@@ -245,12 +243,11 @@ The stock reduction analysis described here starts by calculating , the proporti
              &\mbox{$N_{l,t}$ = Numbers at length and time} &\nonumber\\
              &\mbox{$syr$ = Initial year of data} &\nonumber\\
             &\mbox{$a_o$ = Age of recruitment} &\nonumber\\
+            &\mbox{$\phi_e$ = Unfished average spawning biomass per recruit } &\nonumber\\
            \hline \nonumber \\
-             &\mbox{Age-schedule information} \nonumber \\ 
+            N_{a,t>syr}&=\begin{cases} \frac{a_{rec} \cdot SB_{t-1}}{1+ b_{rec} \cdot SB_{t-1}} \cdot e^{wt}, &\quad a=a_o  \\
             %
-            N_{a,t>syr}&=\begin{cases} \frac{a_{rec} \cdot SB_{t-1}}{1+ b_{rec} \cdot SB_{t-1}} \cdot e^{wt}, &\quad a=a_o \\ \\
-            %
-            N_{a-1,t-1}\cdot S_{a-1}\cdot(1-U_{a-1,t-1}),&\quad 1<a<A \\ \\
+            N_{a-1,t-1}\cdot S_{a-1}\cdot(1-U_{a-1,t-1}),&\quad 1<a<A  \\
             %
             \frac{N_{a-1,t-1} \cdot S_{a-1} \cdot (1-U_{a-1,t-1})}{1- S_{A} \cdot 1-U{a,t}},&\quad a=A \\
             \end{cases}\label{T2.1}\\
@@ -258,29 +255,11 @@ The stock reduction analysis described here starts by calculating , the proporti
             U_{l,t}&=\frac{C_{l,t}}{N_{l,t}}\label{T2.3}\\
             N_{l,t}&=\sum_a{(P_{l|a}\cdot N_{a,t})}\label{T2.4}\\
             SB_{t}&= \sum_a(fec_a \cdot w_a \cdot N_{a,t}) \label{T2.5}\\
-        \hline \hline \nonumber
-    \end{align}
-    \normalEq
-\end{table}
-
-\begin{table}
-  %\centering
-  \Large
-\caption{ \large Population dynamics: initial year and incidence functions}\label{tab:pop_dyn_syr} 
-\tableEq
-    \begin{align}
-           \hline
-            &\mbox{Variable definition} \nonumber \\ 
-            &\mbox{$N_{a,t}$ = Numbers of fish at age and time} &\nonumber\\
-             &\mbox{$syr$ = Initial year of data} &\nonumber\\
-            &\mbox{$a_o$ = Age of recruitment} &\nonumber\\
-            &\mbox{$a_{rec}, b_{rec}$ = Beverton  \& Holt stock recruitment parameters } &\nonumber\\
-            &\mbox{$\phi_e$ = Unfished average spawning biomass per recruit } &\nonumber\\
-           \hline \nonumber \\
+        \hline \nonumber \\
             &\mbox{Initial year } \nonumber \\ 
-            N_{a=a_o,t=syr}&= R_{init} * \cdot e^{wt} \label{T3.1}\\
-            a_{rec}&=  \frac{k_{rec}}{\phi_e} \label{T3.2}\\
-            b_{rec}&= \frac{k_{rec}-1}{R_o \cdot \phi_e}  \label{T3.4}\\
+            N_{a_o,syr}&= R_{init} * \cdot e^{wt} \label{T3.1}\\
+            a_{rec}&=  \frac{\kappa}{\phi_e} \label{T3.2}\\
+            b_{rec}&= \frac{\kappa-1}{R_o \cdot \phi_e}  \label{T3.4}\\
             \phi_e &= \sum_a{lx_a}  \label{T3.5}\\
             lx_a &= \begin{cases} 1 , &\quad a=a_o \\
             lx_{a-1} \cdot S_{a-1} ,&\quad 1<a<A \\ 
@@ -292,15 +271,16 @@ The stock reduction analysis described here starts by calculating , the proporti
 \end{table}
 
 
-The model estimates three main parameters: the average unexploited recruitment $R_{0}$, the recruitment compensation ratio $k_{rec}$  and the recruitment in the initial year $R_{init} $. In addition, the recruitment deviations are estimated for all cohorts observed in the model, that is, the number of recruitment deviations is equal to the number of years in the time series plus the number of age classes greater that recruitment age. 
+
+The model estimates three main parameters: the average unexploited recruitment $R_{0}$, the recruitment compensation ratio $\kappa$  and the recruitment in the initial year $R_{init}$. In addition, the recruitment deviations are estimated for all cohorts observed in the model, that is, the number of recruitment deviations is equal to the number of years in the time series plus the number of age classes greater that recruitment age. 
 The parameters of the model are estimated with two likelihood components: Index of abundance and Recruitment deviations, both are assumed to be lognormally distributed with fixed variances.
 
-In order to perform a simulation evaluation of the length-SRA under various scenarios we used the same model dynamics described in Table \ref{tab:pop_dyn} as an operating model. However we modified the model population dynamics to include time varying selectivity and a maximum annual exploitation rate (eq. \ref{T4.1}) as well as observation and process errors. Selectivity in the operating model was computed with the three parameter selectivity equation described by \citet{thompson_confounding_1994} (eq. \ref{T4.3}). The observation error in the operating model included lognormal error in the index of abundance and logistic multivariate error in the catch numbers at length. Recruitment deviations were assumed to be lognormally distributed.   
+In order to perform a simulation evaluation of the Length-SRA under various scenarios we used the same model dynamics described in Table \ref{tab:pop_dyn} as an operating model. However we modified the model population dynamics to include time varying selectivity and a maximum annual exploitation rate (eq. \ref{T4.1}) as well as observation and process errors. Selectivity in the operating model was computed with the three parameter selectivity equation described by \citet{thompson_confounding_1994} (eq. \ref{T4.3}). The observation error in the operating model included lognormal error in the index of abundance and logistic multivariate error in the catch numbers at length. Recruitment deviations were assumed to be lognormally distributed.   
 
 \begin{table}
   %\centering
-  \Large{}
-\caption{ \large Population dynamics: changes in operating model}\label{tab:pop_dyn_om} 
+  \large
+\caption{ \large Operating model dynamics }\label{tab:pop_dyn_om} 
 \tableEq
     \begin{align}
            \hline
@@ -310,11 +290,14 @@ In order to perform a simulation evaluation of the length-SRA under various scen
             &\mbox{$U_{t}$ = annual maximum exploitation rate} &\nonumber\\
             &\mbox{$C_{l,t}$ = Catch at length and time} &\nonumber\\
              &\mbox{$N_{l,t}$ = Numbers at length and time} &\nonumber\\
+             &\mbox{$I_{t}$ = Index of abundance at time t} &\nonumber\\
+             &\mbox{$VB_{t}$ = Biomass that is vulnerable to the survey at time t} &\nonumber\\
+             &\mbox{$q$ = catchability coefficient} &\nonumber\\
            \hline \nonumber \\
-        &\mbox{Operating model} \nonumber \\ 
             U_{l,t}&= U_{t} \cdot sel_{l,t}\label{T4.1}\\           
             C_{l,t}&= N_{l,t} \cdot  U_{l,t} \cdot P_{l|a}\label{T4.2}\\
             sel_{l,t} &= \frac{1}{1-g}\cdot \left(\frac{1-g}{g}\right)^{g} \cdot \frac{e^{a\cdot g\cdot (b-l)}}{1+e^{a\cdot(b-l)}}\label{T4.3}\\
+            I_{t}&= q \cdot VB_{t} \label{T4.4}\\ 
             %S(l)=(1/(1-g))*((1-g)/g)^g*((exp(a*g*(b-l)))/(1+exp(a*(b-l))))
          \hline \hline \nonumber 
     \end{align}
@@ -326,24 +309,64 @@ In order to perform a simulation evaluation of the length-SRA under various scen
 \subsection{Simulation evaluation scenarios}
 
 
-We tested a total of six different scenarios in the simulation evaluation runs.  We tested three different historical exploitation rate trajectories: contrast, one way trip and $U$ ramp. In the contrast scenario the exploitation rate($U$) starts low and increases up to $U>U_{msy}$ and then decreases until $U=U_{msy}$. In the one way trip scenario $U$ increased through time until $U=2 \cdot U_{msy} $. In the $U$ ramp scenario, U increases steadily until $U=U_{msy}$ and remains constant. 
-In addition to the exploitation rate scenarios, we considered two selectivity scenarios: constant and time varying selectivity. In the constant selectivity scenario, selectivity was assumed to follow a sigmoid shape. In the time varying selectivity scenario, the selectivity curve was assumed to vary every year, progressively changing form a dome shaped curve to sigmoid and back to dome shaped. 
+We considered a total of six different scenarios in the simulation evaluation runs. Three different historical exploitation rate trajectories were used: contrast, one way trip and $U$ ramp. In the contrast scenario the exploitation rate($U$) starts low and increases up to $U>U_{msy}$ and then decreases until $U=U_{msy}$. In the one way trip scenario $U$ increased through time until $U=2 \cdot U_{msy} $. In the $U$ ramp scenario, U increases steadily until $U=U_{msy}$ and remains constant thereafter. In addition to the exploitation rate scenarios, we considered two selectivity scenarios: constant and time varying selectivity. In the constant selectivity scenario, selectivity was assumed to follow a sigmoid shape. In the time varying selectivity scenario, the selectivity curve was assumed to vary every year, progressively changing form a dome shaped curve to sigmoid and back to dome shaped. The complete list of scenarios and the code used for them is presented in Table \ref{tab:simeval}. 
 
-All simulation runs had 30 years of data and we used 200 simulation runs for each scenario. 
+All simulation runs had 30 years of data and we used 200 simulation runs for each scenario. We evaluated the distribution of the \% relative error ($ \frac{esimated-simulated}{simulated} \cdot 100$) for the main parameter estimates ($R_{0}$, $R_{init}$ and $\kappa$) and for four derived quantities (Depletion: $\frac{B_t}{B_{0}}$, MSY, $U_{MSY}$ and $q$). 
+
+
+\begin{table}[ht!]
+\centering
+\large
+\caption{ \large Simulation-estimation scenarios}
+\label{tab:simeval} 
+ \begin{tabular}{c c c} 
+ \hline
+ Scenario Code & Selectivity  & $U$ trajectory \\ 
+ \hline
+ CC     & constant   &  contrast    \\ 
+ CO     & constant   & one way trip  \\ 
+ CR     & constant   & $U$ ramp  \\ 
+ VC     & time-varying   &  contrast    \\ 
+ VO     & time-varying   & one way trip  \\ 
+ VR     & time-varying   & $U$ ramp  \\  
+ \hline
+\end{tabular}
+\end{table}
+
 
 \subsection{Real data examples}
 
-Two species were chosen to illustrate the application of the model to real datasets: Chilean jack mackerel and Pacific hake. 
+Two species were chosen to illustrate the application of the Length-SRA to real datasets: Chilean jack mackerel and Pacific hake. Both species are believed to be subject to time varying selectivity. In the case of Pacific hake, time varying selectivity is believed to be associated with cohort targeting and fleet spatial distribution.  The population is know to have spasmodic recruitment, with high recruitment events occurring once or twice every decade \citep{ressler_pacific_2007}. Pacific hake tends to segregate by size during their annual migration\citep{ressler_pacific_2007}, allowing the fishing fleet to target the strong cohorts by changing the spatial distribution of fishing effort as the cohort ages. 
 
-Have to come up with good justification for these species. 
-Pacific hake is migratory and shows spasmodic recruitment episodes
+In the case of Jack mackerel  (...) Have to come up with good justification for JM. 
+
 
 
 \section{Results}
 
 \subsection{Simulation-evaluation}
 
-and simulated data
+The simulation-evaluation showed that the parameters $R_0$ and $R_{init}$ tend to be underestimated but with very low bias. The median \% errors for those parameters were within the $\pm$ 10\% interval, with the exception of the $U$ ramp scenarios (CR and VR) in which the median \% error for $R_o$ and $R_{init}$ was as high as 25\% (Figure \ref{mainParams}). The parameter $\kappa$ was also underestimated with higher median \% error. Once again, the $U$ ramp scenarios (CR and VR) resulted in the highest bias  (Figure \ref{mainParams}). 
+
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[scale=.65]{/Users/catarinawor/Documents/Length_SRA/R/plots/figs/main_params_publ.pdf}
+  \caption{Relative error (\%) for main parameters for all scenarios considered in the simulation-evaluation. }
+\label{mainParams}
+\end{figure}
+
+In relation to the derived quantities, the Length-SRA tended to underestimate both depletion and MSY estimates with median \% errors ranging between -26\% and -2\% . Once again the $U$ ramp scenarios (CR and VR) yielded the worst bias (Figure \ref{derivQuant}). The estimates for $U_{MSY}$ showed very low ($<$5\%) median \% errors for all scenarios except for the CC scenario (Contrast and constant selectivity) which showed a 13\% median \% error (Figure \ref{derivQuant}). The estimates of $q$ tended to be underestimated for the $U$ ramp scenarios an d overestimated for the remaining scenarios, with median \% error ranging between -3\% and 10\% (Figure \ref{derivQuant}).
+
+Need to include selectivity estimates.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[scale=.65]{/Users/catarinawor/Documents/Length_SRA/R/plots/figs/derivQuant_publ.pdf}
+  \caption{Relative error (\%) for main parameters for all scenarios considered in the simulation-evaluation. }
+\label{derivQuant}
+\end{figure}
+
 
 \subsection{Real data examples}
 
@@ -353,10 +376,13 @@ show figures with real
 
 Does the model work?
 
-assumption regarding Umsy -> changes with selectivity
+assumption regarding Umsy -> changes with selectivity -> 
 
 Time- varying growth might render the model less useful. Suggest estimating 
 cohort-specific growth curves or implementing the density dependent functions shown in multifan-CL. 
+
+\section{Acknowledgments}
+ We would like to thank Allan Hicks and NOAA for the provision of Pacific hake data and ????? for the provision of Jack mackerel data. 
 
 \clearpage
 

@@ -1,4 +1,5 @@
 EXEC=length_sra
+EXECTPL=length_sra.tpl
 DAT=length_sra.dat
 CTL=
 ARG=
@@ -12,14 +13,15 @@ NUMBERS := $(shell seq 1 ${LAST})
 
         
 
-all: $(EXEC)
+all: run 
 	./$(EXEC) -ind $(DAT) $(ARG)
 
-compi: $(EXEC)
+compi: $(EXEC) $(EXECTPL)
 	admb $(EXEC) 
 
 
-run: ./$(EXEC) -ind $(DAT) $(ARG)
+run: $(EXEC) compi
+	./$(EXEC) -ind $(DAT) $(ARG)
 
 mcmc: $(EXEC) $(EXEC).psv
 	./$(EXEC) -ind $(DAT) -mceval

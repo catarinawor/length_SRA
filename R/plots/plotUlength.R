@@ -102,5 +102,5 @@ plotLengthComps <- function( M )
 	print(p)
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-	ggsave("UlengthMedian.pdf", plot=p)
+	ggsave(paste("Ulength",len,".pdf",sep = ""), plot=p)
 }
