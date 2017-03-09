@@ -38,13 +38,13 @@ plot_Recdevs <- function( M )
 			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
 
 			
-			est<-c(M[[i]]$SArep$log_wt)
-
+			est<-log(c(M[[i]]$SArep$wt_init,M[[i]]$SArep$wt))
+			
 			#tt<-M[[i]]$OM$rep_yr-M[[i]]$OM$syr+1
 
 			true<-c(M[[i]]$OM$wt)
 			
-
+		
 
 			bias<- (est- true) #/ true
 			

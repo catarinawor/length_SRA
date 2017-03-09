@@ -118,18 +118,141 @@ plot_params <- function( M , Rinit=F )
 
 	
 	p <- ggplot(df2) 
-	p <- p + geom_boxplot(aes(x=parameter,y=value, fill=parameter))
+	p <- p + geom_boxplot(aes(x=scenario,y=value, fill=parameter))
 	p <- p + geom_hline(yintercept=0, color="darkred", size=1.2, alpha=0.3)
 	p <- p + labs(x="Parameter",y="Bias")
 	p <- p + theme_bw(11) 
+	p <- p + theme(axis.text = element_text(face="bold", size=12),
+  axis.text.x= element_text(angle=45,hjust = 1),
+  axis.title = element_text(face="bold", size=12))
 	p <- p + ylim(-0.5, 0.5)
-	p <- p + facet_wrap(~scenario)
-	p <- p + geom_text(data=df2, aes(x=1.0, y=0.44, label=converge), parse=TRUE)
+	p <- p + facet_wrap(~parameter)
+	p <- p + geom_text(data=df2, aes(x=scnnumber, y=0.44, label=converge), parse=TRUE)
 	print(p)
 
 
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
 	ggsave("main_params.pdf", plot=p)
+	
+}
+
+plot_params_publ <- function( M , Rinit=T )
+{
+	cat("plot_params_publ")
+
+	scn<-read_scnnames()
+
+
+	n <- length( M )
+	mdf <- NULL
+	adf <- NULL
+	
+
+
+	conv_n<-numeric(length=length(scn))
+
+	if(Rinit==TRUE){
+
+		for(i in 1:n){
+
+		if(M[[i]]$SApar$maxgrad<1.0e-04){
+			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
+
+
+			est<-c(M[[i]]$SArep$Ro,
+				M[[i]]$SArep$Rinit,
+				M[[i]]$SArep$reck)
+				
+			true<-c(M[[i]]$OM$Ro,
+				M[[i]]$OM$Rinit,
+				M[[i]]$OM$reck)
+				
+			
+				bias<- (est- true) / true
+			
+			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
+
+			df <- data.frame(Ro=bias[1],  Rinit=bias[2], kappa=bias[3], scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7], scenario=scn[M[[i]]$OM$scnNumber])
+
+			mdf <- rbind(mdf,df)
+
+			#af <- data.frame(true = true, est = est, param=c("Ro", "Rinit","kappa","Linf","k","to","cvl"))
+			af <- data.frame(true = true, est = est, param=c("Ro", "Rinit" , "kappa"), scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			
+			adf <- rbind(adf,af)
+		}
+	}
+
+
+
+	}else{
+
+		for(i in 1:n){
+
+		if(M[[i]]$SApar$maxgrad<1.0e-04){
+			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
+
+
+			est<-c(M[[i]]$SArep$Ro,
+				#M[[i]]$SArep$Rbar,
+				M[[i]]$SArep$reck,
+				M[[i]]$SArep$cv_it)
+				#M[[i]]$SArep$maxUy[length(M[[i]]$SArep$maxUy)])
+
+			true<-c(M[[i]]$OM$Ro,
+				#M[[i]]$OM$Rbar,
+				M[[i]]$OM$reck,
+				M[[i]]$OM$cv_it)
+				#M[[i]]$OM$true_depl[length(M[[i]]$OM$true_depl)], 
+				#M[[i]]$OM$true_q,
+				#M[[i]]$OM$true_ut[length(M[[i]]$OM$true_ut)])
+
+			
+				bias<- (est- true) / true
+			
+			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
+
+			df <- data.frame(Ro=bias[1],  kappa=bias[2], cv_it=bias[3], scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7], scenario=scn[M[[i]]$OM$scnNumber])
+
+			mdf <- rbind(mdf,df)
+
+			#af <- data.frame(true = true, est = est, param=c("Ro", "Rinit","kappa","Linf","k","to","cvl"))
+			af <- data.frame(true = true, est = est, param=c("Ro",  "kappa", "cv_it"), scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			
+			adf <- rbind(adf,af)
+		}
+	}
+
+	}
+	
+	
+	df2<-melt(mdf,variable.name = "parameter",id=c("scenario","scnnumber"))
+
+	levels(df2$parameter)<-c(R_[0],R_[init],\kappa )
+	df2$converge<-conv_n[df2$scnnumber]
+	df2$valuep<-df2$value*100
+	summary(df2) 
+
+
+
+	p <- ggplot(df2) 
+	p <- p + geom_boxplot(aes(x=scenario,y=valuep))+coord_flip()
+	p <- p + geom_hline(yintercept=0, color="black", size=1.2, alpha=0.3)
+	p <- p + labs(x="Scenario",y="% Relative Error")
+	p <- p + theme_bw(12) 
+	p <- p + facet_wrap(~parameter,ncol = 1,labeller = label_parsed)
+	p <- p + theme(axis.text = element_text(face="bold", size=12),
+  axis.title = element_text(face="bold", size=12),
+  strip.text = element_text(face="bold", size=16))
+	p <- p + ylim(-50, 50)
+	print(p)
+
+
+
+	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
+	ggsave("main_params_publ.pdf", plot=p)
 	
 }

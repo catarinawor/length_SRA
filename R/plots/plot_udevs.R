@@ -39,12 +39,16 @@ plot_udevs <- function( M )
 
 			
 			est<-c(M[[i]]$SArep$avgUy)
+			#est<-c(M[[i]]$SArep$maxUy)
+
 
 			st<-M[[i]]$OM$rep_yr-M[[i]]$OM$syr+1
 
-			true<-c(M[[i]]$OM$avgUy[st:length(M[[i]]$OM$avgUy)])
-			
 
+			true<-c(M[[i]]$OM$avgUy[st:length(M[[i]]$OM$avgUy)])
+			#true<-c(M[[i]]$OM$maxUy[st:length(M[[i]]$OM$maxUy)])
+			
+			names(M[[i]]$OM)
 
 			bias<- (est- true) / true
 			
@@ -79,5 +83,77 @@ plot_udevs <- function( M )
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
 	ggsave("U_bias.pdf", plot=p)
+	
+}
+
+
+
+plot_udevs_all <- function( M )
+{
+	cat("plot_Udevs_all")
+
+	n <- length( M )
+	mdf <- NULL
+	
+	scn<-read_scnnames()
+
+
+
+	conv_n<-numeric(length=length(scn))
+	
+	for(i in 1:n){
+
+		if(M[[i]]$SApar$maxgrad<1.0e-04){
+			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
+
+			
+			st<-M[[i]]$OM$rep_yr-M[[i]]$OM$syr+1
+			#est<-c(M[[i]]$SArep$avgUy)
+			est<-M[[i]]$SArep$Ulength
+
+			true<-M[[i]]$OM$Ulength[(M[[i]]$OM$rep_yr):M[[i]]$OM$eyr,]
+
+
+
+			bias<- (est- true) / true
+
+		
+			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
+
+			df <- data.frame(bias=melt(bias)$value,year=melt(bias)$Var1,len=melt(bias)$Var2,scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			mdf <- rbind(mdf,df)
+
+			
+		}
+	}
+
+	mdf$converge=conv_n[mdf$scnnumber]
+	summary(mdf)
+
+
+	
+	#df2<-melt(mdf,variable.name = "parameter")
+
+	for(an in 1:length(unique(mdf$len))){
+
+		mmdf<-mdf[mdf$len==unique(mdf$len)[an],]
+		summary(mmdf)
+	
+	p <- ggplot(mmdf) 
+	p <- p + geom_boxplot(aes(x=scenario,y=(bias),fill=scenario))
+	p <- p + geom_hline(yintercept=0, color="darkred", size=1.2, alpha=0.3)
+	p <- p + labs(x="year",y=paste("len is ", unique(mmdf$len)), title="bias in Ulength")
+	p <- p + theme_bw(11) 
+	p <- p + ylim(-0.5, 0.5)
+	#p <- p + annotate("text" , x = 1, y = 0.4, label = paste("n = ",conv_n))
+	p <- p + facet_wrap(~year)
+	#p <- p + geom_text(data=mdf, aes(x=1.2, y=0.48, label=converge), parse=TRUE)
+	print(p)
+	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
+	ggsave(paste("U_bias_len",unique(mmdf$len),sep=""), plot=p)
+
+   }
+
+	
 	
 }

@@ -37,7 +37,7 @@ omit<-om$it
 
 estpar<-c(est$Ro,est$Rinit,est$reck)
 estpar
-estwt<-est$wt
+estwt<-c(est$wt_init,est$wt)
 estit<-est$pit
 
 

@@ -49,7 +49,7 @@ DATA_SECTION
 	//init_number iRo; 					// Avearge unfished recruitment
 
 	init_number cv_it;					// sd for survey
-	init_number sigR;					// sigma for recruitment deviations, fixed? RL: yes, it is better fix this parameter than using the Error in Variable (EIV) approach. otherwise the likelihoods are going to be more complicated and messy 
+	//init_number sigR;					// sigma for recruitment deviations, fixed? RL: yes, it is better fix this parameter than using the Error in Variable (EIV) approach. otherwise the likelihoods are going to be more complicated and messy 
 	
 	init_number sigVul;					// RL: it is the parameter control the variability for the vulnerability. low values means that the vul doesn't change much over time...I guess
 	
@@ -90,7 +90,7 @@ DATA_SECTION
 		tiny=1.e-3;
 	END_CALCS
 
-		!! ad_comm::change_datafile_name(ControlFile);
+	!! ad_comm::change_datafile_name(ControlFile);
 	
 	// |---------------------------------------------------------------------------------|
 	// | Control File - parameter intitial values and prior info
@@ -111,10 +111,24 @@ DATA_SECTION
 	//init_vector iwt(syr+1,eyr);         // Recruitment deviations
 	//init_vector iwt_init(sage+1,nage);         // Recruitment deviations in initial year
 	
-	init_vector iwt(syr-nag,eyr);   
+	init_vector iwt(syr-nag,eyr); 
+
+	init_int dend2;  
+
+	LOCAL_CALCS
+		
+		if( dend2 != 999 )
+		{
+			cout<<"Error reading control.\n Fix it."<<endl;
+			cout<< "dend is:"<<dend2<<endl;
+			ad_exit(1);
+		}
+
+	END_CALCS
+	
 
 	LOC_CALCS
-		
+
 
 		theta_ival  = column(theta_control,1);
 		theta_lb    = column(theta_control,2);
@@ -146,20 +160,20 @@ PARAMETER_SECTION
 	//!! log_reck=log(ireck);
 	//!! log_Ro=log(iRo);
  	
+	init_bounded_dev_vector log_wt_init(syr-nag,syr-1,-5.,5.,3); 
 		
-	//init_bounded_dev_vector log_wt(syr+1,eyr,-5.,5.,3); 
-	init_bounded_vector log_wt(syr-nag,eyr,-5.,5.,3); 
+	init_bounded_dev_vector log_wt(syr,eyr,-5.,5.,3); 
+	//init_bounded_dev_vector log_wt(syr-nag,eyr,-5.,5.,3); 
 	
 	//!!cout<< "chegou aqui"<<endl;
-	//init_bounded_dev_vector log_wt_init(sage+1,nage,-5.,5.,3); 
 
 
-
- 	!! log_wt = log(iwt);
+	!! log_wt_init = log(iwt(syr-nag,syr-1));
+ 	!! log_wt = log(iwt(syr,eyr));
  	//!! log_wt_init = log(iwt_init);
 
  	vector lvec(1,1);
- 	vector pvec(1,1);
+ 	vector pvec(1,2);
 	objective_function_value nll;
 	
 	number fpen;						// penalty to be added to likelihood when posfun is used
@@ -173,7 +187,7 @@ PARAMETER_SECTION
 	//number Rbar;	
 	number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
-	//number sigR;
+	number sigR;
 	//number cv_it;
 	
 
@@ -188,8 +202,8 @@ PARAMETER_SECTION
 	number Sa;							// survival-at-age (assume constant across ages)
 
 	vector zstat(1,nyt);				// MLE of q
-	vector wt(syr-nag,eyr);					// recruitment anomalies
-	//vector wt_init(sage+1,nage);				// recruitment anomalies for initial year
+	vector wt(syr,eyr);					// recruitment anomalies
+	vector wt_init(syr-nag,syr-1);				// recruitment anomalies for initial year
 	
  	//vector vul(1,nage);					// age-specific vulnerabilities
 	vector la(sage,nage);					// length-at-age
@@ -209,6 +223,9 @@ PARAMETER_SECTION
 	//vector Rdevz(syr+1,eyr);
  	//vector delta(syr,eyr);
  	vector psurvB(syr,eyr);				// predicted survey biomass
+ 	vector umsy(syr,eyr);
+ 	vector msy(syr,eyr);
+
 	
 	matrix Nlt(syr,eyr,1,nlen); 		// Matrix of numbers at length class
 	matrix P_al(sage,nage,1,nlen);			// proportion of individual of each age at a given length class
@@ -232,10 +249,11 @@ PROCEDURE_SECTION
 	observation_model();
 	objective_function();
 
-	//if(last_phase())
-	//{
+	if(last_phase())
+	{
+		calc_msy();
 		output_runone();
-	//}
+	}
 
 	//cout<<"maxUy"<<endl<<maxUy<<endl;
 	//exit(1);
@@ -245,13 +263,13 @@ FUNCTION trans_parms
 	//Bring parameters from log to normal space
 	Ro = mfexp( theta(1,1) );
 	Rinit = mfexp( theta(2,1) );
+
+	reck = mfexp( theta(3,1) ); 
+	sigR = mfexp( theta(4,1) );
 	
 
-	
-	reck = mfexp( theta(3,1) );
-	
 	wt = mfexp( log_wt- sigR*sigR/2.  );//- sigR*sigR/2.
-	//wt_init = mfexp( log_wt_init-sigR*sigR/2. );
+	wt_init = mfexp( log_wt_init-sigR*sigR/2. );
 
 	//cout<<"ok after trans_parms"<<endl;
 
@@ -293,6 +311,9 @@ FUNCTION incidence_functions
 	reca = reck/phie;
 	recb = (reck - 1.)/(Ro*phie); 
 	sbo  = Ro*phie;
+
+
+
 
 
  	
@@ -341,7 +362,7 @@ FUNCTION initialYear
 	Nat(syr,sage)= Rinit * wt(syr);
 	for( int a = 2; a <= nage; a++ )
 	{
-		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1. - u_init) * wt(syr-a+1);	// initial age-structure
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1. - u_init) * wt_init(syr-a+1);	// initial age-structure
 	}		
 	Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
 
@@ -360,7 +381,7 @@ FUNCTION initialYear
 	// exploitation by lengt
 	for( int b = 1; b <= nlen; b++ )
 	{		
-		Ulength( syr )(b) = Clt( syr, b ) / posfun2( Nlt( syr, b ), Clt( syr, b ), fpen);
+		Ulength( syr )(b) = Clt( syr, b ) / posfun2( Nlt( syr, b ),Clt( syr, b ), ffpen);
 		//Ulength( syr )(b) = Clt( syr, b ) /  Nlt( syr, b );
 	}
 
@@ -377,9 +398,9 @@ FUNCTION initialYear
 
 	}
 
-	
 
 	sbt(syr) = fec * Nat(syr);
+	psurvB(syr) = Nat(syr) * elem_prod(wa,vul);
 	
 	//cout<<"wt_init"<<endl<<wt_init<<endl;
 	//cout<<"Nat"<<endl<<Nat( syr)<<endl;
@@ -426,7 +447,7 @@ FUNCTION SRA
 			// length-distribution by year
 			
 			// exploitation by length										
-			Ulength( y, b ) = Clt( y, b ) / posfun2( Nlt( y, b ), Clt( y, b ), fpen);	// BvP put this back in to keep values from going over one
+			Ulength( y, b ) = Clt( y, b ) / posfun2( Nlt( y, b ), Clt( y, b ), ffpen);	// BvP put this back in to keep values from going over one
 			//Ulength( y, b ) = Clt( y, b ) /  Nlt( y, b );	// BvP put this back in to keep values from going over one
 			
 		}
@@ -453,6 +474,7 @@ FUNCTION SRA
 		//cout<<"Uage"<<endl<<Uage( syr)<<endl;
 		//cout<<"Nat"<<endl<<Nat( y)<<endl;
 	
+		psurvB(y) =  Nat(y) * elem_prod(wa,vul);
 
 	}
 	
@@ -482,10 +504,6 @@ FUNCTION SRA
 		ssvul = sum( Upen );				// vulnerability penalty
 
 
-	 	psurvB = Nat * elem_prod(wa,vul);
-
-
-
 
 
 
@@ -503,20 +521,27 @@ FUNCTION stock_recruit_residuals
 
 FUNCTION observation_model
 
-	dvar_vector datry(sage,nage);
+	
+	
 	for( int i = 1; i <= nyt ; i++ )
 	{
-		zstat(i)=log(survB(i))-log(psurvB(iyr(i)));//-cv_it*cv_it/2.
+		zstat(i)=(log(survB(i))-log(psurvB(iyr(i))));//-cv_it*cv_it/2.
+
+
 	}
-			
-	q=exp(mean(zstat));
-	//zstat -= mean(zstat);					// z-statistic used for calculating MLE of q
 	
+	///exit(1);
+			
+	q=mfexp(mean(zstat));
+	
+	
+	zstat -= mean(zstat);
+
+	//cout<<"q is "<<q<<endl;					// z-statistic used for calculating MLE of q
+
 	//zstat -= cv_it*cv_it/2.;
-	//cout<<"survB "<<endl<<survB <<endl;
-	//cout<<"psurvB "<<endl<<psurvB <<endl;
-	//cout<<"zstat "<<endl<<zstat <<endl;
-	// 	exit(1);
+	
+	 	//exit(1);
 	
 FUNCTION objective_function 
 
@@ -587,12 +612,13 @@ FUNCTION objective_function
 	
 	//if(last_phase())
 	//{		
-		pvec(1)=dnorm(log_wt,sigR); 	// estimate recruitment deviations with dnorm function
+		pvec(1)=dnorm(log_wt,sigR); 	//  estimate recruitment deviations with dnorm function
+		pvec(2)=dnorm(log_wt_init,sigR); 	//  estimate recruitment deviations with dnorm function
 	//}
 	//else
 	//{
-	//pvec(1)=norm2(delta);///1000.0; 	
-	//pvec(2)=(norm2(log_wt));///1000.0; 	
+	//pvec(1)=norm2(log_wt);///1000.0; 	
+	//pvec(2)=(norm2(log_wt_init));///1000.0; 	
 	//}
 	//pvec(2)=0.;
 
@@ -620,7 +646,7 @@ FUNCTION objective_function
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen+sum(Ulpen);
-	nll = sum(lvec) + sum(npvec) + sum(pvec) + fpen +ffpen;//pow(fpen+1.,12.)
+	nll = sum(lvec)+ sum(npvec)  + sum(pvec) + fpen + ffpen;//ffpen ;//pow(fpen+1.,12.)
 	
 	//nll = sum(lvec) +  sum(pvec);
 
@@ -630,10 +656,85 @@ FUNCTION objective_function
 
 	//nll = sum(lvec) +  sum(pvec);
 
+
+FUNCTION calc_msy
+
+	dvector utest(1,1001);
+	utest.fill_seqadd(0,0.001);
+
+ //This function calculates MSY in the lazy and slow way. 
+ 	int k, kk ;
+	int NF=size_count(utest);
+	
+	dmatrix selage(syr,eyr,sage,nage);
+
+	
+	
+	
+
+	for(int y=syr;y<=eyr;y++){
+
+		selage(y)= value(Uage(y)/max(Uage(y)));
+
+		dvector ye(1,NF);
+		ye.initialize();
+		
+		for(k=1; k<=NF; k++)
+		{
+			dvector lz(sage,nage);
+			lz.initialize();
+
+			dvariable phieq;
+			dvariable phiz;
+			dvariable req;
+
+			phieq.initialize();
+			phiz.initialize();
+			req.initialize();
+
+
+
+			lz(sage) = 1.; //first age	
+			for(int a = sage+1 ; a <= nage ; a++)
+			{
+				lz(a) = value(lz(a-1)*Sa*(1-utest(k))); // proportion of individuals at age surviving M only
+			}
+			lz(nage) /= value(1.-Sa*(1-utest(k))); // age plus group
+
+			phiz= lz*fec;
+			
+			phieq = elem_prod(lz,selage(y))*wa;
+			req = Ro*(reck-phie/phiz)/(reck-1);
+			
+			ye(k)= value(utest(k)*req*phieq);
+		}
+
+		
+		msy(y)= max(ye);
+		double mtest;	
+
+		for(kk=1; kk<=NF; kk++)
+		{
+			mtest=ye(kk);
+				
+			if(mtest==msy(y)){
+				umsy(y)=utest(kk);
+			} 
+		}
+
+
+	}
+
 	
 
 FUNCTION output_runone
 	
+	dvector predSurvB(1,nyt);
+
+ 	for( int i = 1; i <= nyt ; i++ )
+	{
+		predSurvB(i)=value(q*psurvB(iyr(i)));
+	}
 
 	ofstream ofs("runone.rep");
 	ofs<<"Nat" << endl << Nat <<endl;
@@ -644,12 +745,13 @@ FUNCTION output_runone
 	ofs<<"Ro "<< endl << Ro <<endl;
 	ofs<<"Rinit "<< endl << Rinit <<endl;
 	ofs<<"reck "<< endl << reck <<endl;
+	ofs<<"wt_init "<< endl << log_wt_init <<endl;
 	ofs<<"wt "<< endl << log_wt <<endl;
 	ofs<<"reca "<< endl << reca <<endl;
 	ofs<<"recb "<< endl << recb <<endl;
 	ofs<<"phie "<< endl << phie <<endl;
 	ofs<<"sbt "<< endl << sbt <<endl;
-	ofs<<"pit "<< endl << psurvB <<endl;
+	ofs<<"pit "<< endl << predSurvB <<endl;
 	ofs<<"P_al "<< endl << P_al <<endl;
 	ofs<<"zstat "<< endl << zstat <<endl;
 	ofs<<"fpen "<< endl << fpen <<endl;ofs<<"fpen "<< endl << fpen <<endl;
@@ -684,8 +786,17 @@ REPORT_SECTION
 	REPORT(to);
 	REPORT(cvl);
  	REPORT(wt);
+ 	REPORT(wt_init);
  
-	REPORT(psurvB);
+ 	dvector predSurvB(1,nyt);
+
+ 	for( int i = 1; i <= nyt ; i++ )
+	{
+		predSurvB(i)=value(psurvB(iyr(i)));
+	}
+ 	//predSurvB=psurvB(iyr(1,nyt));
+	
+	REPORT(predSurvB);
 	REPORT(survB);
 	
 	report<<"bt\n"<<Nat*wa<<endl;
@@ -702,7 +813,6 @@ REPORT_SECTION
 
 	double depletion = value(sbt(eyr)/sbo);
 	REPORT(depletion);
-//	REPORT(depletion);
  	ivector yr(syr,eyr);
 	yr.fill_seqadd(syr,1); 
 	report<<"yr\n"<<yr<<endl;
@@ -714,10 +824,14 @@ REPORT_SECTION
 	REPORT(la);
 	REPORT(vul);
 	REPORT(Nlt);
+	REPORT(Clt);
 	REPORT(log_wt);
 	REPORT(lvec);
 	REPORT(pvec);
-	
+	REPORT(umsy);
+	REPORT(msy);
+	REPORT(phie);
+
 	
 
 TOP_OF_MAIN_SECTION
