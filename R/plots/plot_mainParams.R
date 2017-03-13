@@ -254,5 +254,7 @@ plot_params_publ <- function( M , Rinit=T )
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
 	ggsave("main_params_publ.pdf", plot=p)
+
+	#ggplot_build(p)$data
 	
 }
