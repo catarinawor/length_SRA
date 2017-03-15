@@ -1,14 +1,14 @@
 # Fdb version 3
-["bibtex length_SRA"] 1489272485 "length_SRA.aux" "length_SRA.bbl" "length_SRA" 1489277300
+["bibtex length_SRA"] 1489542899 "length_SRA.aux" "length_SRA.bbl" "length_SRA" 1489542901
   "/usr/local/texlive/2015/texmf-dist/bibtex/bst/beebe/apa.bst" 1136766823 23582 e3c8338eb1efb7432441aa8861285f53 ""
-  "length_SRA.aux" 1489277300 6659 565d43c929a4fe9d6b4a304120ec881e ""
+  "length_SRA.aux" 1489542900 7159 77988dc657e02f452560646fb7834413 ""
   "length_SRA.bcf" 0 -1 0 ""
-  "references.bib" 1489268980 26150 4b521b5a20000b7226ffd6832694836c ""
+  "references.bib" 1489532703 29169 e5e4731edc70832012c0426d90bcfafe ""
   (generated)
   "length_SRA.bbl"
   "length_SRA.blg"
-["pdflatex"] 1489277296 "length_SRA.tex" "length_SRA.pdf" "length_SRA" 1489277300
-  "./length_SRA.out" 1489277300 630 f39cb762079e779bd14ccc949b4af0b0 ""
+["pdflatex"] 1489542900 "length_SRA.tex" "length_SRA.pdf" "length_SRA" 1489542901
+  "./length_SRA.out" 1489542900 630 f39cb762079e779bd14ccc949b4af0b0 ""
   "/Users/catarinawor/Documents/Length_SRA/R/plots/figs/derivQuant_publ.pdf" 1489017752 7694 4f81c4480347ceb7f2314b479ea56c56 ""
   "/Users/catarinawor/Documents/Length_SRA/R/plots/figs/main_params_publ.pdf" 1489018021 7115 61b32e70dcb6e190264904ba619e70b8 ""
   "/Users/catarinawor/Documents/Length_SRA/R/plots/figs/sel_publ.pdf" 1489021342 38325 8d03de30d84dde9a34f1c85700fbacff ""
@@ -127,6 +127,7 @@
   "/usr/local/texlive/2015/texmf-dist/tex/latex/amsmath/amstext.sty" 1362954379 2637 846ebe982d3549c7ede7ce135456f54a ""
   "/usr/local/texlive/2015/texmf-dist/tex/latex/base/article.cls" 1428932888 20708 96f8bca6e380179cada1d49716376167 ""
   "/usr/local/texlive/2015/texmf-dist/tex/latex/base/ifthen.sty" 1428932888 5159 bb529586d444e85eb00179221b678119 ""
+  "/usr/local/texlive/2015/texmf-dist/tex/latex/base/leqno.clo" 1428932888 1959 4fcdece88349d24b878280098f2d73c2 ""
   "/usr/local/texlive/2015/texmf-dist/tex/latex/base/size10.clo" 1428932888 9179 632e23fed01c842f2eaef1dd9953a446 ""
   "/usr/local/texlive/2015/texmf-dist/tex/latex/bezos/checkend.sty" 1287181805 1543 3ccbcec0cf8904f79b0ff283c0094dd8 ""
   "/usr/local/texlive/2015/texmf-dist/tex/latex/bigfoot/suffix.sty" 1414965027 3090 223874a03a08cecb9fb79bd86e5dcf97 ""
@@ -198,10 +199,10 @@
   "/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1432479641 1764542 91654ba72bdb667e84ea24f076ae16d8 ""
   "/usr/local/texlive/2015/texmf-var/web2c/pdftex/pdflatex.fmt" 1432479681 3849859 39a7d258195bde2394e244961601fbc5 ""
   "/usr/local/texlive/2015/texmf.cnf" 1432479636 577 0d611272082f3cdb8e80e09a3c69cf07 ""
-  "length_SRA.aux" 1489277300 6659 565d43c929a4fe9d6b4a304120ec881e ""
-  "length_SRA.bbl" 1489272485 3753 bce30fb7751d4569ace8d47f60ec72b6 "bibtex length_SRA"
-  "length_SRA.out" 1489277300 630 f39cb762079e779bd14ccc949b4af0b0 ""
-  "length_SRA.tex" 1489273907 24632 2347c7a15ede4972409bfa8e17c12e7f ""
+  "length_SRA.aux" 1489542900 7159 77988dc657e02f452560646fb7834413 ""
+  "length_SRA.bbl" 1489542900 3772 cee977c9da5840b11e90de4b155a00b4 "bibtex length_SRA"
+  "length_SRA.out" 1489542900 630 f39cb762079e779bd14ccc949b4af0b0 ""
+  "length_SRA.tex" 1489542897 24470 cfa612c9b6bef74ae0b09a3d8e865331 ""
   (generated)
   "length_SRA.pdf"
   "length_SRA.out"
