@@ -28,9 +28,9 @@ jm<-read.rep("length_SRA.rep")
 
 par(mfrow=c(1,2))
 plot(hake$iyr,hake$survB, pch=16)
-lines(hake$iyr,hake$predSurvB,lwd=2)
+lines(hake$iyr,hake$q*hake$predSurvB,lwd=2)
 plot(jm$iyr,jm$survB,pch=16)
-lines(jm$iyr,jm$predSurvB,lwd=2)
+lines(jm$iyr,jm$q*jm$predSurvB,lwd=2)
 
 
 
