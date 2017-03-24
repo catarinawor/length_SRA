@@ -1,4 +1,4 @@
-h//><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
+//><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>><>
 //Programer: Brett van Poorten
 //Modified by: Roberto Licandeo and Catarina Wor
 //Date:	June 21, 2013;  Update: March 2015
@@ -22,7 +22,7 @@ DATA_SECTION
 	init_int slen;						// start length bin
 	init_int nlen;						// number of length-bins (assume start at 0)
 	init_int lstp;						// width of length-bins
-	init_int SR;						// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker  BvP: not used
+	init_int SR;						// stock-recruit relationship: 1==Beverton-Holt; 2==cannibalistic BH  BvP: not used
 	
 	// model known parameters
 	init_number m;						// natural mortality
@@ -59,7 +59,9 @@ DATA_SECTION
 
 	init_number u_init;	
 
-	
+	//init_vector canWG(sage,nage);
+	//init_int fqone;
+
 	init_int dend;
 
 	
@@ -113,6 +115,7 @@ DATA_SECTION
 	
 	init_vector iwt(syr-nag,eyr); 
 
+	init_vector plogq(1,3);
 	init_int dend2;  
 
 	LOCAL_CALCS
@@ -189,7 +192,7 @@ PARAMETER_SECTION
 	number sbo;
 	number sigR;
 	//number cv_it;
-	
+	//number can;
 
 
 	number ssvul; 						// it is the sum sq devs for the length vul deviations (mean va(L) - va(L,t))^2
@@ -197,6 +200,8 @@ PARAMETER_SECTION
 	//number Eo;							// unfished egg deposition
 	number reca;						// alpha of stock-recruit relationship
 	number recb;						// beta of stock-recruit relationship
+	//number recbCan;	
+	//number canno;
 	number phie;
 	number q;							// catchability coefficient (based on zstat)
 	number Sa;							// survival-at-age (assume constant across ages)
@@ -255,6 +260,8 @@ PROCEDURE_SECTION
 		output_runone();
 	}
 
+	//cout<<"q"<<" "<<q<<endl;
+	//cout<<"Ro"<<" "<<Ro<<endl;
 	//cout<<"maxUy"<<endl<<maxUy<<endl;
 	//exit(1);
 
@@ -267,7 +274,7 @@ FUNCTION trans_parms
 	reck = mfexp( theta(3,1) ); 
 	sigR = mfexp( theta(4,1) );
 	
-
+	
 	wt = mfexp( log_wt- sigR*sigR/2.  );//- sigR*sigR/2.
 	wt_init = mfexp( log_wt_init-sigR*sigR/2. );
 
@@ -281,13 +288,12 @@ FUNCTION incidence_functions
 	fpen.initialize();
 	ffpen.initialize();
 
-
 	la.initialize();
  	std.initialize();
  	Nat.initialize();
  	//Ulpen.initialize();
-	
-	
+
+
 
 	la = Linf * ( 1. - mfexp( -k * ( age - to )));
 	std = la * cvl;
@@ -309,11 +315,25 @@ FUNCTION incidence_functions
 	phie = lxo * fec;
 
 	reca = reck/phie;
-	recb = (reck - 1.)/(Ro*phie); 
+	recb = (reck - 1.)/(Ro*phie);
+
+	//switch (SR) {
+    //    case 1: 
+	//		
+	//	break;
+	//
+	//	case 2:
+	//		can = mfexp( theta(5,1) );
+    //		canno = canWG*(Ro*lxo)*can/10;
+	//		recbCan = (reck - 1.)/(Ro*phie)/canno; 
+	//		//cout<<"canno"<<" "<<canno<<endl;
+	//		//cout<<"recbCan"<<" "<<recbCan<<endl;
+	//
+    //	break;
+	//}
+
+	
 	sbo  = Ro*phie;
-
-
-
 
 
  	
@@ -378,10 +398,10 @@ FUNCTION initialYear
 	// length-structure in year-1
 	Nlt( syr) = Nat( syr ) * P_al;	
 	
-	// exploitation by lengt
+	// exploitation by length
 	for( int b = 1; b <= nlen; b++ )
 	{		
-		Ulength( syr )(b) = Clt( syr, b ) / posfun2( Nlt( syr, b ),Clt( syr, b ), ffpen);
+		Ulength( syr )(b) = Clt( syr, b ) / posfun2( Nlt( syr, b ),Clt( syr, b ), fpen);
 		//Ulength( syr )(b) = Clt( syr, b ) /  Nlt( syr, b );
 	}
 
@@ -417,10 +437,19 @@ FUNCTION SRA
 	{	
 	    dvariable sbtm = fec * Nat(y - 1);	
 
+		//switch (SR) {
+    	//    case 1: 
+				Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * wt( y );	///mfexp( sigR*sigR/2.) B-H recruitment
+		//	break;
+		//
+		//	case 2:
+		//		dvariable cantot;
+		//		cantot= Nat( y-1)*canWG;
+		//		Nat( y, sage ) = (reca * sbtm / ( 1. + recbCan * sbtm)) * wt( y ) * mfexp(-can*cantot);
+		//	break;
+		//}				
 		
-		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * wt( y );	///mfexp( sigR*sigR/2.) B-H recruitment
-						
-		
+		//cout<<"Nat( y, sage )"<<" "<<Nat( y, sage )<<endl;
 		// age-distribution post-recruitment
 		//Nat(y)(sage+1,nage) = ++elem_prod(Nat(y-1)(sage,nage-1)*Sa,1.-Uage(y - 1)(sage,nage-1));
 		
@@ -533,9 +562,16 @@ FUNCTION observation_model
 	///exit(1);
 			
 	q=mfexp(mean(zstat));
-	
-	
 	zstat -= mean(zstat);
+	
+	//switch (fqone) {
+    //    case 1: 
+	//		zstat = zstat;
+	//	break;
+
+	//	default:
+	//	break;
+	//}
 
 	//cout<<"q is "<<q<<endl;					// z-statistic used for calculating MLE of q
 
@@ -558,6 +594,9 @@ FUNCTION objective_function
 	dvar_vector npvec(1,npar);
 	npvec.initialize();
 	
+	dvar_vector qpvec(1,1);
+	qpvec.initialize();
+
 	//dvar_vector pvec(1,1);
 	pvec.initialize();
 
@@ -597,6 +636,39 @@ FUNCTION objective_function
 			}
 	}
 
+	int qpr;
+	 qpr=plogq(1);
+
+	switch(qpr)
+		{
+				case 1:		//normal
+					qpvec(1) = dnorm(log(q),plogq(2),plogq(3));
+					break;
+					
+				case 2:		//lognormal CHANGED RF found an error in dlnorm prior. rev 116
+					qpvec(1) = dlnorm(log(q),plogq(2),plogq(3));
+					break;
+					
+				case 3:		//beta distribution (0-1 scale)
+					double lb,ub;
+					
+					cout<<"beta distribution not implemented"<<endl;
+					qpvec(1) =0.0;
+					break;
+					
+				case 4:		//gamma distribution
+					qpvec(1) = dgamma(log(q),plogq(2),plogq(3));
+					break;
+					
+				default:	//uniform density
+					dvariable dummy;
+					dummy = posfun(log(q),plogq(2),ffpen);   // BvP added to keep parameter within bounds
+					dummy = posfun(plogq(3)-log(q),0.0,ffpen);   // BvP added to keep parameter within bounds
+					qpvec(1) = log(1./(plogq(3)-plogq(2)));
+					//npvec(i) = (1./(the3a_control(i,3)-theta_control(i,2)));
+					//cout<<"qpvec(1)"<<qpvec(1)<<endl;
+					break;
+			}
 
 
 
@@ -646,14 +718,15 @@ FUNCTION objective_function
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen+sum(Ulpen);
-	nll = sum(lvec)+ sum(npvec)  + sum(pvec) + fpen + ffpen;//ffpen ;//pow(fpen+1.,12.)
+	nll = sum(lvec)+ sum(npvec)  + sum(pvec) + fpen + ffpen +sum(qpvec);//ffpen ;//pow(fpen+1.,12.)
 	
 	//nll = sum(lvec) +  sum(pvec);
 
 	//cout<<"pvec is "<< sum(pvec)<<endl;
 	//cout<<"lvec is "<< sum(lvec)<<endl;
-
-
+	//cout<<"qpvec is "<< sum(qpvec)<<endl;
+	//cout<<"fpen is "<< fpen<<endl;
+	//cout<<"ffpen is "<< ffpen<<endl;
 	//nll = sum(lvec) +  sum(pvec);
 
 
@@ -778,8 +851,10 @@ REPORT_SECTION
 	REPORT(reck);
 	REPORT(cv_it);
 	REPORT(sigR);
+	//REPORT(can);
 	REPORT(reca);
 	REPORT(recb);
+	//REPORT(recbCan);
 	REPORT(sbo);
 	REPORT(Linf);
 	REPORT(k);

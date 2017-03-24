@@ -1,14 +1,14 @@
 # Fdb version 3
-["bibtex length_SRA"] 1489542899 "length_SRA.aux" "length_SRA.bbl" "length_SRA" 1489542901
+["bibtex length_SRA"] 1489542899 "length_SRA.aux" "length_SRA.bbl" "length_SRA" 1490201272
   "/usr/local/texlive/2015/texmf-dist/bibtex/bst/beebe/apa.bst" 1136766823 23582 e3c8338eb1efb7432441aa8861285f53 ""
-  "length_SRA.aux" 1489542900 7159 77988dc657e02f452560646fb7834413 ""
+  "length_SRA.aux" 1490201272 7159 77988dc657e02f452560646fb7834413 ""
   "length_SRA.bcf" 0 -1 0 ""
   "references.bib" 1489532703 29169 e5e4731edc70832012c0426d90bcfafe ""
   (generated)
   "length_SRA.bbl"
   "length_SRA.blg"
-["pdflatex"] 1489542900 "length_SRA.tex" "length_SRA.pdf" "length_SRA" 1489542901
-  "./length_SRA.out" 1489542900 630 f39cb762079e779bd14ccc949b4af0b0 ""
+["pdflatex"] 1490201271 "length_SRA.tex" "length_SRA.pdf" "length_SRA" 1490201272
+  "./length_SRA.out" 1490201272 630 f39cb762079e779bd14ccc949b4af0b0 ""
   "/Users/catarinawor/Documents/Length_SRA/R/plots/figs/derivQuant_publ.pdf" 1489017752 7694 4f81c4480347ceb7f2314b479ea56c56 ""
   "/Users/catarinawor/Documents/Length_SRA/R/plots/figs/main_params_publ.pdf" 1489018021 7115 61b32e70dcb6e190264904ba619e70b8 ""
   "/Users/catarinawor/Documents/Length_SRA/R/plots/figs/sel_publ.pdf" 1489021342 38325 8d03de30d84dde9a34f1c85700fbacff ""
@@ -199,10 +199,10 @@
   "/usr/local/texlive/2015/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1432479641 1764542 91654ba72bdb667e84ea24f076ae16d8 ""
   "/usr/local/texlive/2015/texmf-var/web2c/pdftex/pdflatex.fmt" 1432479681 3849859 39a7d258195bde2394e244961601fbc5 ""
   "/usr/local/texlive/2015/texmf.cnf" 1432479636 577 0d611272082f3cdb8e80e09a3c69cf07 ""
-  "length_SRA.aux" 1489542900 7159 77988dc657e02f452560646fb7834413 ""
+  "length_SRA.aux" 1490201272 7159 77988dc657e02f452560646fb7834413 ""
   "length_SRA.bbl" 1489542900 3772 cee977c9da5840b11e90de4b155a00b4 "bibtex length_SRA"
-  "length_SRA.out" 1489542900 630 f39cb762079e779bd14ccc949b4af0b0 ""
-  "length_SRA.tex" 1489542897 24470 cfa612c9b6bef74ae0b09a3d8e865331 ""
+  "length_SRA.out" 1490201272 630 f39cb762079e779bd14ccc949b4af0b0 ""
+  "length_SRA.tex" 1490201271 24501 fa0232c8ee0826929e97bece7613aa46 ""
   (generated)
   "length_SRA.pdf"
   "length_SRA.out"
