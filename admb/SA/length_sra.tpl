@@ -22,7 +22,7 @@ DATA_SECTION
 	init_int slen;						// start length bin
 	init_int nlen;						// number of length-bins (assume start at 0)
 	init_int lstp;						// width of length-bins
-	init_int SR;						// stock-recruit relationship: 1==Beverton-Holt; 2==cannibalistic BH  BvP: not used
+	init_int SR;						// stock-recruit relationship: 1==Beverton-Holt; 2==Ricker  BvP: not used
 	
 	// model known parameters
 	init_number m;						// natural mortality
@@ -59,9 +59,7 @@ DATA_SECTION
 
 	init_number u_init;	
 
-	//init_vector canWG(sage,nage);
-	//init_int fqone;
-
+	
 	init_int dend;
 
 	
@@ -113,9 +111,10 @@ DATA_SECTION
 	//init_vector iwt(syr+1,eyr);         // Recruitment deviations
 	//init_vector iwt_init(sage+1,nage);         // Recruitment deviations in initial year
 	
-	init_vector iwt(syr-nag,eyr); 
+	init_vector iwt(syr-nag,eyr);
 
-	init_vector plogq(1,3);
+	init_vector plogq(1,3); 
+
 	init_int dend2;  
 
 	LOCAL_CALCS
@@ -192,7 +191,7 @@ PARAMETER_SECTION
 	number sbo;
 	number sigR;
 	//number cv_it;
-	//number can;
+	
 
 
 	number ssvul; 						// it is the sum sq devs for the length vul deviations (mean va(L) - va(L,t))^2
@@ -200,8 +199,6 @@ PARAMETER_SECTION
 	//number Eo;							// unfished egg deposition
 	number reca;						// alpha of stock-recruit relationship
 	number recb;						// beta of stock-recruit relationship
-	//number recbCan;	
-	//number canno;
 	number phie;
 	number q;							// catchability coefficient (based on zstat)
 	number Sa;							// survival-at-age (assume constant across ages)
@@ -260,8 +257,6 @@ PROCEDURE_SECTION
 		output_runone();
 	}
 
-	//cout<<"q"<<" "<<q<<endl;
-	//cout<<"Ro"<<" "<<Ro<<endl;
 	//cout<<"maxUy"<<endl<<maxUy<<endl;
 	//exit(1);
 
@@ -274,7 +269,7 @@ FUNCTION trans_parms
 	reck = mfexp( theta(3,1) ); 
 	sigR = mfexp( theta(4,1) );
 	
-	
+
 	wt = mfexp( log_wt- sigR*sigR/2.  );//- sigR*sigR/2.
 	wt_init = mfexp( log_wt_init-sigR*sigR/2. );
 
@@ -288,12 +283,13 @@ FUNCTION incidence_functions
 	fpen.initialize();
 	ffpen.initialize();
 
+
 	la.initialize();
  	std.initialize();
  	Nat.initialize();
  	//Ulpen.initialize();
-
-
+	
+	
 
 	la = Linf * ( 1. - mfexp( -k * ( age - to )));
 	std = la * cvl;
@@ -315,25 +311,11 @@ FUNCTION incidence_functions
 	phie = lxo * fec;
 
 	reca = reck/phie;
-	recb = (reck - 1.)/(Ro*phie);
-
-	//switch (SR) {
-    //    case 1: 
-	//		
-	//	break;
-	//
-	//	case 2:
-	//		can = mfexp( theta(5,1) );
-    //		canno = canWG*(Ro*lxo)*can/10;
-	//		recbCan = (reck - 1.)/(Ro*phie)/canno; 
-	//		//cout<<"canno"<<" "<<canno<<endl;
-	//		//cout<<"recbCan"<<" "<<recbCan<<endl;
-	//
-    //	break;
-	//}
-
-	
+	recb = (reck - 1.)/(Ro*phie); 
 	sbo  = Ro*phie;
+
+
+
 
 
  	
@@ -398,10 +380,10 @@ FUNCTION initialYear
 	// length-structure in year-1
 	Nlt( syr) = Nat( syr ) * P_al;	
 	
-	// exploitation by length
+	// exploitation by lengt
 	for( int b = 1; b <= nlen; b++ )
 	{		
-		Ulength( syr )(b) = Clt( syr, b ) / posfun2( Nlt( syr, b ),Clt( syr, b ), fpen);
+		Ulength( syr )(b) = Clt( syr, b ) / posfun2( Nlt( syr, b ),Clt( syr, b ), ffpen);
 		//Ulength( syr )(b) = Clt( syr, b ) /  Nlt( syr, b );
 	}
 
@@ -415,7 +397,6 @@ FUNCTION initialYear
 
 	for( int au = sage; au <= nage; au++ ){
 		Uage( syr )(au) = Ulength( syr ) * P_al(au);
-
 	}
 
 
@@ -436,20 +417,10 @@ FUNCTION SRA
 	for( int y = syr + 1; y <= eyr; y++ )
 	{	
 	    dvariable sbtm = fec * Nat(y - 1);	
-
-		//switch (SR) {
-    	//    case 1: 
-				Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * wt( y );	///mfexp( sigR*sigR/2.) B-H recruitment
-		//	break;
-		//
-		//	case 2:
-		//		dvariable cantot;
-		//		cantot= Nat( y-1)*canWG;
-		//		Nat( y, sage ) = (reca * sbtm / ( 1. + recbCan * sbtm)) * wt( y ) * mfexp(-can*cantot);
-		//	break;
-		//}				
 		
-		//cout<<"Nat( y, sage )"<<" "<<Nat( y, sage )<<endl;
+		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * wt( y );	///mfexp( sigR*sigR/2.) B-H recruitment
+						
+		
 		// age-distribution post-recruitment
 		//Nat(y)(sage+1,nage) = ++elem_prod(Nat(y-1)(sage,nage-1)*Sa,1.-Uage(y - 1)(sage,nage-1));
 		
@@ -463,13 +434,8 @@ FUNCTION SRA
 		for( int aa = sage; aa <= nage; aa++ ){
 			Nat( y )( aa ) =  posfun( Nat( y )( aa ), tiny, fpen);
 		}
-
-
-
-
 		//=====================================================================================
 		//Numbers at lengh
-
 		Nlt( y ) = Nat( y ) * P_al;	
 		for( int b = 1; b <= nlen; b++ )
 		{
@@ -480,16 +446,12 @@ FUNCTION SRA
 			//Ulength( y, b ) = Clt( y, b ) /  Nlt( y, b );	// BvP put this back in to keep values from going over one
 			
 		}
-
-
 		//Upow( y ) = sum(pow(Ulength( y ),10));
 			
 		// exploitation by age -- is this wrong??
 		//Uage( y) = Ulength( y ) * P_la;	
-
 		for( int au = sage; au <= nage; au++ ){
 			Uage( y )(au) = Ulength( y ) * P_al(au);
-
 		}
 			
 		
@@ -497,14 +459,11 @@ FUNCTION SRA
 		maxUy( y ) = max( Ulength( y ));
 		avgUy( y ) = mean( Ulength( y ));
 		
-
 		sbt(y) = fec * Nat(y);				// eggs in year-y
-
 		//cout<<"Uage"<<endl<<Uage( syr)<<endl;
 		//cout<<"Nat"<<endl<<Nat( y)<<endl;
 	
 		psurvB(y) =  Nat(y) * elem_prod(wa,vul);
-
 	}
 	
 	//cout<<"maxUy"<<endl<<maxUy<<endl;
@@ -521,7 +480,6 @@ FUNCTION SRA
 			// RL: It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
 			muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);	
 			//muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);		
-
 		}
 		
 		for( int y = syr; y <= eyr; y++ )
@@ -543,63 +501,45 @@ FUNCTION stock_recruit_residuals
 	//for( int y = syr + 1; y <= eyr; y++ )
 	//{	
 	 //   dvariable sbtm = fec * Nat(y - 1);
-
  	//Recs = (reca * sbtm / ( 1. + recb * sbtm)) * (wt( y ));
 	
 	
-
 FUNCTION observation_model
-
 	
 	
 	for( int i = 1; i <= nyt ; i++ )
 	{
 		zstat(i)=(log(survB(i))-log(psurvB(iyr(i))));//-cv_it*cv_it/2.
-
-
 	}
 	
 	///exit(1);
 			
 	q=mfexp(mean(zstat));
-	zstat -= mean(zstat);
 	
-	//switch (fqone) {
-    //    case 1: 
-	//		zstat = zstat;
-	//	break;
-
-	//	default:
-	//	break;
-	//}
-
+	
+	zstat -= mean(zstat);
 	//cout<<"q is "<<q<<endl;					// z-statistic used for calculating MLE of q
-
 	//zstat -= cv_it*cv_it/2.;
 	
 	 	//exit(1);
 	
 FUNCTION objective_function 
-
 	//dvar_vector lvec(1,1);
 	lvec.initialize();
-
 	lvec(1)=dnorm(zstat,cv_it);///100;
 	
 	//lvec(2)=dnorm(delta,sigR);
 	//lvec(2)=dnorm(log_wt,sigR);
 	//lvec(1)=norm2(zstat)/cv_it;
 	//lvec(2)=0;
-
 	dvar_vector npvec(1,npar);
 	npvec.initialize();
 	
-	dvar_vector qpvec(1,1);
-	qpvec.initialize();
-
 	//dvar_vector pvec(1,1);
 	pvec.initialize();
 
+	dvar_vector qpvec(1,1);
+	qpvec.initialize();
 	
 	//Priors 
 	//prior for h
@@ -635,6 +575,33 @@ FUNCTION objective_function
 					break;
 			}
 	}
+	//if(active(log_reck))
+	//{  
+ 	//	dvariable h=reck/(4.+reck);	
+ 	//	// beta a=1 and b=1 --> flat
+	//	pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
+	//	cout<<" (h-0.2)/0.8 is "<< (h-0.2)/0.8<< endl;
+	//	cout<<" (h is "<< h << endl;
+	//	
+   	//}
+	
+	//if(last_phase())
+	//{		
+		pvec(1)=dnorm(log_wt,sigR); 	//  estimate recruitment deviations with dnorm function
+		pvec(2)=dnorm(log_wt_init,sigR); 	//  estimate recruitment deviations with dnorm function
+	//}
+	//else
+	//{
+	//pvec(1)=norm2(log_wt);///1000.0; 	
+	//pvec(2)=(norm2(log_wt_init));///1000.0; 	
+	//}
+	//pvec(2)=0.;
+	//if(last_phase())
+	//{
+	//	cout<<"log_wt is: "<<log_wt<<endl;
+	//	cout<<"lvec is: "<<lvec<<endl;
+	//	exit(1);	
+	//}
 
 	int qpr;
 	 qpr=plogq(1);
@@ -672,46 +639,13 @@ FUNCTION objective_function
 
 
 
-	//if(active(log_reck))
-	//{  
- 	//	dvariable h=reck/(4.+reck);	
- 	//	// beta a=1 and b=1 --> flat
-	//	pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
-	//	cout<<" (h-0.2)/0.8 is "<< (h-0.2)/0.8<< endl;
-	//	cout<<" (h is "<< h << endl;
-	//	
-   	//}
-	
-	//if(last_phase())
-	//{		
-		pvec(1)=dnorm(log_wt,sigR); 	//  estimate recruitment deviations with dnorm function
-		pvec(2)=dnorm(log_wt_init,sigR); 	//  estimate recruitment deviations with dnorm function
-	//}
-	//else
-	//{
-	//pvec(1)=norm2(log_wt);///1000.0; 	
-	//pvec(2)=(norm2(log_wt_init));///1000.0; 	
-	//}
-	//pvec(2)=0.;
-
-
-	//if(last_phase())
-	//{
-	//	cout<<"log_wt is: "<<log_wt<<endl;
-	//	cout<<"lvec is: "<<lvec<<endl;
-	//	exit(1);	
-	//}
-
 	//=====================================================================================
 	//pergunta:
 	//
 	
 	//pvec(2) = (ssvul/sigVul)/100;
 	//pvec(2) = 0.0;
-
-
 	//cout<<"sum(npvec) "<<endl<<sum(npvec)<<endl;
-
 	// RL: see commment above
 	//=====================================================================================
 	
@@ -721,34 +655,22 @@ FUNCTION objective_function
 	nll = sum(lvec)+ sum(npvec)  + sum(pvec) + fpen + ffpen +sum(qpvec);//ffpen ;//pow(fpen+1.,12.)
 	
 	//nll = sum(lvec) +  sum(pvec);
-
 	//cout<<"pvec is "<< sum(pvec)<<endl;
 	//cout<<"lvec is "<< sum(lvec)<<endl;
-	//cout<<"qpvec is "<< sum(qpvec)<<endl;
-	//cout<<"fpen is "<< fpen<<endl;
-	//cout<<"ffpen is "<< ffpen<<endl;
 	//nll = sum(lvec) +  sum(pvec);
-
-
 FUNCTION calc_msy
-
 	dvector utest(1,1001);
 	utest.fill_seqadd(0,0.001);
-
  //This function calculates MSY in the lazy and slow way. 
  	int k, kk ;
 	int NF=size_count(utest);
 	
 	dmatrix selage(syr,eyr,sage,nage);
-
 	
 	
 	
-
 	for(int y=syr;y<=eyr;y++){
-
 		selage(y)= value(Uage(y)/max(Uage(y)));
-
 		dvector ye(1,NF);
 		ye.initialize();
 		
@@ -756,24 +678,18 @@ FUNCTION calc_msy
 		{
 			dvector lz(sage,nage);
 			lz.initialize();
-
 			dvariable phieq;
 			dvariable phiz;
 			dvariable req;
-
 			phieq.initialize();
 			phiz.initialize();
 			req.initialize();
-
-
-
 			lz(sage) = 1.; //first age	
 			for(int a = sage+1 ; a <= nage ; a++)
 			{
 				lz(a) = value(lz(a-1)*Sa*(1-utest(k))); // proportion of individuals at age surviving M only
 			}
 			lz(nage) /= value(1.-Sa*(1-utest(k))); // age plus group
-
 			phiz= lz*fec;
 			
 			phieq = elem_prod(lz,selage(y))*wa;
@@ -781,11 +697,9 @@ FUNCTION calc_msy
 			
 			ye(k)= value(utest(k)*req*phieq);
 		}
-
 		
 		msy(y)= max(ye);
 		double mtest;	
-
 		for(kk=1; kk<=NF; kk++)
 		{
 			mtest=ye(kk);
@@ -794,21 +708,15 @@ FUNCTION calc_msy
 				umsy(y)=utest(kk);
 			} 
 		}
-
-
 	}
-
 	
-
 FUNCTION output_runone
 	
 	dvector predSurvB(1,nyt);
-
  	for( int i = 1; i <= nyt ; i++ )
 	{
 		predSurvB(i)=value(q*psurvB(iyr(i)));
 	}
-
 	ofstream ofs("runone.rep");
 	ofs<<"Nat" << endl << Nat <<endl;
 	ofs<<"Nlt " << endl << Nlt <<endl;
@@ -831,30 +739,23 @@ FUNCTION output_runone
 	ofs<<"lvec "<< endl << sum(lvec) <<endl;
 	ofs<<"pvec"<< endl << sum(pvec) <<endl;
 	//ofs<<"Ulpen "<< endl << Ulpen <<endl;
-
 		
 		
-
 	//cout<<"OK after otput_runone"<<endl;
 		
-
 	
 	
-
 REPORT_SECTION
 	
 	output_runone();
-
 	
 	REPORT(Ro);
 	REPORT(Rinit);
 	REPORT(reck);
 	REPORT(cv_it);
 	REPORT(sigR);
-	//REPORT(can);
 	REPORT(reca);
 	REPORT(recb);
-	//REPORT(recbCan);
 	REPORT(sbo);
 	REPORT(Linf);
 	REPORT(k);
@@ -864,7 +765,6 @@ REPORT_SECTION
  	REPORT(wt_init);
  
  	dvector predSurvB(1,nyt);
-
  	for( int i = 1; i <= nyt ; i++ )
 	{
 		predSurvB(i)=value(psurvB(iyr(i)));
@@ -885,7 +785,6 @@ REPORT_SECTION
 	REPORT(Uage);
 	REPORT(Clt);
  	REPORT(sbt);
-
 	double depletion = value(sbt(eyr)/sbo);
 	REPORT(depletion);
  	ivector yr(syr,eyr);
@@ -906,9 +805,7 @@ REPORT_SECTION
 	REPORT(umsy);
 	REPORT(msy);
 	REPORT(phie);
-
 	
-
 TOP_OF_MAIN_SECTION
 	
 	time(&start);
@@ -917,8 +814,6 @@ TOP_OF_MAIN_SECTION
 	gradient_structure::set_CMPDIF_BUFFER_SIZE(1.e7);
 	gradient_structure::set_MAX_NVAR_OFFSET(5000);
 	gradient_structure::set_NUM_DEPENDENT_VARIABLES(5000);
-
-
 GLOBALS_SECTION
 	/**
 	\def REPORT(object)
@@ -926,7 +821,6 @@ GLOBALS_SECTION
 	*/
 	#undef REPORT
 	#define REPORT(object) report << #object "\n" << object << endl;
-
 	#include <admodel.h>
 	#include <time.h>
 	#include <contrib.h>//IF you have ADMB-11
@@ -935,14 +829,12 @@ GLOBALS_SECTION
 	time_t start,finish;
 	long hour,minute,second;
 	double elapsed_time;
-
 FINAL_SECTION
 	time(&finish);
 	elapsed_time=difftime(finish,start);
 	hour=long(elapsed_time)/3600;
 	minute=long(elapsed_time)%3600/60;
 	second=(long(elapsed_time)%3600)%60;
-
 		cout<<"*******************************************"<<endl;
 		cout<<"--Start time: "<<ctime(&start)<<endl;
 		cout<<"--Finish time: "<<ctime(&finish)<<endl;
