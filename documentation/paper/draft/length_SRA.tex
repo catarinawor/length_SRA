@@ -201,7 +201,7 @@ The stock reduction analysis described here starts by calculating the proportion
            \text{Distribution of length given age}&&\nonumber\\
            \hline
             \label{Pla1.1}
-            P_{l|a} &= \int_{z1_{a,l}}^{z2_{a,l}}{ \mathcal{N}(0,1)} \\
+            P_{l|a} &= \int_{z1_{a,l}}^{z2_{a,l}}{ \Phi(z) dz} \\
             \label{Pla1.2}
             z1_{a,l} &= \frac{b1_{l} - \bar{L}_{a}}{\sigma_{L_{a}}} \\
             \label{Pla1.3}
@@ -271,7 +271,7 @@ The stock reduction analysis described here starts by calculating the proportion
   %\centering
   %\large
 \caption{ \large Indexes, variable definition and values used in simulation-evaluation}\label{tab:pop_dyn} 
-\begin{tabular}{l c p{6cm}} 
+\begin{tabular}{l c p{7.5cm}} 
 \hline
 Symbol & Value  & Description \\  
 \hline
@@ -281,9 +281,10 @@ Symbol & Value  & Description \\
   $init$ & $21$ &Annual time step in which data starts to be reported \\
 \hline
 Distribution of length given age&&\\
-$P_{l|a}$ & &Matrix of proportions of length  at age\\
-$z1_{a,l}$ &&Normalized Z score for lower limit length bins\\
-$z2_{a,l}$&& Normalized Z score for upper limit length bins \\
+$P_{l|a}$ & &Matrix of proportions of length at age\\
+$\Phi$ && Standard normal distribution\\
+$z1_{a,l}$ &&Normalized $z$ score for lower limit length bins\\
+$z2_{a,l}$&& Normalized $z$ score for upper limit length bins \\
 $b1_{l}$ &&  Lower limit of length bins\\
 $b2_{l}$ &&  Upper limit of length bins \\    
 $\bar{L}_a$&&   Mean length at age\\
@@ -295,7 +296,7 @@ $cv_l$ & 0.08 & Coefficient of variation for length at age curve\\
 \hline
 Population dynamics&&\\
 $N_{a,t}$ &&  Numbers of fish at age and time\\
-$SB_{t}$ && Spawning biomass at time t\\
+$SB_{t}$ && Spawning biomass at time\\
 $mat_a$ && Proportion of mature individuals at age\\
 $a_{rec}, b_{rec}$ && Beverton \& Holt stock recruitment parameters \\
 $R_o$& 100& Average unfished recruitment\\
@@ -324,8 +325,7 @@ $q$ &1.0& catchability coefficient \\
 \end{table}
 
 
-The model estimates three main parameters: average unexploited recruitment $R_{0}$, recruitment compensation ratio $\kappa$ and recruitment in the initial year $R_{init}$. In addition, the recruitment deviations are estimated for all cohorts observed in the model, that is, the number of recruitment deviations is equal to the number of years in the time series plus the number of age classes greater that recruitment age. 
-The parameters of the model are estimated by fitting to an index of abundance assuming a lognormal distribution with fixed variances. A lognormal penalty is added to the negative log-likelihood function to constrain annual recruitment residuals.
+The model estimates three main parameters: average unexploited recruitment $R_{0}$, recruitment compensation ratio $\kappa$ and recruitment in the initial year $R_{init}$. In addition, the recruitment deviations are estimated for all cohorts observed in the model, that is, the number of recruitment deviations is equal to the number of years in the time series plus the number of age classes greater that recruitment age.  The parameters of the model are estimated by fitting to an index of abundance assuming a lognormal distribution with fixed variances. A lognormal penalty is added to the negative log-likelihood function to constrain annual recruitment residuals.
 
 \subsection{Simulation evaluation}
 
