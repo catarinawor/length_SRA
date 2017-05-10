@@ -13,32 +13,40 @@ require(ggplot2)
 
 
 setwd("/Users/catarinawor/Documents/length_SRA/admb/")
-est <- read.rep("SA/runone.rep")
+est <- read.rep("SA/length_sra.rep")
 om <- read.rep("OM/true_data_lsra.rep")
 
 
 names(om)
 names(est)
 
+plot(est$iyr, est$survB)
+lines(est$iyr,est$q*est$predSurvB, lwd=2, col="blue")
 
+length(om$wt)
+length(est$wt)
+
+est$Rinit
+ 
+omit<-om$it
+
+est$pit
 est$P_al-om$P_al
 
 #plot parameter values
 ompar<-c(om$Ro,om$Rinit,om$reck)
 omwt<-om$wt
-
-sum(om$wt)
-
-plot(om$wt)
-abline(h=0.0, lwd=2)
-
-omit<-om$it
+om$rep_yr
 
 
 estpar<-c(est$Ro,est$Rinit,est$reck)
 estpar
-estwt<-c(est$wt_init,est$wt)
-estit<-est$pit
+estwt<-est$wt
+
+length(estwt)
+length(omwt)
+
+estit<-est$q*est$predSurvB
 
 
 exp(est$wt[1])
@@ -61,11 +69,11 @@ points(estpar,col="red")
 par(mfrow=c(2,2))
 plot(omwt, pch=16,  ylab="recruitment deviations",xlab="years")
 lines(estwt, lwd=2, col="blue")
-plot(log(omit), pch=16,  ylab="it deviations",xlab="years")
-lines(log(estit), lwd=2, col="blue")
+plot((omit), pch=16,  ylab="it deviations",xlab="years")
+lines((estit), lwd=2, col="blue")
 plot((estwt-omwt), pch=16,  ylab="recruitment bias",xlab="years")
 abline(h=0,lw=2, col="red")
-plot((log(estit)-log(omit)), pch=16,  ylab="it bias",xlab="years")
+plot(((estit)-(omit)), pch=16,  ylab="it bias",xlab="years")
 abline(h=0,lw=2, col="red")
 #dev.off()
 

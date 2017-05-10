@@ -20,7 +20,7 @@ compi: $(EXEC) $(EXECTPL)
 	admb $(EXEC) 
 
 
-run: $(EXEC) compi
+run: $(EXEC) 
 	./$(EXEC) -ind $(DAT) $(ARG)
 
 mcmc: $(EXEC) $(EXEC).psv

@@ -70,12 +70,13 @@ plot_udevs <- function( M )
 	p <- p + geom_hline(yintercept=0, color="darkred", size=1.2, alpha=0.3)
 	p <- p + labs(x="year",y=" U Bias")
 	p <- p + theme_bw(11) 
-	p <- p + ylim(-0.5, 0.5)
+	p <- p + coord_cartesian(ylim=c(-0.5, 0.5))
 	p <- p + annotate("text" , x = 1, y = 0.4, label = paste("n = ",conv_n))
 	p <- p + facet_wrap(~scenario)
 	print(p)
-
-	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-	ggsave("U_bias.pdf", plot=p)
+##
+##	##setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
+	##ggsave("U_bias.pdf", plot=p)
 	
 }
+

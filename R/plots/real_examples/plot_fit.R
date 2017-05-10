@@ -31,12 +31,15 @@ setwd("/Users/catarinawor/Documents/length_SRA/report")
 
 #plot of fit to time series
 
+
 hk_it<- data.frame(year=hake$iyr,species=rep("hake",length(hake$iyr)),
 		observed=hake$survB, predicted= hake$q*hake$predSurvB)
 jm_it<- data.frame(year=jm$iyr,species=rep("jack mackerel",length(jm$iyr)),
 		observed=jm$survB, predicted= jm$q*jm$predSurvB)
 
 it_df<-rbind(hk_it,jm_it)
+
+setwd("/Users/catarinawor/Documents/length_SRA/R/plots/figs")
 
 
 pit<-ggplot(it_df)
@@ -46,7 +49,7 @@ pit<-pit+facet_wrap(~species,scales="free")
 pit<-pit+ ylab("Index of abundance")
 pit<-pit+ theme_bw(16)
 pit
-ggsave("It_fit.pdf", plot=p2)
+ggsave("It_fit.pdf", plot=p)
 
 
 #pdf("fit_survey.pdf")
@@ -65,7 +68,7 @@ dim(hake$Ulength)
 
 apply(hake$Ulength,1,mean)
 
-hakeselec<-(hake$Ulength)/hake$maxUy
+hakeselec<-(hake$Ulength)/hake$avgUy
 hake$len
 
 df<-melt(hakeselec,variable.name=c("year", "length"))
@@ -83,7 +86,7 @@ p2 <- ggplot(df,aes(x=len,y=value))
 			p2 <- p2 + geom_line()
 			p2 <- p2 + theme_bw(11)
 			p2 <- p2 + facet_wrap(~year,scales="free") 
-			#p2 <- p2 + ylim(0,7)
+			p2 <- p2 + coord_cartesian(ylim=c(0,7))
 			print(p2)
 
 #ggsave("selec_hake.pdf", plot=p2)
@@ -92,7 +95,7 @@ p2 <- ggplot(df,aes(x=len,y=value))
 
 
 
-jmselec<-(jm$Ulength)/jm$maxUy
+jmselec<-(jm$Ulength)/jm$avgUy
 
 df_jm<-melt(jmselec)
 summary(df_jm)
@@ -107,6 +110,7 @@ p_jm <- ggplot(df_jm,aes(x=len,y=value))
 			p_jm <- p_jm + geom_line()
 			p_jm <- p_jm + theme_bw(11)
 			p_jm <- p_jm + facet_wrap(~year,scales="free")
+			p_jm <- p_jm + coord_cartesian(ylim=c(0,7))
 			
 			print(p_jm)
 #ggsave("selec_jm.pdf", plot=p_jm)
@@ -129,11 +133,26 @@ jm_msy<-data.frame(year=rep(jm$yr,2),value=c(jm$umsy,jm$msy),variable=rep(c("Ums
 
 msy_df<-rbind(hk_msy,jm_msy)
 
+
+
+pm<-ggplot(hk_msy)
+pm<-pm+geom_line(aes(x=year,y=value))
+pm<-pm+geom_point(aes(x=year,y=value))
+pm<-pm+facet_wrap(~ variable, scales="free")
+pm
+
+
+
 pm<-ggplot(msy_df)
 pm<-pm+geom_line(aes(x=year,y=value))
 pm<-pm+geom_point(aes(x=year,y=value))
-pm<-pm+facet_wrap(variable~species, scales="free")
+pm<-pm+facet_wrap(species~ variable, scales="free")
 pm
+
+pm<-pm+facet_wrap(~variable+species, scales="free")
+
+?facet_wrap
+
 
 	msy=c(hake$msy,jm$msy),umsy=c(hake$umsy,jm$umsy))
 #pdf("msy_umsy_t.pdf")
@@ -172,6 +191,22 @@ p <- ggplot(ndf,aes((year),age,size=value))
 	#p <- p + scale_colour_discrete(guide="none")
 	p <- p + theme_bw(11)
 	print(p)
+
+
+#====================================================================
+#random stuff
+names(hake)
+hake$yield/hake$msy
+
+apply(hake$Uage,1,max)/hake$umsy
+
+hk_msy<-data.frame(year=rep(hake$yr,2),value=c(hake$umsy,hake$msy,hake$umsy/hake$umsy),variable=rep(c("Umsy","msy"),each=length(hake$msy)),species=rep("hake",length(hake$msy)*2))
+jm_msy<-data.frame(year=rep(jm$yr,2),value=c(jm$umsy,jm$msy),variable=rep(c("Umsy","msy"),each=length(jm$msy)), species=rep("jack mackerel",length(jm$msy)*2))
+
+
+apply(hake$Uage,1,max)
+
+
 
 
 

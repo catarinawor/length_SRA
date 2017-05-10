@@ -2,16 +2,21 @@
 #Title: calc_PM
 #Author: Catarina Wor
 #date: Oct 21th 2016
-#Read results form MSE runs and calculate performanace measures
+#Read results from MSE runs and calculate performanace measures
 #
 #==============================================
 
 #TODO
 #
-
  
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base"
-DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/qpr"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/no_bc"
+DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/new_bc"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen"
+
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/cann"
 
 
 plotlib<-"/Users/catarinawor/Documents/Length_SRA/R/plots"
@@ -30,6 +35,7 @@ for(i in 1:length(Rfiles)){
 	
 	SIMSdat[[i]]<-sims
 
+
 }
 
 
@@ -38,12 +44,13 @@ for(p in 1:length(plotfiles)){
 	source(plotfiles[p])
 }
 
-
-
 length(SIMSdat)
 	
 plot_params( SIMSdat ,Rinit=TRUE)
+plot_params( SIMSdat ,Rinit=FALSE)
+plot_params_publ( SIMSdat ,Rinit=TRUE)
 plot_derivQuant( SIMSdat )
+plot_derivQuant_publ( SIMSdat )
 plot_SBiomass( SIMSdat )
 plot_udevs( SIMSdat )
 plot_Recdevs( SIMSdat )
@@ -51,7 +58,8 @@ plot_Recdevs( SIMSdat )
 #plot_LLvals( SIMSdat )
 plot_Sel( SIMSdat )
 #plot_expRecdevs( SIMSdat )
-#plotLengthComps( SIMSdat )	
+#plotLengthComps( SIMSdat )
+plot_ugone(SIMSdat )	
 
 
 

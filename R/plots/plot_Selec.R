@@ -83,9 +83,10 @@ plot_Sel <- function( M )
 			
 			omd<-rbind(omd,co)
 			esd<-rbind(esd,ce)
-	}}
-
+			}
 		}
+
+	}
 
 
 		df2<-rbind(omd,esd)
@@ -222,5 +223,5 @@ plot_Sel_pub <- function( M )
 		#p <- p + ylim(min(fdf$Low),max(fdf$High))
 	
 	
-}
+
 
