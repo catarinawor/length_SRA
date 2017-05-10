@@ -86,7 +86,7 @@ plot_SBiomass <- function( M )
 	p <- ggplot(fdf,aes(x=Year,y=Median,color=type,fill=type)) + geom_line()
 	p <- p + geom_ribbon(aes(ymax=High, ymin=Low),alpha=0.2)
 	p <- p + labs(x="Year",y="Total Biomass")
-	p <- p + theme_bw(11)
+	p <- p + theme_bw(12)
 	p <- p + facet_wrap(~scenario,scale="free")
 	print(p)
 

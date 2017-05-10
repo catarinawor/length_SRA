@@ -189,6 +189,75 @@ In this section we describe the stock reduction analysis with catch at length da
 
 The stock reduction analysis described here starts by calculating the proportions of individual at length for each age class (Table \ref{Pla1.1}-\ref{Pla1.5}). The calculation of such proportions (\ref{Pla1.1}) relies on three main assumptions regarding the distribution of length at age: (1) The mean length at age follows a von Bertalanffy growth curve (eq.\ref{Pla1.4}), (2) The length at age is normally distributed (eqs. \ref{Pla1.1} -\ref{Pla1.3}) and (3) The standard deviations of the length at age distributions is defined (e.g. eq.\ref{Pla1.5}). 
 
+
+
+ The proportions of length at age is used to convert the length-based quantities into age based quantities which are used to propagate the age structured population dynamics forward (Table \ref{tab:eqsall} - Population dynamics). We assume that recruitment follows a Beverton \& Holt type recruitment curve (eq. \ref{PD2.1}), that harvesting occurs over a short, discrete season in each time step (year or shorter time period) and that natural survival rate is stable over time (eqs. \ref{PD2.1}-\ref{PD2.5}). Differences in the computation of recruitment in the initial year (eq. \ref{AO.1}) as well as incidence functions (eqs. \ref{AO.2}-\ref{AO.6}) are shown in  Table \ref{tab:eqsall} - Initial year and incidence functions.
+
+
+\begin{table}
+  %\centering
+  %\large
+\caption{ \large Indexes, variable definition and values used in simulation-evaluation}\label{tab:pop_dyn} 
+\begin{tabular}{l c p{7.5cm}} 
+\hline
+Symbol & Value  & Description \\  
+\hline
+  $l$ & $\{l_o,...,L\}$ &Central point of length bin, $L=15$\\
+  $a$ & $\{a_o,...,A\}$ &Age-class, $A=10$\\  
+  $t$ & $\{1,...,T\}$ &Annual time step, $T=50$\\
+  $a_o$ & $21$ &First age or age of recruitment \\
+  $l_o$ & $1$ &Central point of first length bin \\
+  $init$ & $21$ &Annual time step in which data starts to be reported \\
+\hline
+Distribution of length given age&&\\
+$P_{l|a}$ & &Matrix of proportions of length at age\\
+$\Phi$ && Standard normal distribution\\
+$z1_{a,l}$ &&Normalized $z$ score for lower limit length bins\\
+$z2_{a,l}$&& Normalized $z$ score for upper limit length bins \\
+$b1_{l}$ &&  Lower limit of length bins\\
+$b2_{l}$ &&  Upper limit of length bins \\    
+$\bar{L}_a$&&   Mean length at age\\
+$\sigma_{L_a}$ && Standard deviation of length at age\\
+${L_{inf}}$ &10 & Maximum average length\\
+${k}$ &0.3& Rate of approach to $L_{inf}$\\
+${t_o}$& -0.1&Theoretical time in which length of individuals is zero\\
+$cv_l$ & 0.08 & Coefficient of variation for length at age curve\\
+\hline
+Population dynamics&&\\
+$N_{a,t}$ &&  Numbers of fish at age and time\\
+$SB_{t}$ && Spawning biomass at time\\
+$mat_a$ && Proportion of mature individuals at age\\
+$a_{rec}, b_{rec}$ && Beverton \& Holt stock recruitment parameters \\
+$R_o$& 100& Average unfished recruitment\\
+$R_init$& & Recruitment in the year data starts to be reported \\
+$\kappa$ &10&  Goodyear recruitment compensation ratio\\
+$w_t$& $\mathcal{N}(0,\sigma_{R})$ &  Recruitment deviations for  years \{init-A+1,...,T\} \\
+$\sigma_{rec} $& 0.4 & standard deviation for recruitment deviations\\
+$S$ &0.7& Natural survival \\
+$U_{a,init}$ &&  Exploitation rate at age before data starts being reported. \\
+$U_{a,t}$ && Exploitation rate at age and time\\
+$U_{l,t}$ && Exploitation rate at length and time \\
+$C_{l,t}$ && Catch at length and time\\
+$N_{l,t}$ && Numbers at length and time \\
+$lx_a$ && Unfished survivorship at age\\
+$\phi_e$ && Unfished average spawning biomass per recruit \\
+\hline
+Operating model &&\\
+$sel_{l,t}$ && Fishing selectivity at length and time\\
+$g,a,b$ && Parameters for selectivity function \\
+$U_{t}$ &&  Annual maximum exploitation rate \\
+$C_{l,t}$ && Catch at length and time\\
+$N_{l,t}$ && Numbers at length and time\\
+$I_{t}$ && Index of abundance at time \\
+$VB_{t}$ && Biomass that is vulnerable to the survey at time \\
+$q$ &1.0& catchability coefficient \\
+\hline
+\hline
+\end{tabular}
+\end{table}
+
+
+
 \begin{table}
   %\centering
   %\large
@@ -215,11 +284,11 @@ The stock reduction analysis described here starts by calculating the proportion
             \mbox{Population dynamics}&&\nonumber\\
             \hline
             \label{PD2.1}
-             N_{a,t>syr}&=\begin{cases} \frac{a_{rec} \cdot SB_{t-1}}{1+ b_{rec} \cdot SB_{t-1}} \cdot e^{wt}, &\quad a=1  \\\\
+             N_{a,t>init}&=\begin{cases} \frac{a_{rec} \cdot SB_{t-1}}{1+ b_{rec} \cdot SB_{t-1}} \cdot e^{w_t}, &\quad a=a_o  \\
             %
-            N_{a-1,t-1}\cdot S \cdot(1-U_{a-1,t-1}),&\quad 1<a<A  \\\\
+            N_{a-1,t-1}\cdot S \cdot (1-U_{a-1,t-1}),&\quad a_o<a<A  \\
             %
-            \frac{N_{a-1,t-1} \cdot S \cdot (1-U_{a-1,t-1})}{1- S \cdot 1-U{a,t}},&\quad a=A \\\\
+            \frac{N_{a-1,t-1} \cdot S \cdot (1-U_{a-1,t-1})}{1- S \cdot (1-U{a,t})},&\quad a=A \\
             \end{cases}\\
             \label{PD2.2}
             U_{a,t}&=\sum_a{(P_{l|a}\cdot U_{l,t})}\\
@@ -234,7 +303,13 @@ The stock reduction analysis described here starts by calculating the proportion
             \mbox{Initial year and incidence functions} &&\nonumber \\ 
             \hline 
             \label{AO.1}
-            N_{a=1,init}&= R_{init} \cdot e^{wt} \\
+            %N_{a=1,init}&= R_{init} \cdot e^{w_{init}} \\
+             N_{a,init}&=\begin{cases} R_{init} \cdot e^{w_{init}} &\quad a=a_o  \\
+            %
+            N_{a-1,init}\cdot S \cdot(1-U_{a-1,init}) \cdot e^{w_{init-a+1}},&\quad a_o<a<A  \\
+            %
+            \frac{N_{a-1,init} \cdot S \cdot (1-U_{a-1,init}) }{1- S \cdot (1-U{a,init})} \cdot e^{w_{init-a+1}},&\quad a=A \\
+            \end{cases}\\
             \label{AO.2}
             a_{rec}&=  \frac{\kappa}{\phi_e} \\
             \label{AO.4}
@@ -250,6 +325,8 @@ The stock reduction analysis described here starts by calculating the proportion
              \hline  
             \mbox{Operating model}&&\nonumber\\
             \hline
+            \label{OM4}
+             N_{a,t=1}&= lx_a* R_o\\
             \label{OM4.1}
             U_{l,t}&= U_{t} \cdot sel_{l,t}\\ 
             \label{OM4.2}          
@@ -264,78 +341,95 @@ The stock reduction analysis described here starts by calculating the proportion
 \end{table}
 
 
- The proportions of length at age is used to convert the length-based quantities into age based quantities which are used to propagate the age structured population dynamics forward (Table \ref{tab:eqsall} - Population dynamics). We assume that recruitment follows a Beverton \& Holt type recruitment curve (eq. \ref{PD2.1}), that harvesting occurs over a short, discrete season in each time step (year or shorter time period) and that natural survival rate is stable over time (eqs. \ref{PD2.1}-\ref{PD2.5}). Differences in the computation of recruitment in the initial year (eq. \ref{AO.1}) as well as incidence functions (eqs. \ref{AO.2}-\ref{AO.6}) are shown in  Table \ref{tab:eqsall} - Initial year and incidence functions.
+The model estimates three main parameters: average unexploited recruitment $R_{0}$, recruitment compensation ratio $\kappa$ and recruitment in the initial year $R_{init}$. In addition, the recruitment deviations $w_t$ are estimated for all cohorts observed in the model, that is, the number of recruitment deviations is equal to the number of years in the time series plus the number of age classes greater that recruitment age.  
+
+
+The objective function (eq. \ref{Obj}) is composed of a negative log likelihood component, three penalties and  a prior component for the recruitment compensation ratio $\kappa$. The negative log likelihood component minimizes the differences between the predicted and observed index of abundance (eq. \ref{PLL.1}). We assume that such differences are lognormally distributed (eqs. \ref{PLL.3}-\ref{PLL.4}) and use the conditional maximum likelihood estimator described by \citet{walters_calculation_1994} to estimate the catchability coefficient(eq. \ref{PLL.2}). A lognormal penalty is added to the negative log-likelihood function to constrain annual recruitment residuals so that the estimates have mean of zero and fixed standard deviation $\sigma_{R}$ (eq. \ref{pen.1}). Two additional penalties were implemented in order to prevent estimated values of exploitation rate at length greater than one ($U_{l,t}>1$) (eq. \ref{pen.2}-\ref{pen.3}) . Lastly, a normal prior for $log(\kappa)$ was included in the objective function (eq \ref{pr.1}).
+
+
+
+%\begin{table}
+  %\centering
+  %\large
+%\caption{Estimated parameters, likelihood functions and penalties}\label{tab:LLpen} 
+%\begin{tabular}{l p{7.cm}} 
+%\hline
+%Likelihood &\\
+%$Z_t = log(I_t)-log(VB_{t})$&\\\\
+%$q = e^(\bar{Z})$ & Estimate of the catchability coefficient\\\\
+%$Zstat_t = Z_t - \bar{Z}$&\\\\ 
+%$\mathcal{L}_{I_{t}}= \sum(-log(\mathcal{N}(Zstat_t; 0,\sigma_{I_t})))$& %Negative log likelihood\\\\
+%\hline
+%Penalties&\\
+%$posfun(1-U_{l,t},0.01,fpen)$ & The posfun function is a penalty function implemented in ADMB\\
+%$pen(U)=\frac{\sum^{t}\sum^{l}{U_{l,t}}}{T}$ &Additional penalty to prevent values of $U_{l,t} > 1$ \\\\
+%$pen(w_t)=\sum (- log(\mathcal{N}(w_t; 0,\sigma_{R})))$ & Penalty on recruitment residuals \\\\
+%\hline
+%Priors&\\
+%$prior(log(\kappa)) = \mathcal{N}( log(10), 0.9)$&\\\\
+%\hline
+%Objective function&\\
+%$Obj = \mathcal{L}_{I_{t}} + pen(w_t)+ pen(U) + prior(log(\kappa))$  &\\
+%\hline
+%\hline
+%\end{tabular}
+%\end{table}
 
 
 \begin{table}
-  %\centering
-  %\large
-\caption{ \large Indexes, variable definition and values used in simulation-evaluation}\label{tab:pop_dyn} 
-\begin{tabular}{l c p{7.5cm}} 
-\hline
-Symbol & Value  & Description \\  
-\hline
-  $l$ & $\{1,2,...L\}$ &Central point of length bin, $L=15$\\
-  $a$ & $\{1,2,...A\}$ &Age-class, $A=10$\\  
-  $t$ & $\{1,2,...T\}$ &Annual time step, $T=50$\\
-  $init$ & $21$ &Annual time step in which data starts to be reported \\
-\hline
-Distribution of length given age&&\\
-$P_{l|a}$ & &Matrix of proportions of length at age\\
-$\Phi$ && Standard normal distribution\\
-$z1_{a,l}$ &&Normalized $z$ score for lower limit length bins\\
-$z2_{a,l}$&& Normalized $z$ score for upper limit length bins \\
-$b1_{l}$ &&  Lower limit of length bins\\
-$b2_{l}$ &&  Upper limit of length bins \\    
-$\bar{L}_a$&&   Mean length at age\\
-$\sigma_{L_a}$ && Standard deviation of length at age\\
-${L_{inf}}$ &10 & Maximum average length\\
-${k}$ &0.3& Rate of approach to $L_{inf}$\\
-${t_o}$& -0.1&Theoretical time in which length of individuals is zero\\
-$cv_l$ & 0.08 & Coefficient of variation for length at age curve\\
-\hline
-Population dynamics&&\\
-$N_{a,t}$ &&  Numbers of fish at age and time\\
-$SB_{t}$ && Spawning biomass at time\\
-$mat_a$ && Proportion of mature individuals at age\\
-$a_{rec}, b_{rec}$ && Beverton \& Holt stock recruitment parameters \\
-$R_o$& 100& Average unfished recruitment\\
-$\kappa$ &10&  Goodyear recruitment compensation ratio\\
-$wt$& $\mathcal{N}(0,\sigma_{rec})$ &  Recruitment deviations \\
-$S$ &0.7& Natural survival \\
-$U_{a,t}$ && Exploitation rate at age and time\\
-$U_{l,t}$ && Exploitation rate at length and time \\
-$C_{l,t}$ && Catch at length and time\\
-$N_{l,t}$ && Numbers at length and time \\
-$lx_a$ && Unfished survivorship at age\\
-$\phi_e$ && Unfished average spawning biomass per recruit \\
-\hline
-Operating model &&\\
-$sel_{l,t}$ && Fishing selectivity at length and time\\
-$g,a,b$ && Parameters for selectivity function \\
-$U_{t}$ &&  Annual maximum exploitation rate \\
-$C_{l,t}$ && Catch at length and time\\
-$N_{l,t}$ && Numbers at length and time\\
-$I_{t}$ && Index of abundance at time \\
-$VB_{t}$ && Biomass that is vulnerable to the survey at time \\
-$q$ &1.0& catchability coefficient \\
-\hline
-\hline
-\end{tabular}
+\caption{Estimated parameters, likelihood functions and penalties}\label{tab:LLpen} 
+\tableEq
+    \begin{align}
+          % \hline
+        %\hline \nonumber \\ 
+            \hline  
+           \text{Likelihood }&&\nonumber\\
+           \hline
+            \label{PLL.1}
+            Z_t = log(I_t)-log(VB_{t})\\
+            \label{PLL.2}
+            q = e^{\bar{Z}} \\
+            \label{PLL.3}
+            Zstat_t = Z_t - \bar{Z}  \\
+            \label{PLL.4} 
+            \mathcal{L}_{I_{t}} = \sum(-log\mathcal{N}(Zstat_t; 0,\sigma_{I_t})) \\
+            \nonumber \\
+            \hline  
+            \mbox{Penalties}&&\nonumber\\
+            \hline
+            \label{pen.1}
+            pen(w_t)=\sum (- log\mathcal{N}(w_t; 0,\sigma_{R}))\\
+            \label{pen.2}
+             posfun(1-U_{l,t},0.01,fpen) \\
+            \label{pen.3}
+            pen(U)=\frac{\sum^{t}\sum^{l}{U_{l,t}}}{T}\\
+           \nonumber \\
+            \hline 
+            \mbox{Priors} &&\nonumber \\ 
+            \hline 
+            \label{pr.1}
+            prior(log(\kappa)) = \mathcal{N}( log(10), 0.9)\\
+            \nonumber \\
+             \hline  
+            \mbox{Objective function}&&\nonumber\\
+            \hline
+            \label{Obj}
+             Obj = \mathcal{L}_{I_{t}} + pen(w_t)+ pen(U) + prior(log(\kappa))\\ 
+        \hline \hline \nonumber
+    \end{align}
+    \normalEq
 \end{table}
 
 
-The model estimates three main parameters: average unexploited recruitment $R_{0}$, recruitment compensation ratio $\kappa$ and recruitment in the initial year $R_{init}$. In addition, the recruitment deviations are estimated for all cohorts observed in the model, that is, the number of recruitment deviations is equal to the number of years in the time series plus the number of age classes greater that recruitment age.  The parameters of the model are estimated by fitting to an index of abundance assuming a lognormal distribution with fixed variances. A lognormal penalty is added to the negative log-likelihood function to constrain annual recruitment residuals.
 
 \subsection{Simulation evaluation}
 
 In order to perform a simulation evaluation of the Length-SRA under various scenarios we used the same model dynamics described in Table \ref{tab:eqsall} - Population dynamics, as an operating model. However we modified the model population dynamics to control annual exploitation rate (eq. \ref{OM4.1}), time varying selectivity (eq. \ref{OM4.3}), and observation and process errors. Selectivity in the operating model was computed with the three parameter selectivity equation described by \citet{thompson_confounding_1994} (eq. \ref{OM4.3}). The observation error in the operating model included lognormal error in the index of abundance and logistic multivariate error in the catch numbers at length. Recruitment deviations were assumed to be lognormally distributed.   
 
 
-
 We considered a total of six different scenarios in the simulation evaluation runs. Three different historical exploitation rate trajectories were used: contrast, one way trip and $U$ ramp. In the contrast scenario the exploitation rate ($U_t$) starts low and increases beyond $U_{msy}$ and then decreases until $U_t=U_{msy}$. In the one way trip scenario $U$ increased through time until $U=2 \cdot U_{msy} $. In the $U$ ramp scenario, $U_t$ increases steadily until $U_t=U_{msy}$ and remains constant thereafter. In addition to the exploitation rate scenarios, we considered two selectivity scenarios: constant and time varying selectivity. In the constant selectivity scenario, selectivity was assumed to follow a sigmoid shape. In the time varying selectivity scenario, the selectivity curve was assumed to vary every year, progressively changing form a dome shaped curve to sigmoid and back to dome shaped. The complete list of scenarios and the acronym used for them is presented in Table \ref{tab:simeval}. 
 
-All simulation runs had 30 years of data and we used 100 simulation runs for each scenario. We evaluated the distribution of the \% relative error ($ \frac{esimated-simulated}{simulated} \cdot 100$) for the main parameter estimates ($R_{0}$, $R_{init}$ and $\kappa$) and for four derived quantities (Depletion: $\frac{B_t}{B_{0}}$, MSY, $U_{MSY}$ and $q$). 
+All simulation runs had 30 years of data and we used 100 simulation runs for each scenario. We evaluated the distribution of the \% relative error ($ \frac{esimated-simulated}{simulated}$) for the main parameter estimates ($R_{0}$, $R_{init}$ and $\kappa$) and for four derived quantities (Depletion: $\frac{B_t}{B_{0}}$, MSY, $U_{MSY}$ and $q$). 
 
 
 \begin{table}[ht!]
@@ -370,8 +464,8 @@ The movement pattern of jack mackerel is not as well known, although fish appear
 
 \subsection{Simulation-evaluation}
 
-The simulation-evaluation showed that the parameters $R_0$ and $R_{init}$ tend to be underestimated but with very low bias. The median \% errors for those parameters were within the $\pm$ 10\% interval, with the exception of the $U$ ramp scenarios (CR and VR) in which the median \% error for $R_o$ and $R_{init}$ was as high as 25\% (Figure \ref{mainParams}). The parameter $\kappa$ was underestimated in all scenarios with higher median \% error varying between 9\% anf 40\%. Once again, the $U$ ramp scenarios (CR and VR) resulted in the highest bias (Figure \ref{mainParams}). 
 
+Even though the parameter estimates were not entirely unbiased, the amount of bias was relatively low, with median \% error being always less than 25\% for all parameters. The parameters $R_0$ and $R_{init}$ were overestimated for all scenarios with the exception of the $U$ ramp scenarios (CR and VR) (Figure \ref{mainParams}). The median \% errors for $R_0$ ranged from -9.1\% to 15.4\%. For $R_{init}$ the median \% errors varied from -22.5\% to  13.3\%.  The parameter $\kappa$  was overestimated for all scenarios (Figure \ref{mainParams}) with median \% errors for $\kappa$ ranged from  11.3 \% to 18.9\% 
 
 \begin{figure}[htbp]
   \centering
@@ -380,7 +474,10 @@ The simulation-evaluation showed that the parameters $R_0$ and $R_{init}$ tend t
 \label{mainParams}
 \end{figure}
 
-In relation to the derived quantities, the Length-SRA tended to underestimate both depletion and MSY estimates with median \% errors ranging between -26\% and -2\% . Once again the $U$ ramp scenarios (CR and VR) yielded the worst bias (Figure \ref{derivQuant}). The estimates for $U_{MSY}$ showed very low ($<$5\%) median \% errors for all scenarios except for the CC scenario (Contrast and constant selectivity) which showed a 13\% median \% error (Figure \ref{derivQuant}). The estimates of $q$ tended to be underestimated for the $U$ ramp scenarios an d overestimated for the remaining scenarios, with median \% error ranging between -3\% and 10\% (Figure \ref{derivQuant}).
+
+
+
+In relation to the derived quantities, the Length-SRA tended to underestimate both depletion and MSY estimates with median \% errors ranging between -34.9\% and -3.5\% . For both depletion and MSY quantities, the $U$ ramp scenarios (CR and VR) yielded the highest bias (Figure \ref{derivQuant}). The estimates for $U_{MSY}$ showed very low ($<$4\%) median \% errors for all scenarios (Figure \ref{derivQuant}). The estimates of $q$ were overestimated for all scenarios but were particularly biased for the the $U$ ramp scenarios (CR and VR) (Figure \ref{derivQuant}).  
 
 
 \begin{figure}[htbp]
@@ -403,12 +500,29 @@ The simulation-evaluation exercise showed that the Length-SRA model is able to t
 
 \subsection{Real data examples}
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[scale=.85,width=\textwidth]{/Users/catarinawor/Documents/Length_SRA/R/plots/figs/It_fit.pdf}
+  \caption{Fit to index of abundance for Pacific hake and jack mackerel.}
+\label{it}
+\end{figure}
+
+
 show figures with real 
 
 \section{Discussion}
 
+We present a length-based stock reduction analysis that allows monitoring of time varying selectivity.  In this model catch at length is assumed to be known without error and exploitation rate at length is derived directly from the estimates of numbers at length. This fact is important because it allows the mode to bypass the requirement for the estimation of a selectivity ogive, as is required in other length based models \citep{sullivan_catch-at-length_1990,fournier_multifan-cl:_1998}. 
+  
+
+
+
+Selectivity parameters can be particularly hard to estimate, especially it is changing over time and 
+
+One advantage of this model is that, because it assumes that catch at lenght is known without error, there is  
+
 main conclusions:  
-Length-SRA underestimates kappa
+Length-SRA underestimates kappa productivity parameter
 
 Management quantities Depletion and MSY are underestimated -  the model tends to produce conservative benchmarks.
 
@@ -425,13 +539,15 @@ assumption regarding Umsy -> changes with selectivity ->
 Time- varying growth might render the model less useful. Suggest estimating 
 cohort-specific growth curves or implementing the density dependent functions shown in multifan-CL. 
 
+Further testing of this model in a closed-loop simulation set up would provide more insight into how 
+
 \section{Acknowledgments}
  We would like to thank Allan Hicks and NOAA for the provision of Pacific hake data and ????? for the provision of Jack mackerel data. 
 
 \clearpage
 
- \bibliographystyle{apa}
-       \bibliography{references.bib}
+\bibliographystyle{apa}
+\bibliography{references}
 
 
 \end{document}

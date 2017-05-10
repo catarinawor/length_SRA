@@ -68,7 +68,7 @@ plot_derivQuant <- function( M )
 	p <- p + geom_boxplot(aes(x=scenario,y=value, fill=parameter))
 	p <- p + geom_hline(yintercept=0, color="darkred", size=1.2, alpha=0.3)
 	p <- p + labs(x="Parameter",y="Bias")
-	p <- p + ylim(-0.5, 0.5)
+	p <- p + coord_cartesian(ylim=c(-0.5, 0.5))
 	p <- p + theme_bw(11)
 	p <- p +  theme(axis.text = element_text(face="bold", size=12),
   axis.text.x= element_text(angle=45,hjust = 1),
@@ -127,7 +127,7 @@ plot_derivQuant_publ <- function( M )
 	df2<-melt(mdf,variable.name = "parameter",id=c("scenario","scnnumber"))
 	summary(df2)
 
-	levels(df2$parameter)<-c("Depletion","MSY", expression(U[MSY]),"q")
+	#levels(df2$parameter)<-c("Depletion","MSY", expression(U[MSY]),"q")
 	df2$valuep<-df2$value*100
 	df2$converge<-conv_n[df2$scnnumber]
 
@@ -136,21 +136,21 @@ plot_derivQuant_publ <- function( M )
 
 	
 	p <- ggplot(df2) 
-	p <- p + geom_boxplot(aes(x=scenario,y=valuep))+coord_flip()
+	p <- p + geom_boxplot(aes(x=scenario,y=value))+coord_flip(ylim=c(-1, 1))
 	p <- p + geom_hline(yintercept=0, color="black", size=1.2, alpha=0.3)
 	p <- p + labs(x="Scenario",y="% Relative Error")
-	p <- p + theme_bw(12) 
 	p <- p + facet_wrap(~parameter,ncol = 1,labeller = label_parsed)
+	p <- p + theme_bw(12)
 	p <- p + theme(axis.text = element_text(face="bold", size=12),
   axis.text.x= element_text(angle=0,hjust = .5),
   axis.title = element_text(face="bold", size=12),
   strip.text = element_text(face="bold", size=16))
-	p <- p + ylim(-50, 50)
 	print(p)
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
 	ggsave("derivQuant_publ.pdf", plot=p)
+
+	ggplot_build(p)$data
 	
 }
 
-ggplot_build(p)
