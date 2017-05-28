@@ -27,11 +27,11 @@ readOutput <- function(dir)
 	sims<-readOutput("/Users/catarinawor/Documents/length_SRA/admb/")
 	
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/Rinit/")
+	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/Rinit/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/qpr/")
-	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/new_bc/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/new_bc/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/no_bc/")
+	###setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/no_bc/")
 	
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/cann/")
 

@@ -262,19 +262,25 @@ FUNCTION propAgeAtLengh
 
 	dvector z1(1,nlen); 				// intermediate steps for calculating proportion of age at length
 	dvector z2(1,nlen); 				// intermediate steps for calculating proportion of age at length
-	
 
  	for( int a = sage; a <= nage; a++ )
 	{
-		z1 = (( len - lstp * 0.5 )-la( a ))/std( a );
-		z2 = (( len + lstp * 0.5 )-la( a ))/std( a );
-		for( int b=1; b<= nlen; b++ )
+		
+		// Calculate the integral for proportion age at each length
+		z1 = (( len - lstp * 0.5 )- la( a ))/( std( a ));
+		z2 = (( len + lstp * 0.5 )- la( a ))/( std( a ));
+		
+		for( int b=1; b< nlen; b++ )
 		{
-			P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b )); // calculates the proportion of a given age given your length
+			P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
 		}
+
+		// plus length group
+		P_al( a, nlen )= 1.-cumd_norm( z1( nlen ));
+
 	}
 	
-	P_la = trans(P_al); //transpose matrix to length by age
+	P_la = trans( P_al );	
 
 	cout<<"OK after propAgeAtLengh"<<endl;
 
@@ -348,7 +354,6 @@ FUNCTION populationDynamics
 	    //Nat(i+1,sage) = (reca*sbt(i)/(1.+recb*sbt(i)))*mfexp((wt(i+1)-sigR*sigR/2.)*proc_err);
 	   
 	    Nat(i+1,sage) = (reca*sbt(i)/(1.+recb*sbt(i)))*mfexp((wt(i+1))*proc_err);//-sigR*sigR/2.
-	    
 	    //ages 2 -nage
 	    //Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(sage,nage-1)*Sa,1.-Uage(i)(sage,nage-1));
 	    
@@ -516,26 +521,27 @@ FUNCTION output_ctl
 	//mfs<<"## npar"<<endl<< "3"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	mfs<< log(Ro-0.2*Ro) <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0	<<"\t"<< 7.0   	<<"\t"<<"#log_ro   	##"<<endl;
+	mfs<< log(Ro+0.2*Ro) <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0	<<"\t"<< 7.0   	<<"\t"<<"#log_ro   	##"<<endl;
 	mfs<< log(rini)  	 <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0 	<<"\t"<< 7.0   	<<"\t"<<"#log_rinit   	##"<<endl;
-   	//mfs<< log(8) 	 <<"\t"<<  1.6 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  1.6 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
-   	mfs<< log(reck*0.8) 	  <<"\t"<<  1.6 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.9  	<<"\t"<<"#log_reck  ##"<<endl;
+	//mfs<< log(Ro) <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0	<<"\t"<< 7.0   	<<"\t"<<"#log_ro   	##"<<endl;
+   	//mfs<< log(rini)  	 <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0 	<<"\t"<< 7.0   	<<"\t"<<"#log_rinit   	##"<<endl;
+   	//mfs<< log(reck*0.8) 	 <<"\t"<<  1.6 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  1.6 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
+   	mfs<< log(reck*0.8)  	  <<"\t"<<  1.6 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.9  	<<"\t"<<"#log_reck  ##"<<endl;
+   	//mfs<< log(reck*0.8) 	  <<"\t"<<  1.6 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.9  	<<"\t"<<"#log_reck  ##"<<endl;
    	//mfs<< log(8) 	 	 <<"\t"<<  1.0 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.8 	<<"\t"<<"#log_reck  ##"<<endl;
    	//mfs<< log(Linf)   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
    	//mfs<< log(k)  <<"\t"<< -3.0 <<"\t"<< -0.2  <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< -0.2  	<<"\t"<<"#log_k  	##"<<endl;
    	//mfs<< to  	<<"\t"<< -2.0 <<"\t"<< 0.0   <<"\t"<<   -4  <<"\t"<< 0  <<"\t"<< -2.0 	<<"\t"<<  0.0  	<<"\t"<<"#to 	##"<<endl;
    	//mfs<< log(cvl)  <<"\t"<< -7.0 <<"\t"<< -0.1  <<"\t"<< 	-3  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< -0.1	<<"\t"<<"#log_cvl   ##"<<endl;
-   	//mfs<< log(sigR) 	 <<"\t"<< -3.0 <<"\t"<< 8.0  <<"\t"<< 	-3  <<"\t"<< 0  <<"\t"<< -3.0 	<<"\t"<< 8.0	<<"\t"<<"#log_sigR   ##"<<endl;
-   	mfs<< log(0.6) 	 <<"\t"<< -3.0 <<"\t"<< 8.0  <<"\t"<< 	-3  <<"\t"<< 5 <<"\t"<< -3.0 	<<"\t"<< 8.0	<<"\t"<<"#log_sigR   ##"<<endl;
+   	mfs<< log(sigR) 	 <<"\t"<< -3.0 <<"\t"<< 8.0  <<"\t"<< 	-3  <<"\t"<< 5 <<"\t"<< -3.0 	<<"\t"<< 8.0	<<"\t"<<"#log_sigR   ##"<<endl;
     //mfs<< log(sigVul) 	 <<"\t"<< -4.0 <<"\t"<< 15.0  <<"\t"<< 	3  <<"\t"<< 0  <<"\t"<< -4.0 	<<"\t"<< 15.0	<<"\t"<<"#log_sigR   ##"<<endl;
     //mfs<< log(tau)  <<"\t"<< -7.0 <<"\t"<< 8.0 <<"\t"<< 	2  <<"\t"<< 0  <<"\t"<< -7.0 	<<"\t"<< 8.0	<<"\t"<<"#log_cv_it   ##"<<endl;
     mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<<"##initial values for recruitment deviations ##"<< endl;
 	//mfs<<"# wt "<< endl << mfexp(wt(rep_yr+1,eyr)*proc_err) <<endl;
-	
 	//mfs<<"# wt "<< endl << (wt(rep_yr-(nage-sage),eyr-(nage-sage+1)-1)*0.0) <<endl<<wt(eyr-(nage-sage+1),eyr)*0.0<< endl;
-	mfs<<"# wt "<< endl << iwti<< endl;
-	
+	mfs<<"# wt "<< endl << iwti << endl;
+	//mfs<<"# wt "<< endl << wt(rep_yr-(nage-sage),eyr)<< endl;
 	//mfs<<"# wt_init "<< endl << exp(wt(rep_yr-(nage-sage),rep_yr-1)*0) <<endl;
 	mfs<<"##initial values for recruitment deviations in first year ##"<< endl;
 	mfs<<"#log(q) prior - same codes as above##"<< endl;
@@ -584,7 +590,7 @@ FUNCTION output_data
 	//ofs<<"# phz_reck "<< endl << 2 <<endl;
 	//ofs<<"# phz_growth  "<< endl << -4  <<endl;
 	//ofs<<"# use_prior  "<< endl << 0 <<endl;
-	ofs<<"# u_init " << endl << 0.1 <<endl; //umsy(rep_yr)*.5
+	ofs<<"# u_init " << endl << 0.0 <<endl; //ut(rep_yr-1)
 	//ofs<<"# P_al " << endl << P_al <<endl;
 	ofs<<"# eof " << endl << 999 <<endl;
 

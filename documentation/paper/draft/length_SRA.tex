@@ -187,7 +187,7 @@ In this section we describe the stock reduction analysis with catch at length da
 
 \subsection{Stock reduction analysis with catch at length data}
 
-The stock reduction analysis described here starts by calculating the proportions of individual at length for each age class (Table \ref{Pla1.1}-\ref{Pla1.5}). The calculation of such proportions (\ref{Pla1.1}) relies on three main assumptions regarding the distribution of length at age: (1) The mean length at age follows a von Bertalanffy growth curve (eq.\ref{Pla1.4}), (2) The length at age is normally distributed (eqs. \ref{Pla1.1} -\ref{Pla1.3}) and (3) The standard deviations of the length at age distributions is defined (e.g. eq.\ref{Pla1.5}). 
+The stock reduction analysis described here starts by calculating the proportions of individual at length given each age class ($P_{l|a}$ - eqs. \ref{Pla1.1}-\ref{Pla1.5}). The calculation of such proportions (eq. \ref{Pla1.1}) relies on four main assumptions regarding the distribution of length at age: (1) The mean length at age follows a von Bertalanffy growth curve (eq.\ref{Pla1.4}), (2) The length at age is normally distributed (eqs. \ref{Pla1.1} -\ref{Pla1.3}), (3) The standard deviation of the length at age distributions is defined (e.g. eq.\ref{Pla1.5}) and (4) $P_{l|a}$ is constant for all lengths equal or greater than $L$ (eq.\ref{Pla1.3}).
 
 
 
@@ -210,6 +210,10 @@ Symbol & Value  & Description \\
   $init$ & $21$ &Annual time step in which data starts to be reported \\
 \hline
 Distribution of length given age&&\\
+${L_{inf}}$ &10 & Maximum average length\\
+${k}$ &0.3& Rate of approach to $L_{inf}$\\
+${t_o}$& -0.1&Theoretical time in which length of individuals is zero\\
+$cv_l$ & 0.08 & Coefficient of variation for length at age curve\\
 $P_{l|a}$ & &Matrix of proportions of length at age\\
 $\Phi$ && Standard normal distribution\\
 $z1_{a,l}$ &&Normalized $z$ score for lower limit length bins\\
@@ -218,22 +222,18 @@ $b1_{l}$ &&  Lower limit of length bins\\
 $b2_{l}$ &&  Upper limit of length bins \\    
 $\bar{L}_a$&&   Mean length at age\\
 $\sigma_{L_a}$ && Standard deviation of length at age\\
-${L_{inf}}$ &10 & Maximum average length\\
-${k}$ &0.3& Rate of approach to $L_{inf}$\\
-${t_o}$& -0.1&Theoretical time in which length of individuals is zero\\
-$cv_l$ & 0.08 & Coefficient of variation for length at age curve\\
 \hline
 Population dynamics&&\\
+$R_o$& 100& Average unfished recruitment\\
+$\kappa$ &10&  Goodyear recruitment compensation ratio\\
+$S$ &0.7& Natural survival \\
+$\sigma_{rec} $& 0.4 & standard deviation for recruitment deviations\\
+$w_t$& $\mathcal{N}(0,\sigma_{R})$ &  Recruitment deviations for  years \{init-A+1,...,T\} \\
 $N_{a,t}$ &&  Numbers of fish at age and time\\
 $SB_{t}$ && Spawning biomass at time\\
 $mat_a$ && Proportion of mature individuals at age\\
 $a_{rec}, b_{rec}$ && Beverton \& Holt stock recruitment parameters \\
-$R_o$& 100& Average unfished recruitment\\
-$R_init$& & Recruitment in the year data starts to be reported \\
-$\kappa$ &10&  Goodyear recruitment compensation ratio\\
-$w_t$& $\mathcal{N}(0,\sigma_{R})$ &  Recruitment deviations for  years \{init-A+1,...,T\} \\
-$\sigma_{rec} $& 0.4 & standard deviation for recruitment deviations\\
-$S$ &0.7& Natural survival \\
+$R_{init}$& & Recruitment in the year data starts to be reported \\
 $U_{a,init}$ &&  Exploitation rate at age before data starts being reported. \\
 $U_{a,t}$ && Exploitation rate at age and time\\
 $U_{l,t}$ && Exploitation rate at length and time \\
@@ -274,12 +274,14 @@ $q$ &1.0& catchability coefficient \\
             \label{Pla1.2}
             z1_{a,l} &= \frac{b1_{l} - \bar{L}_{a}}{\sigma_{L_{a}}} \\
             \label{Pla1.3}
-            z2_{a,l} &=\frac{b2_{l} - \bar{L}_{a}}{\sigma_{L_{a}}} \\
+            z2_{a,l} &= \begin{cases}\frac{b2_{l} - \bar{L}_{a}}{\sigma_{L_{a}}} &\quad l<L  \\
+             1.0 &\quad l=L \\
+             \end{cases}\\
             \label{Pla1.4} 
             \bar{L}_{a} &= L_{inf} \cdot (1 - \exp^{(-k\cdot(a-t_o))})  \\
             \label{Pla1.5} 
             \sigma_{L_{a}} &= \bar{L}_{a} \cdot cv_l  \\
-            \nonumber \\
+            %\nonumber \\
             \hline  
             \mbox{Population dynamics}&&\nonumber\\
             \hline
@@ -298,7 +300,7 @@ $q$ &1.0& catchability coefficient \\
             N_{l,t}&=\sum_a{(P_{l|a}\cdot N_{a,t})}\\
             \label{PD2.5}
             SB_{t}&= \sum_a(mat_a \cdot w_a \cdot N_{a,t}) \\ 
-           \nonumber \\
+           %\nonumber \\
             \hline 
             \mbox{Initial year and incidence functions} &&\nonumber \\ 
             \hline 
@@ -321,7 +323,7 @@ $q$ &1.0& catchability coefficient \\
             lx_{a-1} \cdot S ,&\quad 1<a<A \\ 
             \frac{lx_{a-1} \cdot S}{1-S} ,&\quad a=A \\
              \end{cases}\\
-            \nonumber \\
+             %\nonumber \\
              \hline  
             \mbox{Operating model}&&\nonumber\\
             \hline
@@ -334,7 +336,7 @@ $q$ &1.0& catchability coefficient \\
             \label{OM4.3}
             sel_{l,t} &= \frac{1}{1-g}\cdot \left(\frac{1-g}{g}\right)^{g} \cdot \frac{e^{a\cdot g\cdot (b-l)}}{1+e^{a\cdot(b-l)}}\\
             \label{OM4.4}
-            I_{t}&= q \cdot VB_{t} \cdot e^(\mathcal{N}(0,\sigma_{I_t})\\ 
+            I_{t}&= q \cdot VB_{t} \cdot e^{(\mathcal{N}(0,\sigma_{I_t})}\\ 
         \hline \hline \nonumber
     \end{align}
     \normalEq
@@ -344,7 +346,7 @@ $q$ &1.0& catchability coefficient \\
 The model estimates three main parameters: average unexploited recruitment $R_{0}$, recruitment compensation ratio $\kappa$ and recruitment in the initial year $R_{init}$. In addition, the recruitment deviations $w_t$ are estimated for all cohorts observed in the model, that is, the number of recruitment deviations is equal to the number of years in the time series plus the number of age classes greater that recruitment age.  
 
 
-The objective function (eq. \ref{Obj}) is composed of a negative log likelihood component, three penalties and  a prior component for the recruitment compensation ratio $\kappa$. The negative log likelihood component minimizes the differences between the predicted and observed index of abundance (eq. \ref{PLL.1}). We assume that such differences are lognormally distributed (eqs. \ref{PLL.3}-\ref{PLL.4}) and use the conditional maximum likelihood estimator described by \citet{walters_calculation_1994} to estimate the catchability coefficient(eq. \ref{PLL.2}). A lognormal penalty is added to the negative log-likelihood function to constrain annual recruitment residuals so that the estimates have mean of zero and fixed standard deviation $\sigma_{R}$ (eq. \ref{pen.1}). Two additional penalties were implemented in order to prevent estimated values of exploitation rate at length greater than one ($U_{l,t}>1$) (eq. \ref{pen.2}-\ref{pen.3}) . Lastly, a normal prior for $log(\kappa)$ was included in the objective function (eq \ref{pr.1}).
+The objective function (eq. \ref{Obj}) is composed of a negative log likelihood component, two penalties and a prior component for the recruitment compensation ratio $\kappa$. The negative log likelihood component minimizes the differences between the predicted and observed index of abundance (eq. \ref{PLL.1}). We assume that such differences are lognormally distributed (eqs. \ref{PLL.3}-\ref{PLL.4}) and use the conditional maximum likelihood estimator described by \citet{walters_calculation_1994} to estimate the catchability coefficient(eq. \ref{PLL.2}). A lognormal penalty is added to the negative log-likelihood function to constrain annual recruitment residuals so that the estimates have mean of zero and fixed standard deviation $\sigma_{R}$ (eq. \ref{pen.1}). An additional penalty was implemented in order to prevent estimated values of exploitation rate at length greater than one ($U_{l,t}>1$) (eq. \ref{pen.3}) . Lastly, a normal prior for $log(\kappa)$ was included in the objective function (eq. \ref{pr.1}).
 
 
 
@@ -377,7 +379,7 @@ The objective function (eq. \ref{Obj}) is composed of a negative log likelihood 
 
 
 \begin{table}
-\caption{Estimated parameters, likelihood functions and penalties}\label{tab:LLpen} 
+\caption{Likelihood functions and penalties}\label{tab:LLpen} 
 \tableEq
     \begin{align}
           % \hline
@@ -386,35 +388,33 @@ The objective function (eq. \ref{Obj}) is composed of a negative log likelihood 
            \text{Likelihood }&&\nonumber\\
            \hline
             \label{PLL.1}
-            Z_t = log(I_t)-log(VB_{t})\\
+            &Z_t = log(I_t)-log(VB_{t})\\
             \label{PLL.2}
-            q = e^{\bar{Z}} \\
+            &q = e^{\bar{Z}} \\
             \label{PLL.3}
-            Zstat_t = Z_t - \bar{Z}  \\
+            &Zstat = Z_t - \bar{Z}  \\
             \label{PLL.4} 
-            \mathcal{L}_{I_{t}} = \sum(-log\mathcal{N}(Zstat_t; 0,\sigma_{I_t})) \\
-            \nonumber \\
+            &\mathcal{L}_{I_{t}} = -logL( Zstat \sim \mathcal{N}(0,\sigma_{I_t}))\\
+            % \sum(-\mathcal{N}(Zstat_t; 0,\sigma_{I_t})) \\
             \hline  
             \mbox{Penalties}&&\nonumber\\
             \hline
             \label{pen.1}
-            pen(w_t)=\sum (- log\mathcal{N}(w_t; 0,\sigma_{R}))\\
-            \label{pen.2}
-             posfun(1-U_{l,t},0.01,fpen) \\
+            &pen(w_t)=-logL(w_t \sim \mathcal{N}(0,\sigma_{R}))\\
+            %\label{pen.2}
+            % posfun(1-U_{l,t},0.01,fpen) \\
             \label{pen.3}
-            pen(U)=\frac{\sum^{t}\sum^{l}{U_{l,t}}}{T}\\
-           \nonumber \\
+            &pen(U)=\frac{\sum^{t}\sum^{l}{U_{l,t}}}{T}\\
             \hline 
             \mbox{Priors} &&\nonumber \\ 
             \hline 
             \label{pr.1}
-            prior(log(\kappa)) = \mathcal{N}( log(10), 0.9)\\
-            \nonumber \\
+            &prior(log(\kappa)) = \mathcal{N}( log(10), 0.9)\\
              \hline  
             \mbox{Objective function}&&\nonumber\\
             \hline
             \label{Obj}
-             Obj = \mathcal{L}_{I_{t}} + pen(w_t)+ pen(U) + prior(log(\kappa))\\ 
+            &Obj = \mathcal{L}_{I_{t}} + pen(w_t)+ pen(U) + prior(log(\kappa))\\ 
         \hline \hline \nonumber
     \end{align}
     \normalEq
@@ -500,12 +500,12 @@ The simulation-evaluation exercise showed that the Length-SRA model is able to t
 
 \subsection{Real data examples}
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[scale=.85,width=\textwidth]{/Users/catarinawor/Documents/Length_SRA/R/plots/figs/It_fit.pdf}
-  \caption{Fit to index of abundance for Pacific hake and jack mackerel.}
-\label{it}
-\end{figure}
+%\begin{figure}[htbp]
+%  \centering
+%  \includegraphics[scale=.85,width=\textwidth]{/Users/catarinawor/Documents/Length_SRA/R/plots/figs/It_fit.pdf}
+%  \caption{Fit to index of abundance for Pacific hake and jack mackerel.}
+%\label{it}
+%\end{figure}
 
 
 show figures with real 
@@ -519,7 +519,6 @@ We present a length-based stock reduction analysis that allows monitoring of tim
 
 Selectivity parameters can be particularly hard to estimate, especially it is changing over time and 
 
-One advantage of this model is that, because it assumes that catch at lenght is known without error, there is  
 
 main conclusions:  
 Length-SRA underestimates kappa productivity parameter
@@ -530,9 +529,17 @@ UMSY estimates had low bias-  good?
 
 U ramp scenario yield very bad results - lack of information in the time series. 
 
+
 Model is able to track selectivity over time, - good
 
+How does it compare to other length based models
+
+
+
 Does the model work? Could it produce useful management advice?
+My nee dto evaluate in a closed loop frameworks to be certain.
+
+
 
 assumption regarding Umsy -> changes with selectivity -> 
 

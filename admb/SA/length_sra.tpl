@@ -89,8 +89,8 @@ DATA_SECTION
 
 		nag = nage-sage;
 		Am1=nage-1;
-		tiny=1.e-3;
-		tinyyy=0.01;//1.e-4;
+		tiny=1.e-7;
+		tinyyy=1.e-4;
 		
 	END_CALCS
 
@@ -177,7 +177,7 @@ PARAMETER_SECTION
 	//init_bounded_dev_vector log_wt_init(syr-nag,syr-1,-5.,5.,3); 
 	
 	//init_bounded_dev_vector wt(syr-nag,eyr,-5.,5.,3); 
-	init_bounded_dev_vector wt(syr-nag,eyr,-5.,5.,3); 
+	init_bounded_dev_vector wt(syr-nag,eyr,-5.,5.,2); 
 	
 	//!!cout<< "chegou aqui"<<endl;
 
@@ -186,8 +186,8 @@ PARAMETER_SECTION
  	!! wt = (iwt);
  	//!! log_wt_init = log(iwt_init);
 
- 	vector lvec(1,1);
- 	vector pvec(1,1);
+ 	vector lvec(1,2);
+ 	vector pvec(1,2);
 	objective_function_value nll;
 	
 	number fpen;						// penalty to be added to likelihood when posfun is used
@@ -235,7 +235,8 @@ PARAMETER_SECTION
 	//vector penUm(syr,eyr);
 
 	vector avgUy(syr,eyr);
-	vector muUl(1,nlen);				// RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
+	vector avgUylast(syr,eyr);
+	vector muUl(4,nlen);				// RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
 	//vector Recs(syr+1,eyr);
 	//vector Rdevz(syr+1,eyr);
  	//vector delta(syr,eyr);
@@ -359,16 +360,21 @@ FUNCTION propAgeAtLengh
 		z1 = (( len - lstp * 0.5 )- la( a ))/( std( a ));
 		z2 = (( len + lstp * 0.5 )- la( a ))/( std( a ));
 		
-		for( int b=1; b<= nlen; b++ )
+		for( int b=1; b< nlen; b++ )
 		{
 			P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
 		}
-		
+
+		// plus length group
+		P_al( a, nlen )= 1.-cumd_norm( z1( nlen ));
+
 	}
 	
 	P_la = trans( P_al );	
 
-	
+	//cout<<"P_al"<<endl<<column(P_al,nlen )<<endl;
+	//cout<<"P_al"<<endl<<P_al<<endl;
+	//exit(1);
 	
 FUNCTION initialYear
 
@@ -398,12 +404,10 @@ FUNCTION initialYear
 	Nat(syr,nage)+=  Nat( syr, nage ) *Sa*  (1. - u_init);
 	
 	for( int a = sage; a <= nage; a++ ){
-		Nat( syr, a ) *=  mfexp(wt(syr-a+1) );//- sigR*sigR/2.
+		Nat( syr, a ) *=  mfexp(wt(syr-a+1.) );//- sigR*sigR/2.
+		Nat( syr )( a ) =  posfun( Nat( syr )( a ), tiny, fpen);
 	}
 	
-	//for( int aa = sage; aa <= nage; aa++ ){
-	//	Nat( syr )( aa ) =  posfun( Nat( syr )( aa ), tiny, fpen);
-	//}
 	
 
 	//Nat(syr)(sage+1,nage) = Rinit* wt_init;
@@ -428,6 +432,7 @@ FUNCTION initialYear
 	// exploitation rate for fully recruited age class
 	maxUy( syr ) = max( Ulength( syr ));
 	avgUy( syr ) = mean( Ulength( syr )(1,nlen));
+	avgUylast( syr ) = mean( Ulength( syr )(nlen-5,nlen));
 	
 	penmaxUy(syr) = sum(pow( Ulength( syr )(1,nlen),10));
 	
@@ -444,14 +449,15 @@ FUNCTION initialYear
 	sbt(syr) = fec * Nat(syr);
 	psurvB(syr) = Nat(syr) * elem_prod(wa,vul);
 	
-	//cout<<"wt_init"<<endl<<wt_init<<endl;
+	
 	//cout<<"Nat"<<endl<<Nat( syr)<<endl;
 	//exit(1);
 
 FUNCTION SRA
 
 	// RL: these are the devs for the vul penalty  
-	dvar_matrix Upen( syr, eyr, 1, nlen );
+	dvar_matrix Upen( syr, eyr, 4, nlen );
+	Upen.initialize();
 			
 
 	// SUBSEQUENT YEARS
@@ -459,7 +465,7 @@ FUNCTION SRA
 	{	
 	    dvariable sbtm = fec * Nat(y - 1);	
 		
-		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * mfexp( wt(y)  );//- sigR*sigR/2.	///mfexp( sigR*sigR/2.) B-H recruitment
+		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * mfexp( wt(y)   );//- sigR*sigR/2.	///mfexp( sigR*sigR/2.) B-H recruitment
 						
 		
 		// age-distribution post-recruitment
@@ -473,9 +479,12 @@ FUNCTION SRA
 		Nat( y, nage ) +=  Nat( y-1, nage ) *Sa*  (1. - Uage( y-1)( nage ));
 		//Nat( y, nage ) /= (1. - Sa * ( 1. - Uage( y - 1, nage)));
 		
-		//for( int aa = sage; aa <= nage; aa++ ){
-		//	Nat( y )( aa ) =  posfun( Nat( y )( aa ), tiny, fpen);
-		//}
+		for( int aa = sage; aa <= nage; aa++ ){
+			Nat( y )( aa ) =  posfun( Nat( y )( aa ), tiny, fpen);
+		}
+
+		//cout<<"Nat "<<y<<endl<<Nat( y)<<endl;
+
 		//=====================================================================================
 		//Numbers at lengh
 		Nlt( y ) = Nat( y ) * P_al;	
@@ -501,6 +510,7 @@ FUNCTION SRA
 		// max exploitation (fully selected) across lengths
 		maxUy( y ) = max( Ulength( y ));
 		avgUy( y ) = mean( Ulength( y ) (1,nlen));
+		avgUylast( y ) = mean( Ulength( y ) (nlen-5,nlen));
 		penmaxUy(y) = sum(pow( Ulength( y )(1,nlen),10));
 		//
 		
@@ -519,27 +529,54 @@ FUNCTION SRA
 	//
 	//exit(1);
 
-		for( int b = 1; b <= nlen; b++ )
-		{ 
-			//  exploitation rate relative to fully recruited U(expected value?) at length over al years
-			// RL: It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
-			muUl(b) = sum(elem_div( column(Ulength,b),maxUy ) ) / size_count(avgUy);	
-			//muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);		
-		}
+		//tradition
+		//for( int b = 1; b <= nlen; b++ )
+		//{ 
+		//	//  exploitation rate relative to fully recruited U(expected value?) at length over al years
+		//	// RL: It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
+		//	muUl(b) = sum(elem_div( column(Ulength,b),maxUy ) ) / size_count(avgUy);	
+		//	//muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);		
+		//}
 		
-		for( int y = syr; y <= eyr; y++ )
+		
+
+
+		//VOthree
+		//for( int y = syr+2; y <= eyr; y++ )
+		//{
+		//	for( int b = 1; b <= nlen; b++ )
+		//	{ 
+		//		muUl(b) = sum(elem_div(  column(Ulength,b)(y-2,y),avgUy(y-2,y) ) ) / 4.;		
+		//	}
+		//	
+		//	// penalty against dramatic changes in vulnerability?? 
+		//	//Upen( y ) = pow( Ulength( y ) / posfun( avgUy( y ), tiny, fpen ) - muUl, 2. );	
+		//	//Upen( y ) = pow( Ulength( y )(nlen-5,nlen) /  maxUy( y ) - avgUylast( y ), 2. );
+		//	
+		//	Upen( y ) = pow( Ulength( y )(1,nlen) /  avgUy( y ) - muUl, 2. );		
+		//}
+		//ssvul = sum( Upen );				// vulnerability penalty
+
+		for( int y = syr+3; y <= eyr; y++ )
 		{
+			for( int b = 4; b <= nlen; b++ )
+			{ 
+				muUl(b) = Ulength(y)(b)-mean(Ulength(y)(b-3,b));
+			}
+
 			// penalty against dramatic changes in vulnerability?? 
 			//Upen( y ) = pow( Ulength( y ) / posfun( avgUy( y ), tiny, fpen ) - muUl, 2. );	
-			Upen( y ) = pow( Ulength( y ) /  maxUy( y ) - muUl, 2. );	
+			//Upen( y ) = pow( Ulength( y )(nlen-5,nlen) /  maxUy( y ) - avgUylast( y ), 2. );
+			
+			Upen( y ) = (pow( muUl, 2. ));		
 		}
 		ssvul = sum( Upen );				// vulnerability penalty
 
 
+		//exit(1);
 
 
-
-FUNCTION stock_recruit_residuals
+	//FUNCTION stock_recruit_residuals
 
 
 	//delta = log(Recs)-log(Recz);//+0.5*sigR*sigR;
@@ -557,6 +594,9 @@ FUNCTION observation_model
 		zstat(i)=(log(survB(i))-log(psurvB(iyr(i))));//-cv_it*cv_it/2.
 	}
 	
+	//cout<<"survB is "<<survB<<endl;
+	//cout<<"psurvB is "<<endl<<psurvB<<endl;
+
 	///exit(1);
 			
 	q=mfexp(mean(zstat));
@@ -564,6 +604,7 @@ FUNCTION observation_model
 	
 	zstat -= mean(zstat);
 	//cout<<"q is "<<q<<endl;					// z-statistic used for calculating MLE of q
+	//cout<<"zstat is "<<zstat<<endl;
 	//zstat -= cv_it*cv_it/2.;
 	
 	 	//exit(1);
@@ -575,9 +616,16 @@ FUNCTION objective_function
 	if(last_phase())
 	{
 		lvec(1)=dnorm(zstat,cv_it);
+		dvariable op = 0.;
+		op = mean(zstat);
+		lvec(2)=1.e5 * op*op;
 		
 	}else{
 		lvec(1)=norm2(zstat)/cv_it;//
+		dvariable op = 0.;
+		op = mean(zstat);
+		lvec(2)=1.e5 * op*op;
+
 		//lvec(1)=norm2(zstat);
 	}
 	//lvec(2)=dnorm(delta,sigR);
@@ -648,12 +696,18 @@ FUNCTION objective_function
 	//}
 	//else
 	//{
-		if(last_phase()){
-			pvec(1)=dnorm(wt,sigR);
-		}else{
-			pvec(1)=norm2(wt)/sigR;	///sigR
-			
-		}
+	if(last_phase()){
+		pvec(1)=dnorm(wt,2.);
+		//pvec(1)=dnorm(wt,2.0);
+		dvariable s = 0.;
+		s = mean(wt);
+		pvec(2)=1.e5 * s*s;
+	}else{
+		pvec(1)=100.*norm2(wt)/sigR;
+		dvariable s = 0.;
+		s = mean(wt);
+		pvec(2)=1.e5 * s*s;
+	}
 	//sigR;///1000.0; 	
 	//pvec(2)=(norm2(log_wt_init));///1000.0; 	
 	//}
@@ -715,16 +769,16 @@ FUNCTION objective_function
 	// RL: see commment above
 	//==================================================================================
 	
-	nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+sum(penmaxUy);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
+	nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen+sum(Ulpen);
 	//nll = sum(lvec)+ sum(npvec)  + sum(pvec)  +  ffpen +   sum(qpvec)   ;//+ ssvul/(sigVul) + fpen +fffpen+ + sum(penmaxUy) //mean(penmaxUy)  + fffpen*100000 +
 	
 	//nll = sum(lvec) +  sum(pvec);
 	//cout<<"mean(penmaxUy) is "<< mean(penmaxUy)<<endl;
-	///cout<<"lvec is "<< sum(lvec)<<endl;
-	///cout<<"pvec is "<< sum(pvec)<<endl;
-	///cout<<"npvec is "<< sum(npvec)<<endl;
+	//cout<<"lvec is "<< sum(lvec)<<endl;
+	//cout<<"pvec is "<< sum(pvec)<<endl;
+	//cout<<"npvec is "<< sum(npvec)<<endl;
 	//cout<<"ffpen is "<< ffpen<<endl;
 	//cout<<"fffpen is "<< fffpen<<endl;
 	
@@ -732,6 +786,8 @@ FUNCTION objective_function
 	//cout<<"qpvec is "<< sum(qpvec)<<endl;
 
 	//nll = sum(lvec) +  sum(pvec);
+
+
 FUNCTION calc_msy
 	dvector utest(1,1001);
 	utest.fill_seqadd(0,0.001);
