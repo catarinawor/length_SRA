@@ -68,7 +68,7 @@ dim(hake$Ulength)
 
 apply(hake$Ulength,1,mean)
 
-hakeselec<-(hake$Ulength)/hake$avgUy
+hakeselec<-(hake$Ulength)/hake$maxUy
 hake$len
 
 df<-melt(hakeselec,variable.name=c("year", "length"))
@@ -86,6 +86,8 @@ p2 <- ggplot(df,aes(x=len,y=value))
 			p2 <- p2 + geom_line()
 			p2 <- p2 + theme_bw(11)
 			p2 <- p2 + facet_wrap(~year,scales="free") 
+			print(p2)
+
 			p2 <- p2 + coord_cartesian(ylim=c(0,7))
 			print(p2)
 

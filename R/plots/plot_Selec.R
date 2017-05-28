@@ -44,10 +44,12 @@ plot_Sel <- function( M )
 			
 			names(M[[i]]$SArep)
 
-			umaxes_est<-apply(M[[i]]$SArep$Ulength,1,mean)
+			nlen<-length(M[[i]]$SArep$len)
+
+			umaxes_est<-apply(M[[i]]$SArep$Ulength[,(nlen-5):nlen],1,mean)
 			sels_est<-(M[[i]]$SArep$Ulength)/umaxes_est
 
-			umaxes_om<-apply(M[[i]]$OM$Ulength[estyrs,],1,mean)
+			umaxes_om<-apply(M[[i]]$OM$Ulength[estyrs,(nlen-5):nlen],1,mean)
 			sels_OM<-(M[[i]]$OM$Ulength[estyrs,])/umaxes_om
 
 			selom <- data.frame(sel=c(sels_OM),len=rep(1:ncol(sels_OM),each=length(estyrs)),yr=rep(estyrs,ncol(sels_OM)),type="OM", scenario=scn[M[[i]]$OM$scnNumber], scnNumber=scn[M[[i]]$OM$scnNumber])

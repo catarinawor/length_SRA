@@ -10,10 +10,14 @@
 #
  
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base"
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit"
+
+
+#this is the one it's currently "oficial"
+DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/qpr"
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/no_bc"
-DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/new_bc"
+##DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/no_bc"
+#
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/new_bc"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen"
 
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/cann"
