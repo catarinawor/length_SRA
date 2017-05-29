@@ -172,7 +172,7 @@
 %(old intro written by Carl Walters)
 Modern stock assessments typically attempt to fit population dynamics models to catch at age and catch at length data, in hopes of extracting information from these data about age/size vulnerability and fishing mortality patterns \citep{methot_stock_2013,hilborn_quantitative_1992}.  In cases where age data are lacking, models like MULTIFAN-CL attempt to obtain estimates of vulnerability and fishing mortality only from size distribution data \citep{fournier_multifan-cl:_1998}. Combined with a few assumptions regarding the structure and variability in length at age, this procedure can even be used to attempt to recover information about changes in body growth patterns if there is a strong age-class signal in the length frequency data \citep{fournier_multifan-cl:_1998}.  Some assessment methods attempt to put aside the length frequency data, by converting these data to age compositions using age-from-length tables, perhaps using iterative methods to estimate proportions of fish at age for each length interval \citep{kimura_mixtures_1987}.  It is typical for assessment results from length-based assessment models to show substantial deviations between predicted and observed length distributions of catches, reflecting both sampling variation in the length composition data and incorrect assumptions about stability of growth and vulnerability patterns \citep{hilborn_quantitative_1992}. 
  
-The vulnerability process is the combination of two processes: selectivity of the fishing gear and availability of the fished population in the area being fished \citep{beverton_dynamics_1957}. Both processes can vary over time and therefore modify the resulting selectivity. Although selectivity process can often be directly measured through gear experiments, availability is generally harder to measure as it depends on the distribution of the exploited population. Fish movement, changes in fish distribution, and by changes in fleet distribution, can all cause availability changes.Changes in vulnerability are not uncommon \citep{sampson_exploration_2012} but are usually difficult to track overtime. This difficulty is associated with an inability to distinguish between changes in fishing mortality and changes in vulnerability in most age and length based stock assessment methods. For this reason, many assessment methods rely on ad hoc parametric vulnerability models that may or may not include changes over time \citep{maunder_selectivity:_2014}. If misspecified, such models might lead to severe bias in fishing mortality estimates, which could result in misleading management advice \citep{martell_towards_2014}. 
+The vulnerability process is the combination of two processes: selectivity of the fishing gear and availability of the fished population in the area being fished \citep{beverton_dynamics_1957}. Both processes can vary over time and therefore modify the resulting selectivity. Although selectivity process can often be directly measured through gear experiments, availability is generally harder to measure as it depends on the distribution of the exploited population. Fish movement, changes in fish distribution, and changes in fleet distribution, can all cause availability changes.Changes in vulnerability are not uncommon \citep{sampson_exploration_2012} but are usually difficult to track over time. This difficulty is associated with an inability to distinguish between changes in fishing mortality and changes in vulnerability in most age and length based stock assessment methods. For this reason, many assessment methods rely on ad hoc parametric vulnerability models that may or may not include changes over time \citep{maunder_selectivity:_2014}. If misspecified, such models might lead to severe bias in fishing mortality estimates, which could result in misleading management advice \citep{martell_towards_2014}. 
 
  Here we suggest an alternative approach to assessment modeling that begins by assuming that the assessment model should exactly reproduce the observed catch at length distribution. This approach follows the dynamics of an age structred stock reduction analysis (SRA) \citep{walters_stochastic_2006-1} which follows a ``conditioned on catch'' format, subtracting observed catches at age from modeled numbers at age in estimation of numbers at age over time. This assumption is analogous to the classical assumption in virtual population analysis that reconstructed numbers at age should exactly match observed catch at age data \citep{hilborn_quantitative_1992}. The suggested approach may have two key advantages over statistical catch at age and/or catch at length models: (1) it does not require estimation of age or size vulnerability schedules, and (2) catch at length data are commonly available for every year, even when age composition sampling has not been conducted. 
 
@@ -191,7 +191,8 @@ The stock reduction analysis described here starts by calculating the proportion
 
 
 
- The proportions of length at age is used to convert the length-based quantities into age based quantities which are used to propagate the age structured population dynamics forward (Table \ref{tab:eqsall} - Population dynamics). We assume that recruitment follows a Beverton \& Holt type recruitment curve (eq. \ref{PD2.1}), that harvesting occurs over a short, discrete season in each time step (year or shorter time period) and that natural survival rate is stable over time (eqs. \ref{PD2.1}-\ref{PD2.5}). Differences in the computation of recruitment in the initial year (eq. \ref{AO.1}) as well as incidence functions (eqs. \ref{AO.2}-\ref{AO.6}) are shown in  Table \ref{tab:eqsall} - Initial year and incidence functions.
+ The proportions of length at age is used to convert the length-based quantities into age based quantities which are used to propagate the age structured population dynamics forward (Table \ref{tab:eqsall} - Population dynamics). We assume that recruitment follows a Beverton-Holt type recruitment curve (eq. \ref{PD2.1}), that harvesting occurs over a short, discrete season in each time step (year or shorter time period) and that natural survival rate is stable over time (eqs. \ref{PD2.1}-\ref{PD2.5}). The computation of numbers at age in the initial years is different from that in the remaining years (eq. \ref{AO.1}). The calculations for this year rely on the parameter $R_{init}$, which assumes that the population is not at unfished equilibrium at the beggining of the time series. 
+
 
 
 \begin{table}
@@ -343,7 +344,7 @@ $q$ &1.0& catchability coefficient \\
 \end{table}
 
 
-The model estimates three main parameters: average unexploited recruitment $R_{0}$, recruitment compensation ratio $\kappa$ and recruitment in the initial year $R_{init}$. In addition, the recruitment deviations $w_t$ are estimated for all cohorts observed in the model, that is, the number of recruitment deviations is equal to the number of years in the time series plus the number of age classes greater that recruitment age.  
+The model estimates three main parameters: average unexploited recruitment $R_{0}$, recruitment compensation ratio $\kappa$ and recruitment in the initial year $R_{init}$ (we assume that the  data collection for the fisheries does not start when the population is at an unfished equilibrium state). In addition, the recruitment deviations $w_t$ are estimated for all cohorts observed in the model, that is, the number of recruitment deviations is equal to the number of years in the time series plus the number of age classes greater that recruitment age.  
 
 
 The objective function (eq. \ref{Obj}) is composed of a negative log likelihood component, two penalties and a prior component for the recruitment compensation ratio $\kappa$. The negative log likelihood component minimizes the differences between the predicted and observed index of abundance (eq. \ref{PLL.1}). We assume that such differences are lognormally distributed (eqs. \ref{PLL.3}-\ref{PLL.4}) and use the conditional maximum likelihood estimator described by \citet{walters_calculation_1994} to estimate the catchability coefficient(eq. \ref{PLL.2}). A lognormal penalty is added to the negative log-likelihood function to constrain annual recruitment residuals so that the estimates have mean of zero and fixed standard deviation $\sigma_{R}$ (eq. \ref{pen.1}). An additional penalty was implemented in order to prevent estimated values of exploitation rate at length greater than one ($U_{l,t}>1$) (eq. \ref{pen.3}) . Lastly, a normal prior for $log(\kappa)$ was included in the objective function (eq. \ref{pr.1}).
@@ -385,7 +386,7 @@ The objective function (eq. \ref{Obj}) is composed of a negative log likelihood 
           % \hline
         %\hline \nonumber \\ 
             \hline  
-           \text{Likelihood }&&\nonumber\\
+           \text{Conditional Likelihood }&&\nonumber\\
            \hline
             \label{PLL.1}
             &Z_t = log(I_t)-log(VB_{t})\\
@@ -394,13 +395,13 @@ The objective function (eq. \ref{Obj}) is composed of a negative log likelihood 
             \label{PLL.3}
             &Zstat = Z_t - \bar{Z}  \\
             \label{PLL.4} 
-            &\mathcal{L}_{I_{t}} = -logL( Zstat \sim \mathcal{N}(0,\sigma_{I_t}))\\
+            &Zstat \sim \mathcal{N}(0,\sigma_{I_t})\\
             % \sum(-\mathcal{N}(Zstat_t; 0,\sigma_{I_t})) \\
             \hline  
             \mbox{Penalties}&&\nonumber\\
             \hline
             \label{pen.1}
-            &pen(w_t)=-logL(w_t \sim \mathcal{N}(0,\sigma_{R}))\\
+            &w_t \sim \mathcal{N}(0,\sigma_{R})\\
             %\label{pen.2}
             % posfun(1-U_{l,t},0.01,fpen) \\
             \label{pen.3}
@@ -409,12 +410,12 @@ The objective function (eq. \ref{Obj}) is composed of a negative log likelihood 
             \mbox{Priors} &&\nonumber \\ 
             \hline 
             \label{pr.1}
-            &prior(log(\kappa)) = \mathcal{N}( log(10), 0.9)\\
+            &prior(log(\kappa)) \sim \mathcal{N}(log(\kappa), 0.9)\\
              \hline  
             \mbox{Objective function}&&\nonumber\\
             \hline
             \label{Obj}
-            &Obj = \mathcal{L}_{I_{t}} + pen(w_t)+ pen(U) + prior(log(\kappa))\\ 
+            &Obj = negLL(Zstat) + negLL(w_t) + pen(U) + prior(log(\kappa))\\ 
         \hline \hline \nonumber
     \end{align}
     \normalEq
@@ -465,7 +466,9 @@ The movement pattern of jack mackerel is not as well known, although fish appear
 \subsection{Simulation-evaluation}
 
 
-Even though the parameter estimates were not entirely unbiased, the amount of bias was relatively low, with median \% error being always less than 25\% for all parameters. The parameters $R_0$ and $R_{init}$ were overestimated for all scenarios with the exception of the $U$ ramp scenarios (CR and VR) (Figure \ref{mainParams}). The median \% errors for $R_0$ ranged from -9.1\% to 15.4\%. For $R_{init}$ the median \% errors varied from -22.5\% to  13.3\%.  The parameter $\kappa$  was overestimated for all scenarios (Figure \ref{mainParams}) with median \% errors for $\kappa$ ranged from  11.3 \% to 18.9\% 
+Even though the parameter estimates were not entirely unbiased, the amount of bias was relatively low, especially for the leading parameters $R_0$ and $\kappa$ (Figure \ref{mainParams}). The parameter  $R_0$ was slightly overestimated or accurately estimated for the contrast and one-way-trip scenarios, with median \% errors  between 0\% and 2.3\%. In the $U$ ramp scenarios, $R_0$ was understimated with with median \% errors of -10.8\% (CR) and -7.4\% (VR). The parameter $R_{init}$ was understimated for all scenarios with relatively high median \% errors varying between -31.6\% and -35.9\%. Once again the $U$ ramp scenarios produced the highest bias. (Figure \ref{mainParams})The $\kappa$ parameter was the most accurately and precisely estimated with median \% errors varying betwwen 0.0\% and 1.8\%.
+
+
 
 \begin{figure}[htbp]
   \centering
@@ -476,9 +479,7 @@ Even though the parameter estimates were not entirely unbiased, the amount of bi
 
 
 
-
-In relation to the derived quantities, the Length-SRA tended to underestimate both depletion and MSY estimates with median \% errors ranging between -34.9\% and -3.5\% . For both depletion and MSY quantities, the $U$ ramp scenarios (CR and VR) yielded the highest bias (Figure \ref{derivQuant}). The estimates for $U_{MSY}$ showed very low ($<$4\%) median \% errors for all scenarios (Figure \ref{derivQuant}). The estimates of $q$ were overestimated for all scenarios but were particularly biased for the the $U$ ramp scenarios (CR and VR) (Figure \ref{derivQuant}).  
-
+In relation to the derived quantities (Figure \ref{derivQuant}), the Length-SRA model produced estimates of depletion with median \% errors ranging between -13.6\% and 7.5\%, there was no clear pattern among scenarios that lead of overestimation of underestimation. In contrast, $MSY$ was understimated for all scenarios, with median \% errors ranging between - 28.1\% and -12.1\%. The estimates for $U_{MSY}$ showed very low ($<$2\%) median \% errors for all scenarios. The estimates of $q$ were particularly positevely biased for the the $U$ ramp scenarios (CR and VR), this is likely to be associated with the underestimations of both $R_0$ and $R_{init}$ for those scenarios.
 
 \begin{figure}[htbp]
   \centering
@@ -487,11 +488,11 @@ In relation to the derived quantities, the Length-SRA tended to underestimate bo
 \label{derivQuant}
 \end{figure}
 
-The simulation-evaluation exercise showed that the Length-SRA model is able to track selectivity changes over time relatively well. There is a tendency to underestimate selectivity for lower lengths and overestimate it for higher lengths across all scenarios, However, this pattern is particularly prominent for the $U$ ramp scenarios (Figure \ref{sel}).
+The simulation-evaluation exercise showed that the Length-SRA model is able to track selectivity changes over time relatively well (Figure \ref{sel}).
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[scale=.85]{/Users/catarinawor/Documents/Length_SRA/R/plots/figs/sel_publ.pdf}
+  \includegraphics[scale=.7]{/Users/catarinawor/Documents/Length_SRA/R/plots/figs/sel_publ.pdf}
   \caption{Simulated and realized selectivity estimates for a set of years within simulation-evaluation time series.}
 \label{sel}
 \end{figure}
