@@ -205,8 +205,8 @@ plot_Sel_pub <- function( M )
 			p2 <- p2 + facet_grid(scenario~year,scale="free", labeller = label_both)
 			p2 <- p2 + labs(x="Length",y="Selectivity")
 			p2 <- p2 + theme_bw(12) 
-			p2 <- p2 + scale_colour_grey(start = 0.2, end = 0.8,labels = c("simulated", "estimated"))
-			p2 <- p2 + scale_fill_grey(start = 0.2, end = 0.8,labels = c("simulated", "estimated"))
+			p2 <- p2 + scale_colour_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
+			p2 <- p2 + scale_fill_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
 			p2 <- p2 + theme(axis.text = element_text(face="bold", size=12),
   			axis.title = element_text(face="bold", size=12),
   			strip.text = element_text(face="bold", size=15))
@@ -215,7 +215,7 @@ plot_Sel_pub <- function( M )
 		
 
 			setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-			ggsave("sel_publ.pdf", plot=p2)
+			ggsave("sel_publ.pdf", plot=p2, width = 10, height = 10)
 		}
 
 		

@@ -12,9 +12,9 @@
 CC
 CO
 CR
-#VC
-#VO
-#VR
+VC
+VO
+VR
 #COS
 #CRS
 #VCS
