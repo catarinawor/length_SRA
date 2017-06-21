@@ -520,7 +520,7 @@ FUNCTION output_ctl
 	mfs<<"## npar"<<endl<< "4"<< endl;
 	//mfs<<"## npar"<<endl<< "3"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
-	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
+	mfs<<"## ——————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<< log(Ro+0.2*Ro) <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0	<<"\t"<< 7.0   	<<"\t"<<"#log_ro   	##"<<endl;
 	mfs<< log(rini)  	 <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0 	<<"\t"<< 7.0   	<<"\t"<<"#log_rinit   	##"<<endl;
 	//mfs<< log(Ro) <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0	<<"\t"<< 7.0   	<<"\t"<<"#log_ro   	##"<<endl;
@@ -566,6 +566,9 @@ FUNCTION output_data
 	ofs<<"# m " << endl << -log(Sa) <<endl;
 	ofs<<"# alw " << endl << alw <<endl;
 	ofs<<"# blw "<< endl << blw <<endl;
+	ofs<<"# waobs "<< endl << wa <<endl;
+	ofs<<"# wasw "<< endl << 0 <<endl;
+
 	//ofs<<"# mat50  "<< endl << feca <<endl;
 	//ofs<<"# matsd " << endl << fecg <<endl;
 	//ofs<<"# ahat " << endl << ahat <<endl;

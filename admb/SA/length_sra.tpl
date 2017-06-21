@@ -28,7 +28,8 @@ DATA_SECTION
 	init_number m;						// natural mortality
 	init_number alw;					// multiplier for length-weight relationship
 	init_number blw;					// multiplier for length-weight relationship
-	
+	init_vector waobs(sage,nage);
+	init_int wasw;
 
 	// population values
 	init_vector vul(sage,nage);				// survey vulnerability
@@ -69,6 +70,8 @@ DATA_SECTION
 		{
 			cout<<"Error reading data.\n Fix it."<<endl;
 			cout<< "dend is:"<<dend<<endl;
+			cout<< "Linf is:"<<Linf<<endl;
+			cout<< "to is:"<<to<<endl;
 			ad_exit(1);
 		}
 
@@ -236,7 +239,7 @@ PARAMETER_SECTION
 
 	vector avgUy(syr,eyr);
 	vector avgUylast(syr,eyr);
-	vector muUl(4,nlen);				// RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
+	vector muUl(1,nlen);				// RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
 	//vector Recs(syr+1,eyr);
 	//vector Rdevz(syr+1,eyr);
  	//vector delta(syr,eyr);
@@ -332,7 +335,16 @@ FUNCTION incidence_functions
 	lxo( nage ) /= 1. - Sa;
 
 	
-	
+	switch(wasw){
+		case 1: 
+			wa = waobs;
+		break;
+
+		default:
+			wa = alw * pow( la, blw );
+		break;
+
+	}
 	wa = alw * pow( la, blw );
 
 	phie = lxo * fec;
@@ -422,7 +434,7 @@ FUNCTION initialYear
 	{	
 		//Ulength( syr )(b) = 1./posfun2(  Nlt( syr, b )/Clt( syr, b ) ,1.0, fpen);	
 		//Ulength( syr )(b) = 1.-posfun(1.-(Clt( syr, b ) /  Nlt( syr, b )),tinyyy,fffpen);
-		Ulength( syr )(b) = 1.-posfun(1.-(Clt( syr, b ) /  Nlt( syr, b )),tinyyy,fffpen);
+		Ulength( syr )(b) = 1.-posfun2(1.-(Clt( syr, b ) /  Nlt( syr, b )),tinyyy,fffpen);
 		
 
 		//Ulength( syr )(b) = Clt( syr, b ) /  Nlt( syr, b )t
@@ -456,7 +468,7 @@ FUNCTION initialYear
 FUNCTION SRA
 
 	// RL: these are the devs for the vul penalty  
-	dvar_matrix Upen( syr, eyr, 4, nlen );
+	dvar_matrix Upen( syr, eyr, 1, nlen );
 	Upen.initialize();
 			
 
@@ -530,47 +542,46 @@ FUNCTION SRA
 	//exit(1);
 
 		//tradition
-		//for( int b = 1; b <= nlen; b++ )
-		//{ 
+		for( int b = 1; b <= nlen; b++ )
+		{ 
 		//	//  exploitation rate relative to fully recruited U(expected value?) at length over al years
 		//	// RL: It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
-		//	muUl(b) = sum(elem_div( column(Ulength,b),maxUy ) ) / size_count(avgUy);	
+			muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);	
 		//	//muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);		
-		//}
+		}
 		
 		
 
 
-		//VOthree
-		//for( int y = syr+2; y <= eyr; y++ )
-		//{
-		//	for( int b = 1; b <= nlen; b++ )
-		//	{ 
-		//		muUl(b) = sum(elem_div(  column(Ulength,b)(y-2,y),avgUy(y-2,y) ) ) / 4.;		
-		//	}
-		//	
-		//	// penalty against dramatic changes in vulnerability?? 
-		//	//Upen( y ) = pow( Ulength( y ) / posfun( avgUy( y ), tiny, fpen ) - muUl, 2. );	
-		//	//Upen( y ) = pow( Ulength( y )(nlen-5,nlen) /  maxUy( y ) - avgUylast( y ), 2. );
-		//	
-		//	Upen( y ) = pow( Ulength( y )(1,nlen) /  avgUy( y ) - muUl, 2. );		
-		//}
-		//ssvul = sum( Upen );				// vulnerability penalty
-
-		for( int y = syr+3; y <= eyr; y++ )
+		
+		for( int y = syr; y <= eyr; y++ )
 		{
-			for( int b = 4; b <= nlen; b++ )
-			{ 
-				muUl(b) = Ulength(y)(b)-mean(Ulength(y)(b-3,b));
-			}
-
+			//for( int b = 1; b <= nlen; b++ )
+			//{ 
+			//	muUl(b) = sum(elem_div(  column(Ulength,b)(y-2,y),avgUy(y-2,y) ) ) / 4.;		
+			//}
+			
 			// penalty against dramatic changes in vulnerability?? 
 			//Upen( y ) = pow( Ulength( y ) / posfun( avgUy( y ), tiny, fpen ) - muUl, 2. );	
 			//Upen( y ) = pow( Ulength( y )(nlen-5,nlen) /  maxUy( y ) - avgUylast( y ), 2. );
 			
-			Upen( y ) = (pow( muUl, 2. ));		
+			Upen( y ) = pow( Ulength( y )(1,nlen) /  avgUy( y ) - muUl, 2. );		
 		}
 		ssvul = sum( Upen );				// vulnerability penalty
+
+		//for( int y = syr+3; y <= eyr; y++ )
+		//{
+		//	for( int b = 4; b <= nlen; b++ )
+		//	{ 
+		//		muUl(b) = Ulength(y)(b)-mean(Ulength(y)(b-3,b));
+		//	}
+		//	// penalty against dramatic changes in vulnerability?? 
+		//	//Upen( y ) = pow( Ulength( y ) / posfun( avgUy( y ), tiny, fpen ) - muUl, 2. );	
+		//	//Upen( y ) = pow( Ulength( y )(nlen-5,nlen) /  maxUy( y ) - avgUylast( y ), 2. );
+		//	
+		//	Upen( y ) = (pow( muUl, 2. ));		
+		//}
+		//ssvul = sum( Upen );				// vulnerability penalty
 
 
 		//exit(1);
@@ -769,7 +780,22 @@ FUNCTION objective_function
 	// RL: see commment above
 	//==================================================================================
 	
-	nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
+	//scenario 1
+	nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul)+fffpen+fpen+ffpen +sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
+	
+	//scenario 2
+	//nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul) +sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
+	
+	//scenario 3 - much worse
+	//nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul)+fffpen+fpen+ffpen ;// +sum(penmaxUy) +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
+	
+	//scenario 4
+	//nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+ fffpen+fpen+ffpen +sum(penmaxUy);// ssvul/(sigVul)
+	
+	//scenario 5 -worse of them all
+	//nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec);// 
+	
+
 	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
 	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen+sum(Ulpen);
 	//nll = sum(lvec)+ sum(npvec)  + sum(pvec)  +  ffpen +   sum(qpvec)   ;//+ ssvul/(sigVul) + fpen +fffpen+ + sum(penmaxUy) //mean(penmaxUy)  + fffpen*100000 +

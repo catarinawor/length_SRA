@@ -1,4 +1,12 @@
-#VO
+CC
+#CCnomaxU
+#CCnomaxUfpen
+CO
+CR
+VC
+VO
+VR
+VO
 #VOlosv
 #VOthree
 #VOacrossL
@@ -9,12 +17,6 @@
 #prior
 #nosigV
 #phz
-CC
-CO
-CR
-VC
-VO
-VR
 #COS
 #CRS
 #VCS
