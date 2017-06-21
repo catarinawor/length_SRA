@@ -10,6 +10,7 @@ require(reshape2)
 require(tidyr)
 require(ggplot2)
 library(xtable)
+library(cowplot)
 
 
 #development stage
@@ -61,6 +62,15 @@ lines(jm$iyr,jm$q*jm$predSurvB,lwd=2)
 #dev.off()
 hake$yr
 
+
+#===========================================================
+
+jm_bt<- data.frame(year=1:length(jm$bt),species=rep("jack mackerel",length(jm$bt)),
+		biomass=jm$bt)
+
+pbt<-ggplot(jm_bt)
+pbt<-pbt+geom_line(aes(x=year,y=biomass),size = 1.2)
+pbt
 #===========================================================
 ##plot selectivities
 dim(hake$Ulength)
@@ -68,7 +78,7 @@ dim(hake$Ulength)
 
 apply(hake$Ulength,1,mean)
 
-hakeselec<-(hake$Ulength)/hake$maxUy
+hakeselec<-(hake$Ulength)/hake$avgUy
 hake$len
 
 df<-melt(hakeselec,variable.name=c("year", "length"))
@@ -88,8 +98,8 @@ p2 <- ggplot(df,aes(x=len,y=value))
 			p2 <- p2 + facet_wrap(~year,scales="free") 
 			print(p2)
 
-			p2 <- p2 + coord_cartesian(ylim=c(0,7))
-			print(p2)
+			#p2 <- p2 + coord_cartesian(ylim=c(0,7))
+			#print(p2)
 
 #ggsave("selec_hake.pdf", plot=p2)
 #jack jack_mackerel
@@ -97,7 +107,7 @@ p2 <- ggplot(df,aes(x=len,y=value))
 
 
 
-jmselec<-(jm$Ulength)/jm$avgUy
+jmselec<-(jm$Ulength)/jm$maxUy
 
 df_jm<-melt(jmselec)
 summary(df_jm)
@@ -112,7 +122,7 @@ p_jm <- ggplot(df_jm,aes(x=len,y=value))
 			p_jm <- p_jm + geom_line()
 			p_jm <- p_jm + theme_bw(11)
 			p_jm <- p_jm + facet_wrap(~year,scales="free")
-			p_jm <- p_jm + coord_cartesian(ylim=c(0,7))
+			#p_jm <- p_jm + coord_cartesian(ylim=c(0,7))
 			
 			print(p_jm)
 #ggsave("selec_jm.pdf", plot=p_jm)
@@ -130,30 +140,144 @@ print(xtable(params), type="latex", file="/Users/catarinawor/Documents/length_SR
 #===========================================================
 ##plot selectivities
 
+names(hake)
+hake$yield/hake$msy  
+hake$maxUy/hake$umsy
+
+jm$yield/jm$msy
+
+jm$maxUy/jm$umsy
+
+
 hk_msy<-data.frame(year=rep(hake$yr,2),value=c(hake$umsy,hake$msy),variable=rep(c("Umsy","msy"),each=length(hake$msy)),species=rep("hake",length(hake$msy)*2))
+hk_Umsy<-data.frame(year=rep(hake$yr,2),value=c(hake$umsy),variable=rep(c("Umsy","msy"),each=length(hake$msy)),species=rep("hake",length(hake$msy)))
+
 jm_msy<-data.frame(year=rep(jm$yr,2),value=c(jm$umsy,jm$msy),variable=rep(c("Umsy","msy"),each=length(jm$msy)), species=rep("jack mackerel",length(jm$msy)*2))
 
-msy_df<-rbind(hk_msy,jm_msy)
+
+hk_it<- data.frame(year=hake$iyr,species=rep("hake",length(hake$iyr)),
+		observed=hake$survB, predicted= hake$q*hake$predSurvB)
+jm_it<- data.frame(year=jm$iyr,species=rep("jack mackerel",length(jm$iyr)),
+		observed=jm$survB, predicted= jm$q*jm$predSurvB)
+
+it_df<-rbind(hk_it,jm_it)
+
+setwd("/Users/catarinawor/Documents/length_SRA/R/plots/figs")
+
+
+pit<-ggplot(it_df)
+pit<-pit+geom_line(aes(x=year,y=predicted),size = 1.2)
+pit<-pit+geom_point(aes(x=year,y=observed),shape = 21, stroke = 1.2)
+pit<-pit+facet_wrap(~species,scales="free")
+pit<-pit+ ylab("Index of abundance")
+pit<-pit+ theme_bw(16) + xlab(" ")
+pit <- pit +coord_cartesian(xlim = c(1975,2013))
+pit
 
 
 
-pm<-ggplot(hk_msy)
+pit<-ggplot(it_df)
+pit<-pit+geom_line(aes(x=year,y=predicted),size = 1.2)
+pit<-pit+geom_point(aes(x=year,y=observed),shape = 21, stroke = 1.2)
+pit<-pit+facet_wrap(~species,scales="free")
+pit<-pit+ ylab("Index of abundance")
+pit<-pit+ theme_bw(16) + xlab(" ")
+pit <- pit +coord_cartesian(xlim = c(1975,2013))
+pit
+
+
+it_df<-rbind(hk_it,jm_it)
+
+
+
+
+
+pm<-ggplot(msyall)
 pm<-pm+geom_line(aes(x=year,y=value))
 pm<-pm+geom_point(aes(x=year,y=value))
-pm<-pm+facet_wrap(~ variable, scales="free")
+pm<-pm+  ylab("MSY")
+pm<-pm+  xlab(" ") + theme_bw(16)
+pm<-pm+facet_wrap(~ species, scales="free")
 pm
 
+umsyall<-all_df[all_df$variable=="Umsy",]
+
+pu<-ggplot(umsyall)
+pu<-pu+geom_line(aes(x=year,y=value))
+pu<-pu+geom_point(aes(x=year,y=value))
+pu<-pu+  ylab(expression(paste("U"["MSY"])))
+pu<-pu+  xlab("Year ")+ theme_bw(16)
+pu<-pu+facet_wrap(~ species, scales="free")
+pu
 
 
-pm<-ggplot(msy_df)
-pm<-pm+geom_line(aes(x=year,y=value))
-pm<-pm+geom_point(aes(x=year,y=value))
-pm<-pm+facet_wrap(species~ variable, scales="free")
-pm
+plot_grid(pith,pitj,pm,pu, ncol=1)
 
-pm<-pm+facet_wrap(~variable+species, scales="free")
+theme_new <- theme_set(theme_bw(16) )
+theme_new <- theme_update(plot.title = element_text(hjust = 0.5,face="bold"))
 
-?facet_wrap
+
+pith<-ggplot(hk_it)
+pith<-pith+geom_line(aes(x=year,y=predicted),size = 1.2)
+pith<-pith+geom_point(aes(x=year,y=observed),shape = 21, stroke = 1.2)
+pith<-pith+ ylab("Index of abundance")
+pith<-pith+ theme_new() + xlab(" ") 
+pith<-pith+ ggtitle("Pacific hake")
+pith<-pith +coord_cartesian(xlim = c(1975,2013))
+pith
+
+pitj<-ggplot(jm_it)
+pitj<-pitj+geom_line(aes(x=year,y=predicted),size = 1.2)
+pitj<-pitj+geom_point(aes(x=year,y=observed),shape = 21, stroke = 1.2)
+pitj<-pitj+ ylab(" ") 
+pitj<-pitj+ ggtitle("jack mackerel")
+pitj<-pitj+ theme_new()  + xlab(" ")
+pitj<-pitj +coord_cartesian(xlim = c(1980,2013))
+pitj
+
+
+msyhk<-hk_msy[hk_msy$variable=="msy",]
+umsyhk<-hk_msy[hk_msy$variable=="Umsy",]
+
+msyjm<-jm_msy[jm_msy$variable=="msy",]
+umsyjm<-jm_msy[jm_msy$variable=="Umsy",]
+
+
+pmh<-ggplot(msyhk)
+pmh<-pmh+geom_line(aes(x=year,y=value))
+pmh<-pmh+geom_point(aes(x=year,y=value))
+pmh<-pmh+  ylab("MSY") 
+pmh<-pmh+  xlab(" ") + theme_new()
+pmh
+
+
+puh<-ggplot(umsyhk)
+puh<-puh+geom_line(aes(x=year,y=value))
+puh<-puh+geom_point(aes(x=year,y=value))
+puh<-puh+  ylab(expression(paste("U"["MSY"])))
+puh<-puh+  xlab("Year ")+ theme_new()
+puh
+
+
+pmj<-ggplot(msyjm)
+pmj<-pmj+geom_line(aes(x=year,y=value))
+pmj<-pmj+geom_point(aes(x=year,y=value))
+pmj<-pmj+  ylab(" ")
+pmj<-pmj+  xlab(" ") + theme_new()
+pmj
+
+
+puj<-ggplot(umsyjm)
+puj<-puj+geom_line(aes(x=year,y=value))
+puj<-puj+geom_point(aes(x=year,y=value))
+puj<-puj+  ylab(" ")
+puj<-puj+  xlab("Year ")+ theme_new()
+puj
+
+setwd("/Users/catarinawor/Documents/length_SRA/R/plots/figs")
+
+plot_grid(pith,pitj,pmh,pmj,puh,puj, ncol=2, align = 'h')
+ggsave("real_examples.pdf")
 
 
 	msy=c(hake$msy,jm$msy),umsy=c(hake$umsy,jm$umsy))
