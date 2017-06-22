@@ -542,24 +542,24 @@ FUNCTION SRA
 	//exit(1);
 
 		//tradition
-		for( int b = 1; b <= nlen; b++ )
-		{ 
+		//for( int b = 1; b <= nlen; b++ )
+		//{ 
 		//	//  exploitation rate relative to fully recruited U(expected value?) at length over al years
 		//	// RL: It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
-			muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);	
+		//	muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);	
 		//	//muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);		
-		}
+		//}
 		
 		
 
 
 		
-		for( int y = syr; y <= eyr; y++ )
+		for( int y = syr+2; y <= eyr; y++ )
 		{
-			//for( int b = 1; b <= nlen; b++ )
-			//{ 
-			//	muUl(b) = sum(elem_div(  column(Ulength,b)(y-2,y),avgUy(y-2,y) ) ) / 4.;		
-			//}
+			for( int b = 1; b <= nlen; b++ )
+			{ 
+				muUl(b) = sum(elem_div(  column(Ulength,b)(y-2,y),avgUy(y-2,y) ) ) / 4.;		
+			}
 			
 			// penalty against dramatic changes in vulnerability?? 
 			//Upen( y ) = pow( Ulength( y ) / posfun( avgUy( y ), tiny, fpen ) - muUl, 2. );	
