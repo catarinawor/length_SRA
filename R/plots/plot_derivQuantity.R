@@ -136,7 +136,7 @@ plot_derivQuant_publ <- function( M )
 
 	
 	p <- ggplot(df2) 
-	p <- p + geom_boxplot(aes(x=scenario,y=value))+coord_flip(ylim=c(-1, 1))
+	p <- p + geom_boxplot(aes(x=scenario,y=valuep))+coord_flip(ylim=c(-100, 100))
 	p <- p + geom_hline(yintercept=0, color="black", size=1.2, alpha=0.3)
 	p <- p + labs(x="Scenario",y="% Relative Error")
 	p <- p + facet_wrap(~parameter,ncol = 1,labeller = label_parsed)
@@ -151,6 +151,11 @@ plot_derivQuant_publ <- function( M )
 	ggsave("derivQuant_publ.pdf", plot=p)
 
 	ggplot_build(p)$data
+
+	ggplot_build(p)$data[[1]]$middle[ggplot_build(p)$data[[1]]$PANEL==1]
+	ggplot_build(p)$data[[1]]$middle[ggplot_build(p)$data[[1]]$PANEL==2]
+	ggplot_build(p)$data[[1]]$middle[ggplot_build(p)$data[[1]]$PANEL==3]
+	ggplot_build(p)$data[[1]]$middle[ggplot_build(p)$data[[1]]$PANEL==4]
 	
 }
 
