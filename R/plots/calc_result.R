@@ -8,11 +8,11 @@
 
 #TODO
 #
- 
+#Vulpen=4
 DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base"
 
-#these are the actual results
-##DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit"
+#Vulpen=100
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit"
 
 #this is the one it's currently "oficial"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/qpr"
@@ -20,6 +20,12 @@ DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base"
 #
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/new_bc"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen10"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen2"
+#Vulpen=2 and running avg using 2 yrs
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen6"
+
+
 
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/cann"
 
@@ -67,5 +73,6 @@ plot_Sel( SIMSdat )
 plot_ugone(SIMSdat )	
 
 
-
-
+names(SIMSdat[[i]])
+names(SIMSdat[[i]]$SArep)
+SIMSdat[[i]]$SArep$sigVul

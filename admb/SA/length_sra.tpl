@@ -558,7 +558,7 @@ FUNCTION SRA
 		{
 			for( int b = 1; b <= nlen; b++ )
 			{ 
-				muUl(b) = sum(elem_div(  column(Ulength,b)(y-2,y),avgUy(y-2,y) ) ) / 4.;		
+				muUl(b) = sum(elem_div(  column(Ulength,b)(y-2,y),avgUy(y-2,y) ) ) / 3.;		
 			}
 			
 			// penalty against dramatic changes in vulnerability?? 
@@ -931,6 +931,7 @@ REPORT_SECTION
 	
 	REPORT(predSurvB);
 	REPORT(survB);
+	REPORT(psurvB);
 	
 	report<<"bt\n"<<Nat*wa<<endl;
         dvector yield=value(elem_prod(Nat,Uage)*wa);
