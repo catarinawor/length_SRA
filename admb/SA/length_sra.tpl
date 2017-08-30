@@ -191,6 +191,8 @@ PARAMETER_SECTION
 
  	vector lvec(1,2);
  	vector pvec(1,2);
+ 	vector npvec(1,npar);
+
 	objective_function_value nll;
 	
 	number fpen;						// penalty to be added to likelihood when posfun is used
@@ -200,10 +202,10 @@ PARAMETER_SECTION
 	//number k;							// von Bertalanffy metabolic parameter (estimated - based on log_k)
 	//number to;
 	//number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
-	number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
-	number Ro;							// unfished recruitment (estimated - based on log_Ro)
+	likeprof_number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
+	likeprof_number Ro;							// unfished recruitment (estimated - based on log_Ro)
 	//number Rbar;	
-	number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
+	likeprof_number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
 	number sigR;
 	//number sigVul;	
@@ -643,7 +645,7 @@ FUNCTION objective_function
 	//lvec(2)=dnorm(log_wt,sigR);
 	//lvec(1)=norm2(zstat)/cv_it;
 	//lvec(2)=0;
-	dvar_vector npvec(1,npar);
+	//dvar_vector npvec(1,npar);
 	npvec.initialize();
 	
 	//dvar_vector pvec(1,1);
@@ -779,10 +781,33 @@ FUNCTION objective_function
 	//cout<<"sum(npvec) "<<endl<<sum(npvec)<<endl;
 	// RL: see commment above
 	//==================================================================================
+	//Lprof runs
+	//nll =  sum(lvec); non-positive def hessian
+	//nll =  sum(pvec); non-positive def hessian
+	//nll =   sum(lvec)+ sum(pvec); non-positive def hessian
+	//nll =   sum(lvec)+ sum(pvec); non-positive def hessian
+	//nll =   sum(lvec)+ sum(pvec)+ ssvul/(sigVul); good
+	//nll =   sum(lvec)+ sum(pvec)+sum(penmaxUy); good
+	//nll =   sum(lvec)+ sum(pvec)+sum(npvec); good
+	//nll =  sum(lvec) +sum(pvec)+sum(npvec)+ ssvul/(sigVul)+sum(penmaxUy);
+
+	///nll =  sum(lvec) +sum(pvec)+sum(npvec)+ ssvul/(sigVul)+sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
+	//
 	
-	//scenario 1
-	nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul)+fffpen+fpen+ffpen +sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
+	//+ ssvul/(sigVul);
+	//+sum(penmaxUy);
+	//+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul)+fffpen+fpen+ffpen +sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
 	
+
+	//scenario 1 - optimum
+	nll =  sum(lvec) +sum(pvec)+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul)+fffpen+fpen+ffpen +sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
+	
+
+	
+
+
+
+
 	//scenario 2
 	//nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul) +sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
 	
@@ -963,6 +988,13 @@ REPORT_SECTION
 	REPORT(msy);
 	REPORT(phie);
 
+
+	
+	//ofs<<"priork "<< "\t"  << sum(npvec)<< "\t"  <<Ro <<endl;
+	//ofs<<"Vulpen"<< "\t"  << ssvul/(sigVul)<< "\t"  <<Ro <<endl;
+	//ofs<<"Upen"<< "\t"  << sum(penmaxUy)<< "\t" <<Ro <<endl;
+
+
 RUNTIME_SECTION
 convergence_criteria .00001, .0001, .00001
 maximum_function_evaluations 100, 1000, 10000
@@ -994,6 +1026,14 @@ GLOBALS_SECTION
 	long hour,minute,second;
 	double elapsed_time;
 FINAL_SECTION
+
+	ofstream ofs("../../lprofs/LL_prof.rep",ios::app);
+
+	ofs<<"Ro"<< "\t" << Ro << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
+	ofs<<"Rinit"<< "\t" << Rinit << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
+	ofs<<"reck"<< "\t" << reck << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
+	
+
 	time(&finish);
 	elapsed_time=difftime(finish,start);
 	hour=long(elapsed_time)/3600;

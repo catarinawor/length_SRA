@@ -13,7 +13,7 @@ NUMBERS := $(shell seq 1 ${LAST})
 
         
 
-all: run 
+all:  
 	./$(EXEC) -ind $(DAT) $(ARG)
 
 compi: $(EXEC) $(EXECTPL)

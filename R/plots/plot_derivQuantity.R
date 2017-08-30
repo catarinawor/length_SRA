@@ -18,7 +18,7 @@ require(tidyr)
 require(ggplot2)
 
 
-plot_derivQuant <- function( M )
+plot_derivQuant <- function( M, sv=F, nome="" )
 {
 	cat("plot_derivQuant")
 
@@ -78,8 +78,12 @@ plot_derivQuant <- function( M )
 	#p <- p + annotate("text" , x = 1.2, y = 0.4, label = paste("n = ",conv_n))
 	print(p)
 
-	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-	ggsave("derivQuant.pdf", plot=p)
+	if(sv==TRUE){
+		setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
+		setwd("/Users/catarinawor/Documents/Length_SRA/report")
+		ggsave(paste(nome,"derivQuant.pdf",sep=""), plot=p)
+	
+	}
 	
 }
 
@@ -131,14 +135,15 @@ plot_derivQuant_publ <- function( M )
 	df2$valuep<-df2$value*100
 	df2$converge<-conv_n[df2$scnnumber]
 
-	
+	df2$scenario<-factor(df2$scenario,levels = rev(levels(df2$scenario)),ordered = TRUE)
+
 
 
 	
 	p <- ggplot(df2) 
-	p <- p + geom_boxplot(aes(x=scenario,y=valuep))+coord_flip(ylim=c(-100, 100))
+	p <- p + geom_boxplot(aes(x=scenario,y=value))+coord_flip(ylim=c(-1, 1))
 	p <- p + geom_hline(yintercept=0, color="black", size=1.2, alpha=0.3)
-	p <- p + labs(x="Scenario",y="% Relative Error")
+	p <- p + labs(x="Scenario",y="Relative Proportional Error")
 	p <- p + facet_wrap(~parameter,ncol = 1,labeller = label_parsed)
 	p <- p + theme_bw(12)
 	p <- p + theme(axis.text = element_text(face="bold", size=12),

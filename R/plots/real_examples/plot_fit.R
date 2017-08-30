@@ -120,8 +120,16 @@ dim(hake$Ulength)
 
 apply(hake$Ulength,1,mean)
 
-hakeselec<-(hake$Ulength)/hake$avgUy
-hake$len
+hakeselec<-(hake$Ulength)#/hake$avgUy
+hakeclt<-(hake$Clt)
+
+stdhakeselec<-hakeselec/apply(hakeselec,1,max) 
+stdhakeselec<-stdhakeselec+matrix(1:39+1974,ncol=ncol(stdhakeselec),nrow=nrow(stdhakeselec),byrow=F)
+
+stdhakeclt<-hakeclt/apply(hakeclt,1,max) 
+stdhakeclt<-stdhakeclt+matrix(1:39+1974,ncol=ncol(stdhakeclt),nrow=nrow(stdhakeclt),byrow=F)
+
+
 
 df<-melt(hakeselec,variable.name=c("year", "length"))
 summary(df)
@@ -132,27 +140,125 @@ df$value[df$value==0]<-NA
 df$len<-hake$len[as.numeric(df$Var2)]
 df$year<-hake$yr[as.numeric(df$Var1)]
 
-df1<-df[df$len<63,]
+
 
 p2 <- ggplot(df,aes(x=len,y=value)) 
 			p2 <- p2 + geom_line()
 			p2 <- p2 + theme_bw(11)
-			#p2 <- p2 + coord_cartesian(xlim=c(35,55))
 			p2 <- p2 + facet_wrap(~year,scales="free",dir="v") 
 			print(p2)
 
 			#p2 <- p2 + coord_cartesian(ylim=c(0,7))
 			#print(p2)
+setwd("/Users/catarinawor/Documents/length_SRA/R/plots/figs")
+ggsave("selec_hake.pdf", plot=p2)
 
-#ggsave("selec_hake.pdf", plot=p2)
+df2<-melt(stdhakeselec,variable.name=c("year", "length"))
+summary(df2)
+df2$value[df2$value==0]<-NA
+
+df2$len<-hake$len[as.numeric(df2$Var2)]
+df2$year<-as.factor(hake$yr[as.numeric(df2$Var1)])
+df2$yearn<-(hake$yr[as.numeric(df2$Var1)])
+df2$type<-"Ult"
+
+
+df3<-melt(stdhakeclt,variable.name=c("year", "length"))
+summary(df3)
+df3$value[df3$value==0]<-NA
+
+df3$len<-hake$len[as.numeric(df3$Var2)]
+df3$year<-as.factor(hake$yr[as.numeric(df3$Var1)])
+df3$yearn<-(hake$yr[as.numeric(df3$Var1)])
+df3$type<-"Clt"
+
+
+df2[df2$year==1975,]
+
+df4<-rbind(df2,df3)
+
+p22 <- ggplot(df2,aes(x=len,y=value,fill=year)) 
+		p22 <- p22 + geom_line()
+		p22 <- p22 + theme_bw(11)
+		p22 <- p22 + scale_y_continuous( breaks=1975:2013,labels=1975:2013)
+		p22 <- p22 + xlab("Length (cm)")+  ylab("Year")
+		p22 <- p22 + ggtitle("Pacific hake")
+
+p22
+
+
+pselh <- ggplot(df2,aes(x=len,color=year),alpha=.3) 
+		pselh <- pselh + geom_ribbon(aes(ymin=yearn,ymax=value))
+		pselh <- pselh + theme_bw(11)
+		pselh <- pselh + scale_y_continuous(breaks=1975:2013,labels=1975:2013)
+		pselh <- pselh + xlab("Length (cm)")+  ylab("Year")
+		pselh <- pselh + ggtitle("Pacific hake")
+		pselh <- pselh +theme(legend.position="none")
+		pselh <- pselh + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank())
+		pselh <- pselh + scale_color_manual(values=rep("black",39))
+
+pselh
+
+
+
+puch <- ggplot(df4,aes(x=len,color=year, fill=type)) 
+		puch <- puch + geom_ribbon(aes(ymin=yearn,ymax=value))
+		puch <- puch + theme_bw(11)
+		puch <- puch + scale_y_continuous(breaks=1975:2013,labels=1975:2013)
+		puch <- puch + scale_color_manual(values=rep("black",39),guide=FALSE)
+		puch <- puch + xlab("Length (cm)")+  ylab("Year")
+		puch <- puch + ggtitle("Pacific hake")
+		puch <- puch + scale_fill_grey( start = 0.05, end = 0.8, na.value = "red")
+
+		puch <- puch +theme(legend.position="bottom")
+		puch <- puch + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank())
+
+puch
+
+
+puch <- ggplot(df4,aes(x=len,color=type)) 
+		puch <- puch + geom_line(aes(y=value))
+		puch <- puch + theme_bw(11)
+		puch <- puch + facet_wrap(~year)
+		puch <- puch + scale_y_continuous(breaks=1975:2013,labels=1975:2013)
+		#puch <- puch + scale_color_manual(values=rep("black",39),guide=FALSE)
+		puch <- puch + xlab("Length (cm)")#+  ylab("Year")
+		puch <- puch + ggtitle("Pacific hake")
+		puch <- puch + scale_color_grey( start = 0.05, end = 0.8, na.value = "red")
+
+		puch <- puch +theme(legend.position="bottom")
+		puch <- puch + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank())
+
+puch
+
+
+p22 <- ggplot(df2,aes(x=len,y=value)) 
+			p22 <- p22 + geom_line()
+			p22 <- p22 + theme_bw(11)
+			p22 <- p22 + facet_wrap(~year,scales="free",dir="v") 
+			print(p22)
+
+
+
+phs <- ggplot(df2, aes(Var2, Var1)) + geom_tile(aes(fill = value),
+    colour = "white") + scale_fill_gradient(low = "white", high = "steelblue")
+phs
+
+
+
 #jack jack_mackerel
 
 
 
 
-jmselec<-(jm$Ulength)/jm$maxUy
+jmselec<-(jm$Ulength)#/jm$avgUy
+jmclt<-(jm$Clt)#/jm$avgUy
 
 df_jm<-melt(jmselec)
+
 summary(df_jm)
 df_jm$value[df_jm$value==0]<-NA
 
@@ -168,7 +274,108 @@ p_jm <- ggplot(df_jm,aes(x=len,y=value))
 			#p_jm <- p_jm + coord_cartesian(ylim=c(0,7))
 			
 			print(p_jm)
-#ggsave("selec_jm.pdf", plot=p_jm)
+ggsave("selec_jm.pdf", plot=p_jm)
+
+
+stdjmselec<-jmselec/apply(jmselec,1,max) 
+
+stdjmselec<-stdjmselec+matrix(1:34+1979,ncol=ncol(stdjmselec),nrow=nrow(stdjmselec),byrow=F)
+
+stdjmclt<-jmclt/apply(jmclt,1,max) 
+
+stdjmclt<-stdjmclt+matrix(1:34+1979,ncol=ncol(stdjmclt),nrow=nrow(stdjmclt),byrow=F)
+
+
+
+
+df2<-melt(stdjmselec,variable.name=c("year", "length"))
+summary(df2)
+df2$value[df2$value==0]<-NA
+
+df2$len<-jm$len[as.numeric(df2$Var2)]
+df2$year<-as.factor(jm$yr[as.numeric(df2$Var1)])
+df2$yearn<-(jm$yr[as.numeric(df2$Var1)])
+df2$type<-"Ult"
+
+df3<-melt(stdjmclt,variable.name=c("year", "length"))
+
+df3$value[df3$value==0]<-NA
+
+df3$len<-jm$len[as.numeric(df3$Var2)]
+df3$year<-as.factor(jm$yr[as.numeric(df3$Var1)])
+df3$yearn<-(jm$yr[as.numeric(df3$Var1)])
+df3$type<-"Clt"
+
+dfjm4<-rbind(df2,df3)
+
+p22 <- ggplot(df2,aes(x=len,y=value,fill=year)) 
+		p22 <- p22 + geom_line()
+		p22 <- p22 + theme_bw(11)
+		p22 <- p22 + scale_y_continuous( breaks=1975:2013,labels=1975:2013)
+		p22 <- p22 + xlab("Length (cm)")+  ylab("Year")
+		p22 <- p22 + ggtitle("Pacific hake")
+
+p22
+
+
+pseljm <- ggplot(df2,aes(x=len,color=year),alpha=.3) 
+		pseljm <- pseljm + geom_ribbon(aes(ymin=yearn,ymax=value))
+		pseljm <- pseljm + theme_bw(11)
+		pseljm <- pseljm + scale_y_continuous(breaks=1980:2013,labels=1980:2013)
+		pseljm <- pseljm + xlab("Length (cm)")+  ylab("Year")
+		pseljm <- pseljm + ggtitle("jack mackerel")
+		pseljm <- pseljm +theme(legend.position="none")
+		pseljm <- pseljm + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank())
+		pseljm <- pseljm + scale_color_manual(values=rep("black",39))
+
+pseljm
+
+
+
+
+
+
+pucjm <- ggplot(dfjm4,aes(x=len,color=year, fill=type)) 
+		pucjm <- pucjm + geom_ribbon(aes(ymin=yearn,ymax=value,alpha=0.5))
+		pucjm <- pucjm + theme_bw(11)
+		pucjm <- pucjm + scale_y_continuous(breaks=1975:2013,labels=1975:2013)
+		pucjm <- pucjm + scale_color_manual(values=rep("black",39),guide=FALSE)
+		pucjm <- pucjm + xlab("Length (cm)")+  ylab("Year")
+		pucjm <- pucjm + ggtitle("jack mackerel")
+		#pucjm <- pucjm + scale_fill_grey( start = 0.05, end = 0.8, na.value = "red")
+
+		pucjm <- pucjm +theme(legend.position="bottom")
+		pucjm <- pucjm + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank())
+
+pucjm
+
+
+pucjm <- ggplot(dfjm4,aes(x=len, color=type)) 
+		pucjm <- pucjm + geom_line(aes(y=value))
+		pucjm <- pucjm + theme_bw(11)
+		pucjm <- pucjm + facet_wrap(~year)
+		pucjm <- pucjm + scale_y_continuous(breaks=1975:2013,labels=1975:2013)
+		#pucjm <- pucjm + scale_color_manual(values=rep("black",39),guide=FALSE)
+		pucjm <- pucjm + xlab("Length (cm)") #+  ylab("Year")
+		pucjm <- pucjm + ggtitle("jack mackerel")
+		pucjm <- pucjm + scale_color_grey( start = 0.05, end = 0.8, na.value = "red")
+
+		pucjm <- pucjm +theme(legend.position="bottom")
+		pucjm <- pucjm + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+panel.background = element_blank())
+
+pucjm
+
+
+
+plot_grid(pselh,pseljm, ncol=2, align = 'h')
+ggsave("real_selectivities.pdf")
+
+plot_grid(puch,pucjm, ncol=2, align = 'h')
+ggsave("real_Ult_Clt.pdf")
+
 
 #===========================================================
 ##table of estimated parameters
@@ -315,6 +522,7 @@ puj
 setwd("/Users/catarinawor/Documents/length_SRA/R/plots/figs")
 
 plot_grid(pith,pitj,pmh,pmj,puh,puj, ncol=2, align = 'h')
+
 ggsave("real_examples.pdf")
 
 
