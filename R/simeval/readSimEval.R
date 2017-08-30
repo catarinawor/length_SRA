@@ -45,7 +45,8 @@ readOutput <- function(dir)
 
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/dome_shaped/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/dome_shaped_highU/")
-	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/highsigR/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/highsigR/")
+	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
 		
 
 	###setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/no_bc/")
