@@ -580,7 +580,7 @@ FUNCTION output_data
 	ofs<<"# yt " << endl << vbt(rep_yr,eyr)  <<endl;
 	ofs<<"# Clt"<< endl << obsClt.sub(rep_yr,eyr) <<endl;
 	//ofs<<"# Clt"<< endl << Clt.sub(rep_yr,eyr) <<endl;
-	ofs<<"# linf "<< endl << Linf <<endl;
+	ofs<<"# linf "<< endl << Linf*0.95 <<endl;
 	ofs<<"# k "<< endl << k <<endl;
 	ofs<<"# to " << endl << to <<endl;
 	ofs<<"# cvl " << endl << cvl <<endl;

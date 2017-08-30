@@ -18,7 +18,8 @@
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/linf50vp4"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/dome_shaped"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/dome_shaped_highU"
-DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/highsigR"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/highsigR"
+DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/biasedlinf"
 
 
 #Vulpen=100
@@ -67,18 +68,18 @@ for(p in 1:length(plotfiles)){
 
 length(SIMSdat)
 	
-plot_params( SIMSdat ,Rinit=TRUE, sv=T, nome="highSR")
+plot_params( SIMSdat ,Rinit=TRUE, sv=T, nome="biasLinf")
 plot_params( SIMSdat ,Rinit=FALSE)
 plot_params_publ( SIMSdat ,Rinit=TRUE)
-plot_derivQuant( SIMSdat, sv=T, nome="highSR" )
+plot_derivQuant( SIMSdat, sv=T, nome="biasLinf" )
 plot_derivQuant_publ( SIMSdat )
-plot_SBiomass( SIMSdat , sv=T, nome="highSR")
+plot_SBiomass( SIMSdat , sv=T, nome="biasLinf")
 plot_udevs( SIMSdat )
 plot_Recdevs( SIMSdat )
 #plot_udevs_all( SIMSdat )
 #plot_LLvals( SIMSdat )
-plot_Sel( SIMSdat ,  sv=T, nome="highSR" )
-plot_Ult_Clt( SIMSdat , sv=T, nome="highSR")
+plot_Sel( SIMSdat ,  sv=T, nome="biasLinf" )
+plot_Ult_Clt( SIMSdat , sv=T, nome="biasLinf")
 #plot_expRecdevs( SIMSdat )
 #plotLengthComps( SIMSdat )
 plot_ugone(SIMSdat )	

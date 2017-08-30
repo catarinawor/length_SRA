@@ -1,5 +1,5 @@
 #Scenario number
-1
+2
 #yr
 1
 #eyr
@@ -25,7 +25,7 @@
 # SR function
 #1
 #sigR
-1.6
+1.0
 #sigVul
 100
 #tau
