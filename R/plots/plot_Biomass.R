@@ -19,7 +19,7 @@ require(tidyr)
 require(ggplot2)
 
 
-plot_SBiomass <- function( M )
+plot_SBiomass <- function( M , sv=F, nome="")
 {
 	cat("plot_SBiomass")
 
@@ -90,9 +90,11 @@ plot_SBiomass <- function( M )
 	p <- p + facet_wrap(~scenario,scale="free")
 	print(p)
 
-
-	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-	ggsave("SBiomass.pdf", plot=p)
+	if(sv==TRUE){
+		setwd("/Users/catarinawor/Documents/Length_SRA/report/")
+		ggsave(paste(nome,"SBiomass.pdf",sep=""), plot=p)
+		
+	}	
 	
 }
 

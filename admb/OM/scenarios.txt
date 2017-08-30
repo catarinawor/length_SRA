@@ -1,10 +1,10 @@
 #Base SCN - vulpen=4
 CC
-CO
-CR
-VC
-VO
-VR
+#CO
+#CR
+#VC
+#VO
+#VR
 #Base SCN - vulpen=100
 #CC
 #CO

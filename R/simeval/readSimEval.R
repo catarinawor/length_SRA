@@ -34,8 +34,20 @@ readOutput <- function(dir)
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen10/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen2/")
-	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen6/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen6/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50sel/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50vp4/")
 	
+	#this one is the oneI sent to Carl
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50priork/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50vp50/")
+
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/dome_shaped/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/dome_shaped_highU/")
+	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/highsigR/")
+		
+
 	###setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/no_bc/")
 	
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/cann/")
