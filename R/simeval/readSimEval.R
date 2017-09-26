@@ -26,9 +26,8 @@ readOutput <- function(dir)
 	
 	sims<-readOutput("/Users/catarinawor/Documents/length_SRA/admb/")
 	
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base/")
 	#Rinint  is the one in the results
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/Rinit/")
+	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/Rinit/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/qpr/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/new_bc/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen/")
@@ -40,13 +39,18 @@ readOutput <- function(dir)
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50vp4/")
 	
 	#this one is the oneI sent to Carl
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50priork/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50priork09/")
+
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/test/")
+	
+	
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50vp50/")
 
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/dome_shaped/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/dome_shaped_highU/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/highsigR/")
-	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf60/")
 		
 
 	###setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/no_bc/")

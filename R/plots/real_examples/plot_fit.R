@@ -101,6 +101,34 @@ pit
 
 hake$predSurvB
 
+#===========================================================
+#recruitment deviations
+
+length(hake$yr)
+length(hake$wt[length(hake$age):length(hake$wt)])
+
+length(jm$yr)
+length(jm$wt[length(jm$age):length(jm$wt)])
+
+
+
+
+names(jm)
+
+hakewt<-data.frame(year=hake$yr,wt=exp(hake$wt[length(hake$age):length(hake$wt)]), species="hake")
+jmwt<-data.frame(year=jm$yr,wt=exp(jm$wt[length(jm$age):length(jm$wt)]), species="jack mackerel")
+
+wtdat<-rbind(hakewt,jmwt)
+
+
+pwt<-ggplot(wtdat)
+pwt<-pwt+geom_line(aes(x=year,y=wt),size = 1.2)
+pwt<-pwt+geom_point(aes(x=year,y=wt),shape = 21, stroke = 1.2)
+pwt<-pwt+facet_wrap(~species,scales="free")
+pwt<-pwt+ ylab("Recruitment deviations")
+pwt<-pwt+ theme_bw(16)
+pwt
+
 
 
 #===========================================================
@@ -254,7 +282,7 @@ phs
 
 
 
-jmselec<-(jm$Ulength)#/jm$avgUy
+jmselec<-(jm$Ulength)/jm$avgUy
 jmclt<-(jm$Clt)#/jm$avgUy
 
 df_jm<-melt(jmselec)
@@ -371,7 +399,7 @@ pucjm
 
 
 plot_grid(pselh,pseljm, ncol=2, align = 'h')
-ggsave("real_selectivities.pdf")
+ggsave("real_selectivities.pdf",width=15,height=22, unit="cm" )
 
 plot_grid(puch,pucjm, ncol=2, align = 'h')
 ggsave("real_Ult_Clt.pdf")
@@ -523,7 +551,7 @@ setwd("/Users/catarinawor/Documents/length_SRA/R/plots/figs")
 
 plot_grid(pith,pitj,pmh,pmj,puh,puj, ncol=2, align = 'h')
 
-ggsave("real_examples.pdf")
+ggsave("real_examples.pdf",width=17,height=22, unit="cm")
 
 
 	msy=c(hake$msy,jm$msy),umsy=c(hake$umsy,jm$umsy))
@@ -563,6 +591,10 @@ p <- ggplot(ndf,aes((year),age,size=value))
 	#p <- p + scale_colour_discrete(guide="none")
 	p <- p + theme_bw(11)
 	print(p)
+
+
+
+
 
 
 #====================================================================

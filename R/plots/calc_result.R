@@ -8,38 +8,22 @@
 
 #TODO
 #
+
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/linf50priork"
+
 #Vulpen=4
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base"
+DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/linf50"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/linf50sel"
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/linf50priork"
-#ainda nao olhei esse
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/linf50vp50"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/linf50vp4"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/dome_shaped"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/dome_shaped_highU"
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/highsigR"
-DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/biasedlinf"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/biasedlinf60"
 
-
-#Vulpen=100
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit"
-
-#this is the one it's currently "oficial"
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/qpr"
-##DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/no_bc"
-#
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/new_bc"
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen"
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen10"
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen2"
-#Vulpen=2 and running avg using 2 yrs
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen6"
-
-
-
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/cann"
-
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/linf50priork09"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/test"
 
 plotlib<-"/Users/catarinawor/Documents/Length_SRA/R/plots"
 #.RFILES     <- list.files(.LIB,pattern="\\.[Rr]$")
@@ -68,21 +52,21 @@ for(p in 1:length(plotfiles)){
 
 length(SIMSdat)
 	
-plot_params( SIMSdat ,Rinit=TRUE, sv=T, nome="biasLinf")
+plot_params( SIMSdat ,Rinit=TRUE, sv=F, nome="")
 plot_params( SIMSdat ,Rinit=FALSE)
 plot_params_publ( SIMSdat ,Rinit=TRUE)
-plot_derivQuant( SIMSdat, sv=T, nome="biasLinf" )
+plot_derivQuant( SIMSdat, sv=F, nome="biasLinf" )
 plot_derivQuant_publ( SIMSdat )
-plot_SBiomass( SIMSdat , sv=T, nome="biasLinf")
+plot_SBiomass( SIMSdat , sv=F, nome="biasLinf")
 plot_udevs( SIMSdat )
 plot_Recdevs( SIMSdat )
 #plot_udevs_all( SIMSdat )
 #plot_LLvals( SIMSdat )
-plot_Sel( SIMSdat ,  sv=T, nome="biasLinf" )
+plot_Sel( SIMSdat ,  sv=F, nome="biasLinf" )
 plot_Ult_Clt( SIMSdat , sv=T, nome="biasLinf")
 #plot_expRecdevs( SIMSdat )
 #plotLengthComps( SIMSdat )
-plot_ugone(SIMSdat )	
+#plot_ugone(SIMSdat )	
 
 
 names(SIMSdat[[i]])

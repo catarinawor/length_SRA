@@ -113,7 +113,7 @@ plot_params <- function( M , Rinit=T , sv=F, nome="")
 	p <- p + theme(axis.text = element_text(face="bold", size=12),
   axis.text.x= element_text(angle=45,hjust = 1),
   axis.title = element_text(face="bold", size=12))
-	p <- p + coord_cartesian(ylim=c(-1, 1))
+	p <- p + coord_cartesian(ylim=c(-0.75, 0.75))
 	p <- p + facet_wrap(~parameter)
 	p <- p + geom_text(data=df2, aes(x=scnnumber, y=0.44, label=converge), parse=TRUE)
 	print(p)
@@ -193,7 +193,7 @@ plot_params_publ <- function( M , Rinit=T )
 
 
 	p <- ggplot(df2) 
-	p <- p + geom_boxplot(aes(x=scenario,y=value))+ coord_flip(ylim=c(-1, 1))
+	p <- p + geom_boxplot(aes(x=scenario,y=value))+ coord_flip(ylim=c(-0.7, 0.7))
 	p <- p + geom_hline(yintercept=0, color="black", size=1.2, alpha=0.3)
 	p <- p + labs(x="Scenario",y="Relative Proportional Error")
 	p <- p + theme_bw(12) 

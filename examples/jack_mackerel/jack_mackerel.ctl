@@ -14,10 +14,10 @@
 4
 ## ival		lb      ub      phz     prior 	 p1      p2        #parameter  ##
 ## ——————————————————————————————————————————————————————————————————————— ##
-3.0		-3.0 	8.0	 	 1		0	-3.0		8.0		#log_ro   	  ##
-3.0 	-3.0	8.0	 	 1		0	-3.0		8.0	#log_rinit   	  ##
+6.0		-3.0 	10.0	 	 1		0	-3.0		10.0		#log_ro   	  ##
+6.0 	-3.0	10.0	 	 1		0	-3.0		10.0	#log_rinit   	  ##
 #1.7 		1.0		6.0	 	 1		0	1.0			6.0		#log_reck    	  ##
-1.7 		1.0		6.0	 	 1		1	2.3			0.9		#log_reck    	  ##
+2.7 		1.0		6.0	 	 1		1	2.3			0.2		#log_reck    	  ##
 -0.4462871	-3		1		-3		0	-3		1	#log_sigR   ##
 ## ———————————————————————————————————————————————————————————————————————##
 ##initial values for recruitment deviations ##
@@ -30,5 +30,7 @@
 #log(q) prior - same codes as above
 #prior   p1      p2 
 5		  -10	 20
+#closed loop  
+0
 ##initial values for recruitment deviations in first year ##
 999
