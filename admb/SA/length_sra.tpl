@@ -122,6 +122,8 @@ DATA_SECTION
 
 	init_vector plogq(1,3); 
 
+	init_int closed_loop;
+
 	init_int dend2;  
 
 	LOCAL_CALCS
@@ -171,7 +173,7 @@ PARAMETER_SECTION
 	//!! log_Ro=log(iRo);
  	
 		
-	//init_bounded_dev_vector wt(syr+1,eyr,-5.,5.,3); 
+	//init_bounded_dev_vector wt(syr+1,eyr,-9.,9.,3); 
 
 	//init_vector wt(syr+1,eyr,2); 
 	//init_bounded_vector wt(syr+1,eyr,-5.,5.,3); 
@@ -334,20 +336,23 @@ FUNCTION incidence_functions
 	{
 		lxo( a ) = lxo(a-1)*Sa;
 	}	
-	lxo( nage ) /= 1. - Sa;
+	lxo( nage ) /= (1. - Sa);
 
 	
 	switch(wasw){
 		case 1: 
 			wa = waobs;
+			//cout<<"wa is "<< wa <<endl;
 		break;
 
 		default:
+
+			//cout<<"wa is not "<< wa <<endl;
 			wa = alw * pow( la, blw );
 		break;
 
 	}
-	wa = alw * pow( la, blw );
+	
 
 	phie = lxo * fec;
 
@@ -414,8 +419,8 @@ FUNCTION initialYear
 	{
 		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1.  - u_init) ;	//  initial age-structure
 	}		
-	//Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
-	Nat(syr,nage)+=  Nat( syr, nage ) *Sa*  (1. - u_init);
+	Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
+	//Nat(syr,nage)+=  Nat( syr, nage ) *Sa*  (1. - u_init);
 	
 	for( int a = sage; a <= nage; a++ ){
 		Nat( syr, a ) *=  mfexp(wt(syr-a+1.) );//- sigR*sigR/2.
@@ -490,8 +495,8 @@ FUNCTION SRA
 				
 		}
 		
-		Nat( y, nage ) +=  Nat( y-1, nage ) *Sa*  (1. - Uage( y-1)( nage ));
-		//Nat( y, nage ) /= (1. - Sa * ( 1. - Uage( y - 1, nage)));
+		//Nat( y, nage ) +=  Nat( y-1, nage ) *Sa*  (1. - Uage( y-1)( nage ));
+		Nat( y, nage ) /= (1. - Sa * ( 1. - Uage( y - 1, nage)));
 		
 		for( int aa = sage; aa <= nage; aa++ ){
 			Nat( y )( aa ) =  posfun( Nat( y )( aa ), tiny, fpen);
@@ -710,13 +715,13 @@ FUNCTION objective_function
 	//else
 	//{
 	if(last_phase()){
-		pvec(1)=dnorm(wt,2.);
+		pvec(1)=dnorm(wt,sigR);
 		//pvec(1)=dnorm(wt,2.0);
 		dvariable s = 0.;
 		s = mean(wt);
 		pvec(2)=1.e5 * s*s;
 	}else{
-		pvec(1)=100.*norm2(wt)/sigR;
+		pvec(1)=norm2(wt)/sigR;
 		dvariable s = 0.;
 		s = mean(wt);
 		pvec(2)=1.e5 * s*s;
@@ -891,6 +896,21 @@ FUNCTION calc_msy
 			} 
 		}
 	}
+
+
+	if(closed_loop){
+	
+		ofstream cfs("../../../Lagrangian/admb/OM/TAC_input.dat");
+		cfs<<"#fspr_LSRA" << endl << -log(1-umsy(eyr)) <<endl;
+		cfs<<"#seltotal_LSRA" << endl << selage(eyr) <<endl;
+		cfs<<"#yNage_LSRA" << endl << Nat(eyr) <<endl;
+		cfs<<"#Sbo_LSRA" << endl << sbo <<endl;
+		cfs<<"#ySB_LSRA" << endl << fec * Nat(eyr) <<endl;
+	
+	}
+	
+
+
 	
 FUNCTION output_runone
 	
@@ -945,6 +965,7 @@ REPORT_SECTION
 	REPORT(to);
 	REPORT(cvl);
  	REPORT(wt);
+
  	
  
  	dvector predSurvB(1,nyt);
@@ -979,6 +1000,7 @@ REPORT_SECTION
 	REPORT(q);
 	REPORT(Sa);
 	REPORT(la);
+	REPORT(wa);
 	REPORT(vul);
 	REPORT(Nlt);
 	REPORT(Clt);
@@ -997,7 +1019,7 @@ REPORT_SECTION
 
 RUNTIME_SECTION
 convergence_criteria .00001, .0001, .00001
-maximum_function_evaluations 100, 1000, 10000
+maximum_function_evaluations 1000, 10000, 10000
 
 	
 TOP_OF_MAIN_SECTION

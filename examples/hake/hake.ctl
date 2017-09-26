@@ -35,5 +35,7 @@
 #log(q) prior - same codes as above
 #prior   p1      p2 
 1		   0		 0.1
+#closed loop
+0
 ##initial values for recruitment deviations in first year ##
 999

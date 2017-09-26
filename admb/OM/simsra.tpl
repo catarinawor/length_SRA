@@ -353,7 +353,7 @@ FUNCTION populationDynamics
 	    //recruitment
 	    //Nat(i+1,sage) = (reca*sbt(i)/(1.+recb*sbt(i)))*mfexp((wt(i+1)-sigR*sigR/2.)*proc_err);
 	   
-	    Nat(i+1,sage) = (reca*sbt(i)/(1.+recb*sbt(i)))*mfexp((wt(i+1))*proc_err);//-sigR*sigR/2.
+	    Nat(i+1,sage) = (reca*(sbt(i))/(1.+recb*(sbt(i))))*mfexp((wt(i+1))*proc_err);//-sigR*sigR/2.
 	    //ages 2 -nage
 	    //Nat(i+1)(sage+1,nage) = ++elem_prod(Nat(i)(sage,nage-1)*Sa,1.-Uage(i)(sage,nage-1));
 	    
@@ -362,8 +362,8 @@ FUNCTION populationDynamics
 				
 		}
 		
-		Nat( i+1, nage ) += Nat( i, nage ) *Sa*  (1. - Uage( i)( nage ));
-		//Nat( i+1, nage ) /= (1. - ( Sa* (1.-Uage(i)(nage) ) ) );
+		//Nat( i+1, nage ) += Nat( i, nage ) *Sa*  (1. - Uage( i)( nage ));
+		Nat( i+1, nage ) /= (1. - ( Sa* (1.-Uage(i)(nage) ) ) );
 		
 		//Proportion of individuals at length 
 		//note admb matrix multiplication is yj = \sum_i xi * mij 
@@ -391,7 +391,7 @@ FUNCTION populationDynamics
 		//bt(i+1) = Nat(i+1)* wa * exp((eps(i+1))*obs_err); 
 		
 		//spawning biomass
-		sbt(i+1) = fec * Nat(i+1);				     // survey
+		sbt(i+1) = fec * Nat(i+1) ;				     // survey
 		//spawning biomass depletion
 		depl(i+1) = sbt(i+1)/sbo;
 	}
@@ -526,7 +526,7 @@ FUNCTION output_ctl
 	//mfs<< log(Ro) <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0	<<"\t"<< 7.0   	<<"\t"<<"#log_ro   	##"<<endl;
    	//mfs<< log(rini)  	 <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0 	<<"\t"<< 7.0   	<<"\t"<<"#log_rinit   	##"<<endl;
    	//mfs<< log(reck*0.8) 	 <<"\t"<<  1.6 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  1.6 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
-   	mfs<< log(reck*0.8)  	  <<"\t"<<  1.6 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 1.5 	<<"\t"<<"#log_reck  ##"<<endl;
+   	mfs<< log(reck*0.8)  	  <<"\t"<<  1.6 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.9 	<<"\t"<<"#log_reck  ##"<<endl;
    	//mfs<< log(reck*0.8) 	  <<"\t"<<  1.6 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.9  	<<"\t"<<"#log_reck  ##"<<endl;
    	//mfs<< log(8) 	 	 <<"\t"<<  1.0 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.8 	<<"\t"<<"#log_reck  ##"<<endl;
    	//mfs<< log(Linf)   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
@@ -547,6 +547,7 @@ FUNCTION output_ctl
 	mfs<<"#log(q) prior - same codes as above##"<< endl;
 	mfs<<"#prior   p1      p2  ##"<< endl;
   	mfs<< 5	 <<"\t"<<	   0	 <<"\t"<<	 4 << endl;
+	mfs<<"#closed loop ##"<<endl<<0<< endl;
 	mfs<<"# eof " << endl << 999 <<endl;
 
 	//cout<<"OK after otput_ctl"<<endl;
@@ -580,7 +581,7 @@ FUNCTION output_data
 	ofs<<"# yt " << endl << vbt(rep_yr,eyr)  <<endl;
 	ofs<<"# Clt"<< endl << obsClt.sub(rep_yr,eyr) <<endl;
 	//ofs<<"# Clt"<< endl << Clt.sub(rep_yr,eyr) <<endl;
-	ofs<<"# linf "<< endl << Linf*0.95 <<endl;
+	ofs<<"# linf "<< endl << Linf <<endl;//    *1.1 
 	ofs<<"# k "<< endl << k <<endl;
 	ofs<<"# to " << endl << to <<endl;
 	ofs<<"# cvl " << endl << cvl <<endl;
