@@ -429,11 +429,11 @@ jm$yield/jm$msy
 jm$maxUy/jm$umsy
 
 
-hk_msy<-data.frame(year=rep(hake$yr,2),value=c(hake$umsy,hake$msy),variable=rep(c("Umsy","msy"),each=length(hake$msy)),species=rep("Pacific hake",length(hake$msy)*2))
-hk_Umsy<-data.frame(year=rep(hake$yr,2),value=c(hake$umsy),variable=rep(c("Umsy","msy"),each=length(hake$msy)),species=rep("Pacific hake",length(hake$msy)))
+hk_msy<-data.frame(year=rep(hake$yr[-c(1,2)],2),value=c(hake$utarget[-c(1,2)],hake$ytarget[-c(1,2)]),variable=rep(c("Umsy","msy"),each=length(hake$ytarget[-c(1,2)])),species=rep("Pacific hake",length(hake$ytarget[-c(1,2)])*2))
+hk_Umsy<-data.frame(year=rep(hake$yr[-1],2),value=c(hake$utarget[-1]),variable=rep(c("Umsy","msy"),each=length(hake$ytarget[-1])),species=rep("Pacific hake",length(hake$ytarget[-1])))
 
-jm_msy<-data.frame(year=rep(jm$yr,2),value=c(jm$umsy,jm$msy),variable=rep(c("Umsy","msy"),each=length(jm$msy)), species=rep("jack mackerel",length(jm$msy)*2))
-jm_Umsy<-data.frame(year=rep(jm$yr,2),value=c(jm$umsy,jm$msy),variable=rep(c("Umsy","msy"),each=length(jm$msy)), species=rep("jack mackerel",length(jm$msy)*2))
+jm_msy<-data.frame(year=rep(jm$yr[-c(1,2)],2),value=c(jm$utarget[-c(1,2)],jm$ytarget[-c(1,2)]),variable=rep(c("Umsy","msy"),each=length(jm$ytarget[-c(1,2)])), species=rep("jack mackerel",length(jm$ytarget[-c(1,2)])*2))
+jm_Umsy<-data.frame(year=rep(jm$yr[-1],2),value=c(jm$utarget[-1],jm$ytarget[-1]),variable=rep(c("Umsy","msy"),each=length(jm$msy)), species=rep("jack mackerel",length(jm$msy)*2))
 
 
 msyall<-rbind(hk_msy,jm_msy)
@@ -468,7 +468,7 @@ pit
 pm<-ggplot(msyall[msyall$variable=="Umsy",])
 pm<-pm+geom_line(aes(x=year,y=value))
 pm<-pm+geom_point(aes(x=year,y=value))
-pm<-pm+  ylab("MSY")
+pm<-pm+  ylab(expression(paste("Yield"["target"])))
 pm<-pm+  xlab(" ") + theme_bw(16)
 pm<-pm+facet_wrap(~ species, scales="free")
 pm
@@ -478,7 +478,7 @@ umsyall<-msyall[msyall$variable=="Umsy",]
 pu<-ggplot(umsyall)
 pu<-pu+geom_line(aes(x=year,y=value))
 pu<-pu+geom_point(aes(x=year,y=value))
-pu<-pu+  ylab(expression(paste("U"["MSY"])))
+pu<-pu+  ylab(expression(paste("U"["target"])))
 pu<-pu+  xlab("Year ")+ theme_bw(16)
 pu<-pu+facet_wrap(~ species, scales="free")
 pu
@@ -494,7 +494,7 @@ pith<-ggplot(hk_it)
 pith<-pith+geom_line(aes(x=year,y=predicted),size = 1.2)
 pith<-pith+geom_point(aes(x=year,y=observed),shape = 21, stroke = 1.2)
 pith<-pith+ ylab("Index of abundance")
-pith<-pith+ theme_new() + xlab(" ") 
+pith<-pith+ theme_new+ xlab(" ") 
 pith<-pith+ ggtitle("Pacific hake")
 pith<-pith +coord_cartesian(xlim = c(1975,2013))
 pith
@@ -504,7 +504,7 @@ pitj<-pitj+geom_line(aes(x=year,y=predicted),size = 1.2)
 pitj<-pitj+geom_point(aes(x=year,y=observed),shape = 21, stroke = 1.2)
 pitj<-pitj+ ylab(" ") 
 pitj<-pitj+ ggtitle("jack mackerel")
-pitj<-pitj+ theme_new()  + xlab(" ")
+pitj<-pitj+ theme_new  + xlab(" ")
 pitj<-pitj +coord_cartesian(xlim = c(1980,2013))
 pitj
 
@@ -519,7 +519,7 @@ umsyjm<-jm_msy[jm_msy$variable=="Umsy",]
 pmh<-ggplot(msyhk)
 pmh<-pmh+geom_line(aes(x=year,y=value))
 pmh<-pmh+geom_point(aes(x=year,y=value))
-pmh<-pmh+  ylab("MSY") 
+pmh<-pmh+  ylab(expression(paste("Yield"["target"]))) 
 pmh<-pmh+  xlab(" ") + theme_new
 pmh
 
@@ -527,7 +527,7 @@ pmh
 puh<-ggplot(umsyhk)
 puh<-puh+geom_line(aes(x=year,y=value))
 puh<-puh+geom_point(aes(x=year,y=value))
-puh<-puh+  ylab(expression(paste("U"["MSY"])))
+puh<-puh+  ylab(expression(paste("U"["target"])))
 puh<-puh+  xlab("Year ")+ theme_new
 puh
 

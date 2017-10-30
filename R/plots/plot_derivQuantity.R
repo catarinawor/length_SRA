@@ -27,6 +27,8 @@ plot_derivQuant <- function( M, sv=F, nome="" )
 
 
 	mdf <- NULL
+	cmdf <- NULL
+
 
 	conv_n<-numeric(length=length(scn))
 
@@ -36,39 +38,52 @@ plot_derivQuant <- function( M, sv=F, nome="" )
 
 			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
 
+			names(M[[i]]$SArep)
 
 			est<-c(M[[i]]$SArep$depletion[length(M[[i]]$SArep$depletion)],
-				M[[i]]$SArep$msy[length(M[[i]]$SArep$msy)],
-				M[[i]]$SArep$umsy[length(M[[i]]$SArep$umsy)],
+				M[[i]]$SArep$ytarget[length(M[[i]]$SArep$ytarget)],
+				M[[i]]$SArep$utarget[length(M[[i]]$SArep$utarget)],
 				M[[i]]$SArep$q)
 				#M[[i]]$SArep$avgUy[length(M[[i]]$SArep$avgUy)])
 
 			true<-c(M[[i]]$OM$depl[length(M[[i]]$OM$depl)],
-			 	M[[i]]$OM$msy[length(M[[i]]$OM$msy)],
-				M[[i]]$OM$umsy[length(M[[i]]$OM$umsy)],
+			 	M[[i]]$OM$ytarget[length(M[[i]]$OM$ytarget)],
+				M[[i]]$OM$utarget[length(M[[i]]$OM$utarget)],
 				M[[i]]$OM$q)
 				#M[[i]]$OM$avgUy[length(M[[i]]$OM$avgUy)])
 
 			bias<- (est- true) / true
 
-			df <- data.frame(Depletion=bias[1],msy=bias[2],umsy=bias[3],q=bias[4],scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			cdf <- data.frame(true_msy=true[2],est_msy=est[2],true_umsy=true[3],est_umsy=est[3],scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			cmdf <- rbind(cmdf,cdf)
+			
+			udf <- data.frame(true_umsy=true[2],est_msy=est[2],true_umsy=true[3],est_umsy=est[3],scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			umdf <- rbind(cmdf,cdf)
+			
+
+			df <- data.frame(Depletion=bias[1],Yield_target=bias[2],U_target=bias[3],q=bias[4],scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
 			mdf <- rbind(mdf,df)
 		}
 	}
+
+
+	head(cmdf)
 
 	
 	df2<-melt(mdf,variable.name = "parameter",id=c("scenario","scnnumber"))
 
 	df2$converge<-conv_n[df2$scnnumber]
 
+	head(df2)
 
 
+	nrow(df2[df2$scenario=="VC"&df2$parameter=="umsy"&df2$value>1,])
 	
 	p <- ggplot(df2) 
 	p <- p + geom_boxplot(aes(x=scenario,y=value, fill=parameter))
 	p <- p + geom_hline(yintercept=0, color="darkred", size=1.2, alpha=0.3)
 	p <- p + labs(x="Parameter",y="Bias")
-	p <- p + coord_cartesian(ylim=c(-0.5, 0.5))
+	p <- p + coord_cartesian(ylim=c(-1.0, 1.0))
 	p <- p + theme_bw(11)
 	p <- p +  theme(axis.text = element_text(face="bold", size=12),
   axis.text.x= element_text(angle=45,hjust = 1),
@@ -109,14 +124,14 @@ plot_derivQuant_publ <- function( M )
 
 
 			est<-c(M[[i]]$SArep$depletion[length(M[[i]]$SArep$depletion)],
-				M[[i]]$SArep$msy[length(M[[i]]$SArep$msy)],
-				M[[i]]$SArep$umsy[length(M[[i]]$SArep$umsy)],
+				M[[i]]$SArep$ytarget[length(M[[i]]$SArep$ytarget)],
+				M[[i]]$SArep$utarget[length(M[[i]]$SArep$utarget)],
 				M[[i]]$SArep$q)
 				
 
 			true<-c(M[[i]]$OM$depl[length(M[[i]]$OM$depl)],
-			 	M[[i]]$OM$msy[length(M[[i]]$OM$msy)],
-				M[[i]]$OM$umsy[length(M[[i]]$OM$umsy)],
+			 	M[[i]]$OM$ytarget[length(M[[i]]$OM$ytarget)],
+				M[[i]]$OM$utarget[length(M[[i]]$OM$utarget)],
 				M[[i]]$OM$q)
 				#M[[i]]$OM$avgUy[length(M[[i]]$OM$avgUy)])
 
@@ -131,7 +146,7 @@ plot_derivQuant_publ <- function( M )
 	df2<-melt(mdf,variable.name = "parameter",id=c("scenario","scnnumber"))
 	summary(df2)
 
-	#levels(df2$parameter)<-c("Depletion","MSY", expression(U[MSY]),"q")
+	levels(df2$parameter)<-c("Depletion",expression("Yield"["target"]), expression("U"["target"]),"q")
 	df2$valuep<-df2$value*100
 	df2$converge<-conv_n[df2$scnnumber]
 

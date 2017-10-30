@@ -16,12 +16,12 @@
 ## ——————————————————————————————————————————————————————————————————————— ##
 #0.1			-2	3	 1	0	-2	3	#log_ro   	##
 #0.0			-2	3	 1	0	-2	3	#log_rinit   	##
-1.1			-2	5	 1	0	-2	5	#log_ro   	##
+0.9			-2	5	 1	0	-2	5	#log_ro   	##
 1.0			-2	5	 1	0	-2	5	#log_rinit   	##
-2.5 		1.3	4.5	 1	1	2.7	2.0	#log_reck  ##
+2.5 		1.3	4.5	 1	1	2.5	0.3	#log_reck  ##
 #2.5 		1.3	4.5	 1	1	2.7	0.9	#log_reck  ##
-#0.3364722	-3	1	-3	0	-3	1	#log_SigR
-0.1823216 	-3	1	-3	0	-3	1	#log_SigR
+0.3364722	-3	1	-3	0	-3	1	#log_SigR
+#-0.1053605 	-3	1	-3	0	-3	1	#log_SigR
 #-6.907755	-10	0	3	0	-10	0	#log_can
 ## ——————————————————————————————————————————————————————————————————————— ##
 ##initial values for recruitment deviations ##
@@ -34,7 +34,7 @@
 0 0 0 0 0 0 0 0
 #log(q) prior - same codes as above
 #prior   p1      p2 
-1		   0		 0.1
+1		   0		 0.15
 #closed loop
 0
 ##initial values for recruitment deviations in first year ##

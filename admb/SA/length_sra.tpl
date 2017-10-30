@@ -115,10 +115,14 @@ DATA_SECTION
 	ivector   theta_phz(1,npar);
 	ivector theta_prior(1,npar);
 
-	//init_vector iwt(syr+1,eyr);         // Recruitment deviations
+	init_vector iwt(syr-nag,eyr);         // Recruitment deviations
 	//init_vector iwt_init(syr-nag,syr-1);         // Recruitment deviations in initial year
 	
-	init_vector iwt(syr-nag,eyr);
+	//init_vector iwt(syr+1,eyr);
+	
+
+	//init_vector iwtinit(sage,nage);
+
 
 	init_vector plogq(1,3); 
 
@@ -181,14 +185,15 @@ PARAMETER_SECTION
 	
 	//init_bounded_dev_vector log_wt_init(syr-nag,syr-1,-5.,5.,3); 
 	
-	//init_bounded_dev_vector wt(syr-nag,eyr,-5.,5.,3); 
-	init_bounded_dev_vector wt(syr-nag,eyr,-5.,5.,2); 
+	init_bounded_dev_vector wt(syr-nag,eyr,-5.,5.,3); 
+	//init_bounded_vector wt_init(sage,nage,-5.,5.,2); 
 	
 	//!!cout<< "chegou aqui"<<endl;
 
 
 	
  	!! wt = (iwt);
+ 	//!! wt_init = (iwtinit);
  	//!! log_wt_init = log(iwt_init);
 
  	vector lvec(1,2);
@@ -210,6 +215,7 @@ PARAMETER_SECTION
 	likeprof_number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
 	number sigR;
+	//number sigRinit;
 	//number sigVul;	
 	//number cv_it;
 	
@@ -243,13 +249,15 @@ PARAMETER_SECTION
 
 	vector avgUy(syr,eyr);
 	vector avgUylast(syr,eyr);
-	vector muUl(1,nlen);				// RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
+	vector muUl(1,nlen-5);				// RL; It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
 	//vector Recs(syr+1,eyr);
 	//vector Rdevz(syr+1,eyr);
  	//vector delta(syr,eyr);
  	vector psurvB(syr,eyr);				// predicted survey biomass
  	vector umsy(syr,eyr);
  	vector msy(syr,eyr);
+ 	vector utarget(syr,eyr);
+ 	vector ytarget(syr,eyr);
 
 	
 	matrix Nlt(syr,eyr,1,nlen); 		// Matrix of numbers at length class
@@ -258,7 +266,7 @@ PARAMETER_SECTION
 	matrix Nat(syr,eyr,1,nage);			// Numbers of individuals at age
 	matrix Ulength(syr,eyr,1,nlen); 	// U (explitation rate) for each length class
 	matrix Uage(syr,eyr,1,nage);		// U (explitation rate) for each age
-	matrix penUl(syr,eyr,1,nlen);
+	//matrix penUl(syr,eyr,1,nlen);
 
 PRELIMINARY_CALCS_SECTION
 	
@@ -277,6 +285,7 @@ PROCEDURE_SECTION
 	if(last_phase())
 	{
 		calc_msy();
+		calc_Fspr_target(.4);
 		output_runone();
 	}
 
@@ -293,6 +302,7 @@ FUNCTION trans_parms
 	Rinit = mfexp( theta(2,1) );
 	reck = mfexp( theta(3,1) ); 
 	sigR = mfexp( theta(4,1) );
+	//sigRinit = mfexp( theta(5,1) );
 
 
 
@@ -312,7 +322,7 @@ FUNCTION trans_parms
 FUNCTION incidence_functions
 	
 	
-	//fpen.initialize();
+	fpen.initialize();
 	ffpen.initialize();
 	fffpen.initialize();
 	penmaxUy.initialize();
@@ -361,9 +371,6 @@ FUNCTION incidence_functions
 	sbo  = Ro*phie;
 
 
-
-
-
  	
 FUNCTION propAgeAtLengh
 	// Calculate proportion of length at age class
@@ -403,27 +410,31 @@ FUNCTION initialYear
 	
 
 	//Nat( syr, sage )= Ro;
-	//for( int a = 2; a <= nage; a++ )
-	//{
-	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
-	//}		
-	//Nat( syr, nage ) /= 1. - Sa;
-
-
-
-
 	Nat(syr,sage)= Rinit;  
-	
-	
-	for( int a = sage+1; a <= nage; a++ )
+
+	for( int a = 2; a <= nage; a++ )
 	{
-		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1.  - u_init) ;	//  initial age-structure
+		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	}		
-	Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
+	Nat( syr, nage ) /= (1. - Sa);
+
+
+
+
+	//Nat(syr,sage)= Rinit;  
+	
+	
+	//for( int a = sage+1; a <= nage; a++ )
+	//{
+	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1.  - u_init) ;	//  initial age-structure
+	//}		
+	//Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
 	//Nat(syr,nage)+=  Nat( syr, nage ) *Sa*  (1. - u_init);
 	
 	for( int a = sage; a <= nage; a++ ){
-		Nat( syr, a ) *=  mfexp(wt(syr-a+1.) );//- sigR*sigR/2.
+		//Nat( syr, a ) *=  mfexp(wt_init(a) );//
+		Nat( syr, a ) *=  mfexp(wt(syr-a+sage) -sigR*sigR/2. );//
+		
 		Nat( syr )( a ) =  posfun( Nat( syr )( a ), tiny, fpen);
 	}
 	
@@ -450,14 +461,11 @@ FUNCTION initialYear
 
 	// exploitation rate for fully recruited age class
 	maxUy( syr ) = max( Ulength( syr ));
-	avgUy( syr ) = mean( Ulength( syr )(1,nlen));
+	avgUy( syr ) = mean( Ulength( syr )(1,nlen-5));
 	avgUylast( syr ) = mean( Ulength( syr )(nlen-5,nlen));
 	
 	penmaxUy(syr) = sum(pow( Ulength( syr )(1,nlen),10));
 	
-
-	// exploitation by age CW i think this is wrong
-	//Uage( syr ) = Ulength( syr ) * P_la;
 
 
 	for( int au = sage; au <= nage; au++ ){
@@ -475,7 +483,7 @@ FUNCTION initialYear
 FUNCTION SRA
 
 	// RL: these are the devs for the vul penalty  
-	dvar_matrix Upen( syr, eyr, 1, nlen );
+	dvar_matrix Upen( syr, eyr, 1, nlen-5);
 	Upen.initialize();
 			
 
@@ -484,7 +492,7 @@ FUNCTION SRA
 	{	
 	    dvariable sbtm = fec * Nat(y - 1);	
 		
-		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * mfexp( wt(y)   );//- sigR*sigR/2.	///mfexp( sigR*sigR/2.) B-H recruitment
+		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * mfexp( wt(y) -sigR*sigR/2. );//	///mfexp( sigR*sigR/2.) B-H recruitment
 						
 		
 		// age-distribution post-recruitment
@@ -528,7 +536,7 @@ FUNCTION SRA
 		
 		// max exploitation (fully selected) across lengths
 		maxUy( y ) = max( Ulength( y ));
-		avgUy( y ) = mean( Ulength( y ) (1,nlen));
+		avgUy( y ) = mean( Ulength( y ) (1,nlen-5));
 		avgUylast( y ) = mean( Ulength( y ) (nlen-5,nlen));
 		penmaxUy(y) = sum(pow( Ulength( y )(1,nlen),10));
 		//
@@ -563,7 +571,7 @@ FUNCTION SRA
 		
 		for( int y = syr+2; y <= eyr; y++ )
 		{
-			for( int b = 1; b <= nlen; b++ )
+			for( int b = 1; b <= (nlen-5); b++ )
 			{ 
 				muUl(b) = sum(elem_div(  column(Ulength,b)(y-2,y),avgUy(y-2,y) ) ) / 3.;		
 			}
@@ -572,7 +580,7 @@ FUNCTION SRA
 			//Upen( y ) = pow( Ulength( y ) / posfun( avgUy( y ), tiny, fpen ) - muUl, 2. );	
 			//Upen( y ) = pow( Ulength( y )(nlen-5,nlen) /  maxUy( y ) - avgUylast( y ), 2. );
 			
-			Upen( y ) = pow( Ulength( y )(1,nlen) /  avgUy( y ) - muUl, 2. );		
+			Upen( y ) = pow( Ulength( y )(1,nlen-5) /  avgUy( y ) - muUl, 2. );		
 		}
 		ssvul = sum( Upen );				// vulnerability penalty
 
@@ -715,16 +723,23 @@ FUNCTION objective_function
 	//else
 	//{
 	if(last_phase()){
-		pvec(1)=dnorm(wt,sigR);
+		pvec(1)=dnorm(wt,sigR*2.0);
 		//pvec(1)=dnorm(wt,2.0);
 		dvariable s = 0.;
 		s = mean(wt);
 		pvec(2)=1.e5 * s*s;
+
+		//pvec(3)=dnorm(wt_init,sigRinit);
+		//pvec(1)=dnorm(wt,2.0);
+		
+
 	}else{
 		pvec(1)=norm2(wt)/sigR;
 		dvariable s = 0.;
 		s = mean(wt);
 		pvec(2)=1.e5 * s*s;
+
+		//pvec(3)=dnorm(wt_init,sigRinit);
 	}
 	//sigR;///1000.0; 	
 	//pvec(2)=(norm2(log_wt_init));///1000.0; 	
@@ -805,11 +820,10 @@ FUNCTION objective_function
 	
 
 	//scenario 1 - optimum
-	nll =  sum(lvec) +sum(pvec)+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul)+fffpen+fpen+ffpen +sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
+	nll =  sum(lvec) +sum(pvec)+sum(npvec)+ sum(qpvec) + fffpen+fpen+ffpen ;// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
 	
 
-	
-
+	//+sum(penmaxUy)+ssvul/(sigVul)
 
 
 
@@ -845,7 +859,9 @@ FUNCTION objective_function
 
 
 FUNCTION calc_msy
+
 	dvector utest(1,1001);
+	utest.initialize();
 	utest.fill_seqadd(0,0.001);
  //This function calculates MSY in the lazy and slow way. 
  	int k, kk ;
@@ -855,8 +871,14 @@ FUNCTION calc_msy
 	
 	
 	
-	for(int y=syr;y<=eyr;y++){
-		selage(y)= value(Uage(y)/max(Uage(y)));
+	for(int y=syr+1;y<=eyr;y++){
+		//selage(y)= value((Uage(y)/mean(Uage(y)))/max((Uage(y)/mean(Uage(y)))));
+		
+		//for(int yi=y-2;y<=y;y++){
+			selage(y)= value(Uage(y)/max(Uage(y))+Uage(y-1)/max(Uage(y-1)))/2.;
+
+		//}
+		
 		dvector ye(1,NF);
 		ye.initialize();
 		
@@ -874,9 +896,9 @@ FUNCTION calc_msy
 			lz(sage) = 1.; //first age	
 			for(int a = sage+1 ; a <= nage ; a++)
 			{
-				lz(a) = value(lz(a-1)*Sa*(1.-utest(k))); // proportion of individuals at age surviving M only
+				lz(a) = value(lz(a-1)*Sa*(1.-utest(k)*selage(y)(a-1))); // proportion of individuals at age surviving M only
 			}
-			lz(nage) /= value(1.-Sa*(1.-utest(k))); // age plus group
+			lz(nage) /= value(1.-Sa*(1.-utest(k)*selage(y)(nage))); // age plus group
 			phiz= lz*fec;
 			
 			phieq = elem_prod(lz,selage(y))*wa;
@@ -886,13 +908,13 @@ FUNCTION calc_msy
 		}
 		
 		msy(y)= max(ye);
-		double mtest;	
 		for(kk=1; kk<=NF; kk++)
 		{
+			double mtest;	
 			mtest=ye(kk);
 				
 			if(mtest==msy(y)){
-				umsy(y)=utest(kk);
+				umsy(y)=mean(utest(kk)*selage(y));
 			} 
 		}
 	}
@@ -908,7 +930,105 @@ FUNCTION calc_msy
 		cfs<<"#ySB_LSRA" << endl << fec * Nat(eyr) <<endl;
 	
 	}
+
+FUNCTION void calc_Fspr_target( double target )
+
+  //This function calculates MSY in the lazy and slow way. 
+ 
+
 	
+	dvector ftest(1,1001);
+	ftest.fill_seqadd(0,0.001);
+ 	int k, kk, a;
+	int NF=size_count(ftest);
+
+	dmatrix selage(syr,eyr,sage,nage);
+
+
+
+
+	for(int y=syr+2;y<=eyr;y++){
+
+		selage(y)= value(Uage(y)/mean(Uage(y))+Uage(y-1)/mean(Uage(y-1)))/2.;
+
+		//dvector tmpsel(sage,nage);
+		//tmpsel(sage) = value(Uage(y)(sage));
+		//tmpsel(sage+1) = value(Uage(y)(sage+1)+Uage(y)(sage))/2;
+		//for(int aa=sage+2;aa<=nage;aa++){
+		//	tmpsel(aa)= value((Uage(y)(aa)+tmpsel(aa-1)+tmpsel(aa-2))/3.);
+		//}
+
+		//selage(y)=tmpsel/max(tmpsel);
+
+		//selage= seltotal(ii);
+		dvector tmp_phiz(1,NF);
+		dvector tmp_target(1,NF);
+		dvector ye(1,NF);
+		
+		tmp_phiz.initialize();
+		tmp_target.initialize();
+		ye.initialize();
+
+
+
+		for(k=1; k<=NF; k++)
+		{
+
+	
+			dvector lzt(sage,nage);
+			dvariable phieq;
+			dvariable req;
+			
+			lzt.initialize();
+			phieq.initialize();
+			req.initialize();
+
+			lzt(sage)=1.0;
+
+			for(int a = sage+1 ; a <= nage ; a++)
+			{
+				lzt(a) = value(lzt(a-1)*Sa*(mfexp(-ftest(k)*selage(y)(a-1)))); // proportion of individuals at age surviving M only
+			}
+			
+			lzt(nage) /= value(1.-Sa*(mfexp(-ftest(k)*selage(y)(nage)))); // age plus group
+		
+		
+			//for(int a = sage+1 ; a <= nage ; a++)
+			//{
+			//	lzt(a) = value(lzt(a-1)*Sa*(1.-utest(k)*selage(y)(a-1))); // proportion of individuals at age surviving M only
+			//}
+			//lzt(nage) /= value(1.-Sa*(1.-utest(k)*selage(y)(nage))); // age plus group
+		
+			tmp_phiz(k) = lzt*fec;
+		
+			tmp_target(k) = fabs(value(tmp_phiz(k)/phie - target));
+
+			//phieq = elem_prod(lzt,selage(y))*wa;
+			phieq = elem_prod(lzt,(1.-mfexp(-ftest(k)*selage(y))))*wa;
+
+			req = value(Ro*(reck-phie/tmp_phiz(k))/(reck-1.));
+			
+			//ye(k)= value(utest(k)*req*phieq);
+			ye(k)= value(req*phieq);
+			
+		}
+		
+		double ttest;
+
+		ttest =  min(tmp_target);
+
+		for(kk=1; kk<=NF; kk++)
+		{
+			if(tmp_target(kk)==ttest){
+				//utarget(y)=mean(utest(kk)*selage(y));
+				utarget(y)=1.-mfexp(-ftest(kk));
+				ytarget(y)=ye(kk);
+			} 
+		}
+	}
+				
+	
+
 
 
 	
@@ -928,7 +1048,7 @@ FUNCTION output_runone
 	ofs<<"Ro "<< endl << Ro <<endl;
 	ofs<<"Rinit "<< endl << Rinit <<endl;
 	ofs<<"reck "<< endl << reck <<endl;
-	//ofs<<"wt_init "<< endl << log_wt_init <<endl;
+	//ofs<<"wt_init "<< endl << wt_init <<endl;
 	ofs<<"wt "<< endl << wt <<endl;
 	ofs<<"reca "<< endl << reca <<endl;
 	ofs<<"recb "<< endl << recb <<endl;
@@ -965,6 +1085,7 @@ REPORT_SECTION
 	REPORT(to);
 	REPORT(cvl);
  	REPORT(wt);
+ 	//REPORT(wt_init);
 
  	
  
@@ -1008,6 +1129,8 @@ REPORT_SECTION
 	REPORT(pvec);
 	REPORT(umsy);
 	REPORT(msy);
+	REPORT(utarget);
+	REPORT(ytarget);
 	REPORT(phie);
 
 
