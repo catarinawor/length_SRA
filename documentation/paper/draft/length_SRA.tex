@@ -1,66 +1,50 @@
-% stuff to be used whe compiling only one chapter -- e.e for revision and committee approval
 
-\documentclass[leqno]{article}
+\documentclass{article}
 
-%% Compile this with
-%% R> library(pgfSweave)
-%% R> pgfSweave
 
-%\usepackage[nogin]{Sweave} %way to understand R code
-\usepackage{pgf} %look it up
-\usepackage{tikz} % allows R code or other stuff in the figure labels
+\usepackage{pgf} %nice pictures
 \usepackage{rotating}
-\usepackage{color}
-\definecolor{greytext}{gray}{0.5}
+
 \usepackage[left=1.2in,right=1.2in,top=1.2in,bottom=1.2in]{geometry} % sets the margins
+
 \usepackage{fancyhdr}
 \usepackage{setspace}
-\usepackage{indentfirst}
+
 \usepackage{titlesec}
 \usepackage{natbib}
 \usepackage{checkend}   % better error messages on left-open environments
 \usepackage{graphicx}   % for incorporating external images
 
-\newcommand{\lang}{\textsf} %
-\newcommand{\code}{\texttt}
-\newcommand{\pkg}{\texttt}
-\newcommand{\ques}[1]{{\bf\large#1}}
-\newcommand{\eb}{\\ \nonumber} 
-
-\doublespacing
 
 \usepackage{times,mathptmx,courier}
 \usepackage[scaled=1]{helvet}
-\usepackage{lineno}
-\usepackage{listings}
-\lstset{basicstyle=\sffamily\scriptsize,showstringspaces=false,fontadjust}
 
-\usepackage{fixme}%you probably wan't this 
+
 %% Math or theory people may want to include the handy AMS macros
 \usepackage{amssymb}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{float}
 
-\usepackage[utf8]{inputenc}
-
-
-%% The pifont package provides access to the elements in the dingbat font.   
-%% Use \ding{##} for a particular dingbat (see p7 of psnfss2e.pdf)
-%%   Useful:
-%%     51,52 different forms of a checkmark
-%%     54,55,56 different forms of a cross (saltyre)
-%%     172-181 are 1-10 in open circle (serif)
-%%     182-191 are 1-10 black circle (serif)
-%%     192-201 are 1-10 in open circle (sans serif)
-%%     202-211 are 1-10 in black circle (sans serif)
-%% \begin{dinglist}{##}\item... or dingautolist (which auto-increments)
-%% to create a bullet list with the provided character.
-\usepackage{pifont}
 \usepackage[printonlyused,nohyperlinks]{acronym}
 
 \usepackage{comment}
 
+
+%% \url{http://...} 
+\usepackage{url}
+
+\usepackage{gensymb}
+
+\usepackage{lineno}
+
+
+\usepackage[french,english]{babel}
+\usepackage[T1]{fontenc}
+
+\usepackage{listings}
+
+\doublespacing
 
 %move all figures to the end
 \usepackage[nomarkers,nofiglist,notablist]{endfloat}
@@ -72,37 +56,8 @@
 \titleformat*{\subsubsection}{\singlespacing\raggedright\bfseries}
 \titleformat*{\paragraph}{\singlespacing\raggedright\itshape}
 
-%% The caption package provides support for varying how table and
-%% figure captions are typeset.
-\usepackage[format=hang,indention=-1cm,labelfont={bf},margin=1em]{caption}
 
-%% url: for typesetting URLs and smart(er) hyphenation.
-%% \url{http://...} 
-\usepackage{url}
-\urlstyle{sf}   % typeset urls in sans-serif
-%\graphicspath{{/home/daft/Dropbox/figures/}{/home/daft/Dropbox/figures/cpue_figures/}} % set the path to figures folder
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%% Possibly useful packages: you may need to explicitly install
-%% these from CTAN if they aren't part of your distribution;
-%% teTeX seems to ship with a smaller base than MikTeX and MacTeX.
-%%
-%\usepackage{pdfpages}  % insert pages from other PDF files
-%\usepackage{longtable} % provide tables spanning multiple pages
-%\usepackage{chngpage}  % support changing the page widths on demand
-%\usepackage{tabularx}  % an enhanced tabular environment
 
-%% enumitem: support pausing and resuming enumerate environments.
-%\usepackage{enumitem}
-
-%% rotating: provides two environments, sidewaystable and sidewaysfigure,
-%% for typesetting tables and figures in landscape mode.  
-%\usepackage{rotating}
-
-%% subfig: provides for including subfigures within a figure,
-%% and includes being able to separately reference the subfigures.
-\usepackage{subfig}
 
 
 \usepackage[bookmarks,bookmarksnumbered,%
@@ -127,7 +82,7 @@
 
 \usepackage{lineno}
 \linenumbers
-
+\bibpunct{(}{)}{;}{a}{}{;}
 
 
 %% The following is used for tables of equations.
@@ -147,6 +102,16 @@
 \renewcommand{\theequation}{\arabic{section}.\arabic{equation}}}
 \newcommand{\normal}[2]{\ensuremath{N(#1,#2)}}
 
+
+
+%%%%%%%% Author macros begin:
+\newcommand*{\affaddr}[1]{#1} % No op here. Customize it for different styles.
+\newcommand*{\affmark}[1][*]{\textsuperscript{#1}}
+\newcommand*{\email}[1]{\texttt{#1}}
+%%%%%%%% Author macros end
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%
@@ -160,20 +125,29 @@
 
 
 
+\begin{document}
 
 \title{Stock Reduction Analysis using catch at length data: Length-SRA}   
 
+\author{%
+Catarina Wor\affmark[1,a,*], Brett van Poorten\affmark[1,2,b], Roberto Licandeo \affmark[1,c],\\, and Carl J. Walters\affmark[1,d] \\
+\affaddr{\affmark[1]Institute for the Oceans and Fisheries, University of British Columbia, 2202 Main Mall,\\
+ Vancouver, BC Canada, V6T 1Z4}\\
+\affaddr{\affmark[2] British Columbia Ministry of Environment, 2202 Main Mall, Vancouver, BC, Canada, V6T 1Z4}\\
+\email{\affmark[a]c.wor@oceans.ubc.ca}\\
+\email{\affmark[b]Brett.VanPoorten@gov.bc.ca}\\
+\email{\affmark[c]robertolicandeo@gmail.com}\\
+\email{\affmark[d]c.walters@oceans.ubc.ca}\\
+%,
+ \affmark[*]Corresponding author, phone:+1 604 908 4626
+}
 
 
-\author{Catarina Wor, Brett van Poorten, Roberto Licandeo,  Carl Walters}
-%\pgfrealjobname{pgfSweave-vignette}
-%pgfSweave-vignette
-\begin{document}
 
 \maketitle
 
 \begin{abstract}
-Many modern stock assessments convert length frequency data from catches to age compositions to then conduct age-structured assessment. These assessments must estimate age- or length-based vulnerability to fishing, often using simple parametric functions describing asymptotic or dome-shaped vulnerability. We present a length-based stock reduction analysis (Length-SRA), which bypasses the requirement of estimating a vulnerability by estimating exploitation rate at length directly from observed catch at length data. We test the performance of Length-SRA with a simulation-evaluation framework under three exploitation rate trajectories and under fixed and time-varying vulnerability scenarios. The model yields relatively low bias in parameter estimates and conservative management benchmarks. Length-SRA is relatively accurate when tracking changes in selectivity through time. We further use Length-SRA to assess two species, Pacific hake and Peruvian jack mackerel, to show that vulnerability is quite variable in both species over time, leading to time-varying management reference points.  Length-SRA provides assessment results with accuracy comparable to other methods, such as Virtual Population Analysis and Statistical Catch at Age. However, Length-SRA has the additional advantage of providing accurate estimates of vulnerability over time.
+Many modern stock assessments convert length frequency data from catches to age compositions to then conduct age-structured assessment. These assessments must estimate age- or length-based vulnerability to fishing, often using simple parametric functions describing asymptotic or dome-shaped vulnerability. We present a length-based stock reduction analysis (Length-SRA), which bypasses the requirement of estimating a vulnerability by estimating exploitation rate at length directly from observed catch at length data. We test the performance of Length-SRA with a simulation-evaluation framework under three exploitation rate trajectories and under fixed and time-varying vulnerability scenarios. The model yields relatively low bias in parameter estimates and  management benchmarks. Length-SRA is relatively accurate when tracking changes in vulnerability through time. We further use Length-SRA to assess two species, Pacific hake and Peruvian jack mackerel, to show that vulnerability is quite variable in both species over time, leading to time-varying management reference points.  Length-SRA provides assessment results with accuracy comparable to other methods, such as Virtual Population Analysis and Statistical Catch at Age. However, Length-SRA has the additional advantage of providing accurate estimates of vulnerability over time.
 
 
 
@@ -207,14 +181,13 @@ A crucial component of the length-SRA is the calculation of proportions of indiv
 
 
 
- The proportions of length at age are used to convert the length-based quantities into age-based quantities which are used to propagate the age structured population dynamics forward (Table \ref{tab:eqsPD}). We assume that recruitment follows a Beverton-Holt type recruitment curve (eq. \ref{PD2.1}), that harvesting occurs over a short, discrete season in each time step (year or shorter time period), and that natural survival rate is known and stable over time (eqs. \ref{PD2.1}-\ref{PD2.5}).  The computation of numbers at age in the initial year (i.e., first year in which data is reported - $t_{init}$) is different from that in the remaining years (eq. \ref{AO.1}). Recruitment in the initial year is given by the parameter $R_{init}$, which allows the model to reflect that the population has been fished prior to the beginning of the time series. If the population is initially unfished, this parameter can be set to equal to $R_{o}$. We used equilibrium yield per recruit quantities to calculate $MSY$ and $U_{MSY}$ (Table \ref{tab:eqsOMmsy} - eqs.\ref{lz} to \ref{umsy}). As in all yield per recruit calculations, our $MSY$ and $U_{MSY}$ estimates depend on the vulnerability curves calculated for each year (eq. \ref{phieq}). 
+ The proportions of length at age are used to convert the length-based quantities into age-based quantities which are used to propagate the age structured population dynamics forward (Table \ref{tab:eqsPD}). We assume that recruitment follows a Beverton-Holt type recruitment curve (eq. \ref{PD2.1}), that harvesting occurs over a short, discrete season in each time step (year or shorter time period), and that natural survival rate is known and stable over time (eqs. \ref{PD2.1}-\ref{PD2.5}).  The computation of numbers at age in the initial year (i.e., first year in which data is reported - $t_{init}$) is different from that in the remaining years (eq. \ref{AO.1}). Recruitment in the initial year is given by the parameter $R_{init}$ which is used to indicate that the population was not at equilibrium at the start of the time series. 
+
+We used equilibrium spawner per recruit (SPR) quantities to calculate management targets, for illustration purposes we use 40\% as a SPR target and use  ${Yield}_{SPR=40\%}$ and $U_{SPR=40\%}$ as target management benchmarks (Table \ref{tab:eqsOMmsy} - eqs.\ref{lz} to \ref{umsy}). As in all spawner per recruit calculations, our $Yield_{target}$ and $U_{target}$ estimates depend on the vulnerability curves calculated for each year (eq. \ref{phieq}).  
 
 
- In order to assess how well the model tracked changes in selectivity over time, we calculated the resulting selectivity estimates by normalizing the yearly vectors of exploitation rate at length ($U_{l,t}$) by the yearly average exploitation rate at length ($\bar{U_{l}}$) (eq. \ref{sel.est}). The selectivity vectors were normalized by the average yearly exploitation rate because the average ($\bar{U_{l}}$) is more stable than the maximum yearly exploitation rate ($max{U_{l}}$). This happens because observation errors tend to average out over the length classes, diminishing the variability of $\bar{U_{l}}$ in relation to $max{U_{l}}$.
+ To assess how well the model tracked changes in vulnerability over time, we calculated the resulting vulnerability estimates by normalizing the yearly vectors of exploitation rate at length ($U_{l,t}$) by the yearly average exploitation rate at length ($\bar{U_{l}}$) (eq. \ref{sel.est}), which is more stable than the maximum yearly exploitation rate ($max{U_{l}}$). This happens because observation errors tend to average out over the length classes, diminishing variability of $\bar{U_{l}}$ in relation to $max{U_{l}}$. When calculating the management targets, we used the same method to calculate the mean vulnerability at age (eq. \ref{selage.est}), however we also averaged the selectivity at age curves over the past two years (eq. \ref{selage.est}) in order to further smooth the curves.   
 
- %we produced summary plots of exploitation rate at length ($U_{l,t}$). 
-
-  %
 
 
 \begin{table}
@@ -265,7 +238,7 @@ $C_{l,t}$ && Catch at length and time\\
 $N_{l,t}$ && Numbers at length and time \\
 $lx_a$ && Unfished survivorship at age\\
 $\Phi_e$ && Unfished average spawning biomass per recruit \\
-$sel^{result}_{l,t} $ && Resulting selectivity estimates at length and time \\
+$vul^{result}_{l,t} $ && Resulting vulnerability estimates at length and time \\
 \hline
 \hline
 \end{tabular}
@@ -280,7 +253,7 @@ $sel^{result}_{l,t} $ && Resulting selectivity estimates at length and time \\
 Symbol & Value  & Description \\  
 \hline
 Operating model &&\\
-$sel_{l,t}$ && Fishing selectivity at length and time\\
+$vul^{OM}_{l,t}$ && Fishing vulnerability at length and time\\
 $g,d,b$ &vary by scenario& Parameters for selectivity function \\
 $U_{t}$ &vary by scenario&  Annual maximum exploitation rate \\
 $C^{Sim}_{l,t}$ && Simulated catch at length and time\\
@@ -290,16 +263,16 @@ $\sigma_{I_t} $& 0.1 & standard deviation for index of abundance deviates\\
 $VB_{t}$ && Biomass that is vulnerable to the survey at time \\
 $q$ &1.0& Catchability coefficient \\
 \hline
-MSY quantities &&\\
+Managemen quantities &&\\
 $lz_a$&& Fished survivorship at age\\
-$U_z$&seq(0.0,1.0,by=0.001)& Hypothetical exploitation rates to calculate $MSY$\\
+$F_z$&seq(0.0,1.0,by=0.001)& Hypothetical average fishing mortality to calculate management targets\\
 $\Phi_z$ && Average spawning biomass per recruit\\
-$\Phi_{eq}$&& Average exploited biomass per recruit under $U_z$ and $sel_a$\\
-$sel_a$&& Selectivity at age \\
+$\Phi_{eq}$&& Average exploited biomass per recruit under $U_z$\\
+$vul^{result}_{a,t}$&& Vulnerability at age and time t \\
 $R_{eq}$ &&Average equilibrium recruitment under $U_z$\\
-$Yield_z$ &&Equilibrium yield under $U_z$\\
-$MSY$  && Maximum sustainable yield based on optimum spawner per recruit\\   
-$U_{MSY}$ &&Exploitation rate that leads to maximum sustainable yield \\  
+${Yield}_{z}$ &&Equilibrium yield under $U_z$\\
+${Yield}_{target}$  && Yield that would reduce spawner per recruit to 40\% of unfished levels\\
+$U_{target}$ &&Exploitation rate that reduce spawner per recruit to 40\% of unfished levels \\  
 \hline
 \hline
 \end{tabular}
@@ -349,19 +322,14 @@ $U_{MSY}$ &&Exploitation rate that leads to maximum sustainable yield \\
             \label{PD2.5}
             SB_{t}&= \sum_a(mat_a \cdot w_a \cdot N_{a,t}) \\ 
             \label{sel.est}
-            sel^{result}_{l,t}&=  \frac{U_{l,t}}{\bar{U_{t}}} \\
+            vul^{result}_{l,t}&=  \frac{U_{l,t}}{\bar{U_{t}}} \\
            %\nonumber \\
             \hline 
             \mbox{Initial year and incidence functions} &&\nonumber \\ 
             \hline 
             \label{AO.1}
             %N_{a=1,init}&= R_{init} \cdot e^{w_{init}} \\
-             N_{a,init}&=\begin{cases} R_{init} \cdot e^{w_{init}} &\quad a=a_o  \\
-            %
-            N_{a-1,init}\cdot S \cdot(1-U_{a-1,init}) \cdot e^{w_{init-a+1}},&\quad a_o<a<A  \\
-            %
-            \frac{N_{a-1,init} \cdot S \cdot (1-U_{a-1,init}) }{1- S \cdot (1-U{a,init})} \cdot e^{w_{init-a+1}},&\quad a=A \\
-            \end{cases}\\
+             N_{a,init}&= lx_a \cdot R_{init} \cdot e^{w_{init}}\\
             \label{AO.2}
             a_{rec}&=  \frac{\kappa}{\Phi_e} \\
             \label{AO.4}
@@ -387,7 +355,7 @@ The Length-SRA model estimates three main parameters: average unexploited recrui
 \begin{table}
   %\centering
   %\large
-\caption{MSY quantities and operating model}\label{tab:eqsOMmsy} 
+\caption{Management quantities and operating model}\label{tab:eqsOMmsy} 
 \tableEq
     \begin{align}
            \hline
@@ -397,32 +365,38 @@ The Length-SRA model estimates three main parameters: average unexploited recrui
             \label{OM4}
              N^{Sim}_{a,t=1}&= lx_a \cdot R_o\\
             \label{OM4.1}
-            U_{l,t}&= U_{t} \cdot sel_{l,t}\\
+            U_{l,t}&= U_{t} \cdot vul^{OM}_{l,t}\\
             \label{OM4.2}          
             C^{Sim}_{l,t}&= N^{Sim}_{l,t} \cdot  U_{l,t} \cdot P_{l|a} \\
             \label{OM4.3}
-            sel_{l,t} &= \frac{1}{1-g}\cdot \left(\frac{1-g}{g}\right)^{g} \cdot \frac{e^{d\cdot g\cdot (b-l)}}{1+e^{d\cdot(b-l)}}\\
+            vul^{OM}_{l,t} &= \frac{1}{1-g}\cdot \left(\frac{1-g}{g}\right)^{g} \cdot \frac{e^{d\cdot g\cdot (b-l)}}{1+e^{d\cdot(b-l)}}\\
             \label{OM4.4}
-            I_{t}&= q \cdot VB_{t} \cdot e^{(\mathcal{N}(0,\sigma_{I_t})}\\ 
+            I_{t}&= q \cdot VB_{t} \cdot e^{(\mathcal{N}(0,\sigma_{I_t}))}\\ 
             \hline  
-           \text{MSY quantities}&&\nonumber\\
+           \text{Management quantities}&&\nonumber\\
            \hline
             \label{lz}
             lz_a &= \begin{cases} lz_a=1 &\quad a=a_o\\
-              lz_{a-1}\cdot S \cdot (1-U_z) &\quad a_o<a<A\\
-              \frac{lz_{a-1}\cdot S \cdot (1-U_z)}{1-S\cdot(1-U_z)}&\quad a=A\\\end{cases}\\
+              lz_{a-1}\cdot S \cdot exp(-F_z \cdot  vul^{result}_{a-1,t}) &\quad a_o<a<A\\
+              \frac{lz_{a-1}\cdot S \cdot exp(-F_z \cdot  vul^{result}_{a-1,t})}{1-S\cdot exp(-F_z \cdot  vul^{result}_{A,t})}&\quad a=A\\\end{cases}\\
+              \label{selage.est}
+             vul^{result}_{a,t} &= \frac{\frac{U_{a,t-1}}{\bar{U}_{t-1}}+ \frac{U_{a,t}}{\bar{U}_{t}}}{2}\\
+             %selage(y)= value(Uage(y)/max(Uage(y))+Uage(y-1)/max(Uage(y-1)))/2.;
             \label{phiz}
             \Phi_z &= \sum_a{lz_a \cdot mat_a \cdot w_a}\\
             \label{phieq}
-            \Phi_{eq} &= \sum_a{lz_a \cdot sel_a \cdot w_a} \\
+            Target_{\Phi} &= |\frac{\Phi_z}{\Phi_e}-0.4| \\
+            \label{phitarget}
+            %tmp_target(k) = fabs(value(tmp_phiz(k)/phie - target));
+            \Phi_{eq} &= \sum_a{lz_a \cdot  (1-exp(-F_z*vul^{result}_{a,t})) \cdot w_a} \\
              \label{Req}
              R_{eq} &= R_o \cdot \frac{\kappa - \Phi_e/\Phi_z}{\kappa-1}\\
              \label{yz}
-             Yield_z&=U_z\cdot R_{eq}\cdot \Phi_{eq}\\
+             Yield_z&= R_{eq}\cdot \Phi_{eq}\\
              \label{msy}
-             MSY&=max(Yield_z)\\
+             Yield_{target} &=Yield_z  \rightarrow min(Target_{\Phi}) \\
              \label{umsy}
-             U_{MSY} &= U_z \rightarrow  max(Yield_z)\\
+             U_{target} &= 1-exp(-F_z) \rightarrow min(Target_{\Phi})\\
         \hline \hline \nonumber
     \end{align}
     \normalEq
@@ -430,8 +404,7 @@ The Length-SRA model estimates three main parameters: average unexploited recrui
 
 
 
-The objective function (eq. \ref{Obj}) is composed of a negative log-likelihood component, three penalties, and a prior component for the recruitment compensation ratio $\kappa$. The negative log-likelihood component minimizes the differences between the predicted and observed index of abundance (eq. \ref{PLL.1}). We assume that such differences are lognormally distributed (eqs. \ref{PLL.3}-\ref{PLL.4}) and use the conditional maximum likelihood estimator described by \citet{walters_calculation_1994} to estimate the survey catchability coefficient $q$ (eq. \ref{PLL.2}). A lognormal penalty is added to the negative log-likelihood function to constrain annual recruitment residuals so that the estimates have mean of zero and fixed standard deviation $\sigma_{R}$ \citep{maunder_estimation_2003} (eq. \ref{pen.1}). A second penalty, $P_{U_{max}}$ was implemented in order to prevent estimated values of exploitation rate at length greater than one ($U_{l,t}>1$) (eq. \ref{pen.3}) and a third penalty $P_{U}$ was added to limit variability in vulnerability at length across years, and therefore limit the influence of observation error on vulnerability estimates. Lastly, an informative normal prior for $log(\kappa)$ was included in the objective function (eq. \ref{pr.1}).
-
+The objective function (eq. \ref{Obj}) is composed of a negative log-likelihood component, one penalty, and a prior component for the recruitment compensation ratio $\kappa$. The negative log-likelihood component minimizes the differences between the predicted and observed index of abundance (eq. \ref{PLL.1}). We assume that such differences are lognormally distributed (eqs. \ref{PLL.3}-\ref{PLL.4}) and use the conditional maximum likelihood estimator described by \citet{walters_calculation_1994} to estimate the survey catchability coefficient $q$ (eq. \ref{PLL.2}). A lognormal penalty is added to the negative log-likelihood function to constrain annual recruitment residuals so  estimates have mean of zero and fixed standard deviation $\sigma_{R}$ \citep{maunder_estimation_2003} (eq. \ref{pen.1}). Lastly, an informative normal prior for $log(\kappa)$ was included in the objective function (eq. \ref{pr.1}).
 
 
 %\begin{table}
@@ -485,25 +458,25 @@ The objective function (eq. \ref{Obj}) is composed of a negative log-likelihood 
             &P_{wt} \sim \mathcal{N}(wt|\mu=0,\sigma=\sigma_{R})\\
             %\label{pen.2}
             % posfun(1-U_{l,t},0.01,fpen) \\       
-            &\mu_{U_{t-2:t}} = \left(\sum_{t-2}^{t}{\frac{U_{l,t}}{\bar{U_{t}}}}\right)/3\\
-            &U^{pen}_{t}={\left(\frac{U_{l,t}}{\bar{U_{t}}} - \mu_{U_{t-2:t}}\right)}^{2} \\
-            &SS_{vul}=\sum_{t=3}^{t=T}{U^{pen}_{t}}\\
-            \label{pen.3}
-            &P_{U}=\frac{SS_{vul}}{\sigma_{vul}}\\
-            &\sigma_{vul} = 200\\
-            \label{pen.4}
-            &P_{U_{max}}=\sum^{t}\sum^{l}{{U_{t,l}}^{10}}\\
+            %&\mu_{U_{t-2:t}} = \left(\sum_{t-2}^{t}{\frac{U_{l,t}}{\bar{U_{t}}}}\right)/3\\
+            %&U^{pen}_{t}={\left(\frac{U_{l,t}}{\bar{U_{t}}} - \mu_{U_{t-2:t}}\right)}^{2} \\
+            %&SS_{vul}=\sum_{t=3}^{t=T}{U^{pen}_{t}}\\
+            %\label{pen.3}
+            %&P_{U}=\frac{SS_{vul}}{\sigma_{vul}}\\
+            %&\sigma_{vul} = 200\\
+            %\label{pen.4}
+            %&P_{U_{max}}=\sum^{t}\sum^{l}{{U_{t,l}}^{10}}\\
             %penmaxUy(syr) = sum(pow( Ulength( syr )(1,nlen),10));
             \hline 
             \mbox{Priors} &&\nonumber \\ 
             \hline 
             \label{pr.1}
-            &prior(log(\kappa)) \sim \mathcal{N}(log(\kappa), \sigma = 0.9)\\
+            &prior(log(\kappa)) \sim \mathcal{N}(log(\kappa), \sigma = 0.6)\\
              \hline  
             \mbox{Objective function}&&\nonumber\\
             \hline
             \label{Obj}
-            &Obj = -log(LL_{1}) + -log(P_{wt}) + P_{U} + P_{U_{max}} + prior(log(\kappa))\\ 
+            &Obj = -log(LL_{1}) + (-log(P_{wt})) + prior(log(\kappa))\\ 
         \hline \hline \nonumber
     \end{align}
     \normalEq
@@ -516,13 +489,13 @@ The objective function (eq. \ref{Obj}) is composed of a negative log-likelihood 
 Model performance was evaluated using a simulation-evaluation populated with the biological parameters of an hypothetical fish species. We used the same model structure described in Table \ref{tab:eqsPD} for both the simulation and estimation models. However, the operating model was modified to control annual exploitation rate (eq. \ref{OM4.1}), time varying selectivity (eq. \ref{OM4.3}), and observation and process errors.
 
 
-The simulation model was initialized at unfished conditions (eq. \ref{OM4}) but only started  reporting data for the simulation-evaluation procedure after the $t_{init}$ year. The period between the first time step and $t_{init}$ is used as a burn-in period. Selectivity in the operating model was computed with the three parameter selectivity function described by \citet{thompson_confounding_1994} (eq. \ref{OM4.3}). We chose to use this three parameter selectivity curve because of its flexibility, which allowed us to switch between logistic and dome-shaped selectivity curves in the scenarios in which time varying selectivity was considered. The observation error in the operating model included lognormal error in the index of abundance and logistic multivariate error \citep{schnute_influence_1995} in the catch numbers at length (Table \ref{tab:defOMmsy}). Recruitment deviations were assumed to be lognormally distributed with constant $\sigma_R$ (Table \ref{tab:defPD}).   
+The simulation model was initialized at unfished conditions (eq. \ref{OM4}) but only started  reporting data for the simulation-evaluation procedure after the $t_{init}$ year. Selectivity in the operating model was computed with the three parameter selectivity function described by \citet{thompson_confounding_1994} (eq. \ref{OM4.3}). We chose to use this three parameter selectivity curve because of its flexibility, which allowed us to switch between logistic and dome-shaped selectivity curves in the scenarios in which time varying selectivity was considered. The observation error in the operating model included lognormal error in the index of abundance and logistic multivariate error \citep{schnute_influence_1995} in the catch numbers at length (Table \ref{tab:defOMmsy}). Recruitment deviations were assumed to be lognormally distributed with constant $\sigma_R$ (Table \ref{tab:defPD}).   
 
   
 
 We considered a total of six different scenarios in simulation-evaluation trials, including three historical exploitation rate trajectories (contrast, one-way trip and $U$-ramp) and two selectivity patterns (constant and time-varying). In the contrast scenario the exploitation rate ($U_t$) starts low and increases beyond $U_{MSY}$ and then decreases until $U_t=U_{MSY}$. In the one-way trip scenario $U$ increased through time until $U=2 \cdot U_{MSY} $. In the $U$-ramp scenario, $U_t$ increases steadily until $U_t=U_{MSY}$ and remains constant thereafter.  In the constant selectivity scenario, selectivity was assumed to follow a sigmoid shape. In the time varying selectivity scenario, the selectivity curve was assumed to vary every year, progressively changing from a dome shaped curve to sigmoid and back to dome shaped. The complete list of scenarios and the acronym used for them is presented in Table \ref{tab:simeval}. 
 
-All simulations had 30 years of data and 200 simulation trials were performed for each scenario. We evaluated the distribution of the relative proportional error ($ \frac{esimated-simulated}{simulated}$) for the main parameter estimates ($R_{0}$, $R_{init}$, and $\kappa$) and for four derived quantities (Depletion: $\frac{SB_t}{SB_{0}}$, MSY, $U_{MSY}$, and $q$). 
+All simulations had 30 years of data and 200 simulation trials were performed for each scenario. We evaluated the distribution of the relative proportional error ($ \frac{esimated-simulated}{simulated}$) for the main parameter estimates ($R_{0}$, $R_{init}$, and $\kappa$) and for four derived quantities (Depletion: $\frac{SB_t}{SB_{0}}$, ${Yield}_{target}$, $U_{target}$, and $q$). 
 
 
 \begin{table}[ht!]
@@ -550,7 +523,7 @@ Two case studies were chosen to illustrate the application of the Length-SRA to 
 
 The Pacific hake fishery is believed to exhibit time varying selectivity due to cohort targeting and annual changes fleet spatial distribution \citep{ruttan_finding_2003}. The population is know to have spasmodic recruitment, with high recruitment  events occurring once or twice every decade \citep{ressler_pacific_2007}. Pacific hake tends to segregate by size during their annual migration \citep{ressler_pacific_2007}, allowing the fishing fleet to target strong cohorts by changing the spatial distribution of fishing effort as the cohort ages. Hake catch at length data was available for the period between 1975 and 2013. The survey index of abundance was available intermittently from 1995 to 2013. 
 
-The movement pattern of jack mackerel is not as well known, although fish appear to move between spawning and feeding areas \citep{gerlotto_insight_2012}. Variability in selectivity patterns for the jack mackerel fishery are believed to be associated both with evolution of fleet capacity and gear utilization and with compression and expansion of the species range associated with abundance changes \citep{gerlotto_insight_2012}. Jack mackerel catch at length data was available from 1980 to 2013 and the survey index was available for the years between 1986 and 2013, with the exception of the year of 2010. 
+The movement pattern of jack mackerel is not as well known, although fish appear to move between spawning and feeding areas \citep{gerlotto_insight_2012}. Variability in selectivity patterns for the jack mackerel fishery are believed to be associated both with evolution of fleet capacity and gear utilization and with compression and expansion of the species range associated with abundance changes \citep{gerlotto_insight_2012}. Jack mackerel catch at length data was available from 1980 to 2013 and the survey index was available between 1986 and 2013, with the exception of 2010. 
 
 
 
@@ -559,7 +532,7 @@ The movement pattern of jack mackerel is not as well known, although fish appear
 \subsection{Simulation-evaluation}
 
 
-We evaluated the performance of the model in relation to the main parameters and derived management quantities with boxplots of the relative proportional error, throughout the result we use the terms positive and negative median bias to indicate that the median relative proportional error is above or below zero. The relative proportional error sign indicate if a parameter has been underestimated or overestimated, the majority of the time.
+We evaluated the performance of the model in relation to the main parameters and derived management quantities with boxplots of the relative proportional error. Throughout we use the terms positive and negative median bias to indicate that the median relative proportional error is above or below zero. The median relative proportional error sign indicate if a parameter has been underestimated or overestimated the majority of the time.
 
 Simulation-evaluation of Length-SRA model resulted in a small positive median bias for the $\kappa$ parameter across all scenarios (Figure \ref{mainParams}). The $R_0$ relative error medians were positively biased for the contrast and one-way-trip scenarios (CC, CO, VC and VO) and negatively biased for the $U$-ramp scenarios (Figure \ref{mainParams}). The $R_{init}$  median relative error was negatively biased for all scenarios with higher absolute biases associated with the contrast scenario with time-varying selectivity (VC) and $U$-ramp scenarios (CR and VR) (Figure \ref{mainParams}). Overall, The contrast with constant selectivity and one-way trip scenarios yielded the best performance. 
 
@@ -574,7 +547,7 @@ Simulation-evaluation of Length-SRA model resulted in a small positive median bi
 
 
 
-The depletion ($SB_t/SB_o$) estimates resulted in negative median relative error for all scenarios (Figure \ref{derivQuant}). $MSY$ was also underestimated for most senarios, except for the Contrast scenario with constant vulnerability, for which the median relative proportional error was zero. The estimates for $U_{MSY}$ showed very low ($<$0.071) absolute median proportional errors for all scenarios (Figure \ref{derivQuant}). The estimates of $q$ were more variable, with particularly high positive bias for the the contrast and time-varying selectivity scenario (VC) and $U$-ramp scenarios (CR and VR); this is likely to be associated with the more severe underestimations of and $R_{init}$ for those scenarios.
+The depletion ($SB_t/SB_o$) estimates resulted in negative median relative error for all scenarios (Figure \ref{derivQuant}). $MSY$ was also underestimated for most senarios, except for the contrast scenario with constant vulnerability, for which the median relative proportional error was zero. The estimates for $U_{MSY}$ showed very low ($<$0.071) absolute median proportional errors for all scenarios (Figure \ref{derivQuant}). The estimates of $q$ were more variable, with particularly high positive bias for the the contrast and time-varying selectivity scenario (VC) and $U$-ramp scenarios (CR and VR). The overestimation in q is likely associated with the more severe underestimations of and $R_{init}$ and $MSY$ for those scenarios as both $R_{init}$ and $MSY$ are negatively correlated with $q$.
 
 \begin{figure}[htbp]
   \centering
@@ -601,7 +574,7 @@ The depletion ($SB_t/SB_o$) estimates resulted in negative median relative error
 
 
 
-The model fit the Pacific hake and jack mackerel indexes of abundance relatively well (Figure \ref{it}), despite some limitation in the available data. The Pacific hake index of abundance time-series is quite short and intermittent (survey happens every three or two years). The index of abundance time series for jack mackerel was longer but it indicates a downward trend in abundance with low contrast in the last ten years of data.   
+The model fit the Pacific hake and jack mackerel indexes of abundance relatively well (Figure \ref{it}), despite some limitation in the available data. The Pacific hake index of abundance time-series is quite short and intermittent (survey happens every two or three years). The index of abundance time series for jack mackerel was longer but it indicates a downward trend in abundance with low contrast in the last ten years of data.   
 
 
  The model fit for both species resulted in time varying selectivities that lead to variation in $MSY$ and consequent changes in $U_{MSY}$. This is because changes in selectivity result in changes to the vulnerable biomass even if total biomass is constant. The time-varying selectivity calculated for each species  (Figure \ref{selreal}) results in up to two-fold change in $MSY$ throughout the time series for both species (Figure \ref{it}). The selectivity curves estimated for Pacific hake and jack mackerel are quite variable. It is important to note that this observed variability might indicate real changes in selectivity (e.g. cohort targeting) or might also be caused by misspecification of the growth parameters (see Appendix). At this point it impossible to determine what are the causes for the resulting patterns in vulnerability observed with the Length-SRA fit. Further investigation would be needed if this model is to be used for management purposes. 
@@ -637,23 +610,23 @@ We present a length-based stock reduction analysis (Length-SRA) that allows moni
 
 
 
- The accuracy in the estimates of vulnerability obtained with the Length-SRA are comparable with those presented by \citet{nielsen_estimation_2014}, especially for the  one-way trip scenarios (scenarios with the most informative data) . \citet{nielsen_estimation_2014} account for time varying selectivity by treating fishing mortality at age as stochastic processes that are correlated over age and time. Their model seems to perform extremely well, however they only considered one exploitation rate trajectory, with significant contrast in the data. In addition, the changes in vulnerability considered in their study are  more subtle than the ones considered in this study.
+ The accuracy in the estimates of vulnerability obtained with the Length-SRA are comparable with those presented by \citet{nielsen_estimation_2014}, especially for the  one-way trip scenarios (scenarios with the most informative data). The Length-SRA selectivity estimates are less precise than those shown by \citet{nielsen_estimation_2014}, likely because the Length-SRA estimates incorporate observation error. The \citet{nielsen_estimation_2014} approach account for time varying selectivity by treating fishing mortality at age as stochastic processes that are correlated over age and time. Their model seems to perform extremely well, however they only considered one exploitation rate trajectory, with significant contrast in the data. In addition, the changes in vulnerability considered in their study are  more subtle than the ones considered here.
 
 Another attractive approach to model catch at length data is the one described by \citet{white_fitting_2016}. Their state space model estimates annual recruitment, harvest rate, and error terms from catch at length data and seems to obtain good  precision and accuracy in their estimates. However, it is important to note that their model relies on two assumptions that are likely violated in real data examples. First, they assume that vulnerability is constant over time and follows a cumulative normal distribution parametric form. Second, they assume that the growth component of the transition matrix P(y,x) to be constant and given by the growth curve. This is incorrect because fishing causes changes in the age composition of fish of size x, i.e. under fishing,  proportion of younger fish (with higher y$|$x) is expected to increase. 
 
 
 
-An important advancement of Length-SRA over conventional stock-assessment models is a calculation of time-varying vulnerability. This information alone will go a long way in helping to characterize the complexity of the fishery system. Length-SRA on its own is reasonably accurate in deriving important management-oriented parameters (depletion and $U_{MSY}$), however another option may be to combine findings from this model with another assessment model, such as a statistical catch at age (SCA) model. In this framework, Length-SRA can be used to calculate annual vulnerability, which are reasonably accurate of there is enough contrast in the biomass time series.  These vulnerability estimates can then become an input into an SCA to calculate other important variables and produce management advice. This combination of models has been used in the past \citep{walters_placing_1994}; we suggest Length-SRA may be an extremely useful tool in this context. 
+An important advancement of Length-SRA over conventional stock-assessment models is a calculation of time-varying vulnerability. This information alone will go a long way in helping to characterize the complexity of the fishery system. Length-SRA on its own is reasonably accurate in deriving important management-oriented parameters (depletion and $U_{MSY}$), however another option may be to combine findings from this model with another assessment model, such as a statistical catch at age (SCA) model. In this framework, Length-SRA can be used to calculate annual vulnerability, which are reasonably accurate of there is enough contrast in the biomass time series.  These vulnerability estimates can then become an input into an SCA to calculate other important variables and produce management advice. This combination of models has been used in the past \citep{walters_placing_1994}; we suggest Length-SRA may be a  useful tool in this context. 
 
-Accurate estimates of vulnerability are particularly important if the fishery management is based on yield per recruit reference points. The yield per recruit of a fishery depends on the vulnerability curve \citep{beverton_dynamics_1957} and for this reason, changes in vulnerability over time will directly affect reference points \citep{beverton_dynamics_1957,hilborn_quantitative_1992}. We observed vulnerability changes for both Pacific hake and jack mackerel and show how this variability can lead to a two-fold difference between the maximum and minimum estimates of $MSY$ calculated along the time series. We believe that tracking these changes is important not only to ensure appropriate management recommendations, but also to illustrate the relationship between vulnerability patterns and $MSY$  \citep{vasilakopoulos_unfulfilled_2016}.
+Accurate estimates of vulnerability are particularly important if the fishery management is based on yield per recruit reference points. Fishery yield per recruit depends on the vulnerability curve \citep{beverton_dynamics_1957} and for this reason, changes in vulnerability over time will directly affect reference points \citep{beverton_dynamics_1957,hilborn_quantitative_1992}. We observed vulnerability changes for both Pacific hake and jack mackerel and show how this variability can lead to a two-fold difference between the maximum and minimum estimates of $MSY$ calculated along the time series. We believe that tracking these changes is important not only to ensure appropriate management recommendations, but also to illustrate the relationship between vulnerability patterns and $MSY$ \citep{vasilakopoulos_unfulfilled_2016}.
 
 One potential point of concern that should be considered when using the Length-SRA is that it assumes that the biological parameters used in the growth curve and catch at age relationship are know without error and constant over time. We have tested the Length-SRA under misspecification of the von Bertalanffy growth parameters (see Appendix) and we observed additional bias in the estimates of parameter and management quantities as well as stong distortions in the resulting selectivity parameters. Similarly, \citet{minte-vera_get_2017} showed that misspecification in biological parameters, especially in asymptotic length, can have a significant impact in assessment results. Other length models, e.g. MULTIFAN-CL \citep{fournier_multifan-cl:_1998}, overcome the assumption of known growth parameters by estimating the von Bertalanffy parameters alongside the assessment parameters. The estimation of the growth parameters is made possible by assuming that vulnerability follows a parametric function (usually logistic). Once a simple vulnerability curve is assumed, all deviations in observed catch at length are explained by adjusting the growth parameters. This assumption can also lead to bias in parameter estimates, as other studies show that variability in selectivity and non-asymptotic patterns are common \citep{waterhouse_using_2014}. In reality, in most cases it is difficult to know if patterns observed in catch at length are caused by fisheries targeting (i.e. vulnerability) or if they would be more appropriately explained by adjusting the growth parameters. Therefore, we recommend that, when using the Length-SRA, the user should  perform extensive sensitivity analyses over the possible range of values for the growth parameters, particularly if the predicted vulnerability patterns are highly variable.
 
 
- The approach used in the Length-SRA is analogous to that used in virtual population analysis in that the length composition data is assumed to be known without error. For this reason, the vulnerability estimates include extra variability due to observation and sampling error. We attempted to minimize this effect by adding a the time varying vulnerability penalty to the model's objective function, however this penalty is not capable of completely removing the observation error effect from the vulnerability estimates. Because of the assumption of known catch at length, it is important that the catch sampling is representative of the total removals from the population \citep{pope_investigation_1972}. As in any other fisheries model, biased sampling and/or low sampling effort will result in bias in parameter and fishery reference point estimates \citep{coggins_simulation_1998,bunch_measurement_2013}. 
+ The approach used in the Length-SRA is analogous to that used in virtual population analysis in that the length composition data is assumed to be known without error. For this reason, the vulnerability estimates include extra variability due to observation and sampling error. We attempted to minimize this effect by adding a the time varying vulnerability penalty to the objective function, however this penalty is not capable of completely removing the observation error effect from the vulnerability estimates. Because of the assumption of known catch at length, it is important that the catch sampling is representative of the total removals from the population \citep{pope_investigation_1972}. As in any other fisheries model, biased sampling and/or low sampling effort will result in bias in parameter and fishery reference point estimates \citep{coggins_simulation_1998,bunch_measurement_2013}. 
 
 
-Some management parameters are underestimated (namely depletion and $MSY$ in most scenarios) and the relative error indicated that the estimates are not very precise which may be cause for concern. However, it is important to note that both parameters are underestimated for the majority of scenarios and simulation runs, which leads to conservative management recommendations. Although this may lead to losses in catch in the short-term, it will result in healthier stocks and higher catches over the longer-term (once the stock is recovered). The magnitude of bias is also dependent on the trajectory of the data: time-series with more contrast will lead to more accurate estimates. The magnitude and direction of the bias in the estimates of $MSY$ and depletion observed in this study are comparable to the results obtained by \citet{martell_towards_2014} in a simulation study on the impacts of time varying vulnerability on the estimates generated by a statistical catch at age model. Other studies show even higher biases in face of time-varying vulnerabilities \citep[e.g.][]{linton_catch-at-age_2011,henriquez_interactions_2016}. Overall, estimates derived parameters are generally within the range of many other stock assessment models.  
+Some management parameters are underestimated (namely depletion and $MSY$ in most scenarios) and the relative error indicated that the estimates are not very precise which may be cause for concern. However, it is important to note that both parameters are underestimated for the majority of scenarios and simulation runs, which leads to conservative management recommendations. Although this may lead to losses in catch in the short-term, it will result in healthier stocks and higher catches over the longer-term (once the stock is recovered). The magnitude of bias is also dependent on the trajectory of the data: time-series with more contrast will lead to more accurate estimates. The magnitude and direction of the bias in the estimates of $MSY$ and depletion observed in this study are comparable to the results obtained by \citet{martell_towards_2014} in a simulation study on the impacts of time varying vulnerability on the estimates generated by a statistical catch at age model. Other studies show even higher biases in face of time-varying vulnerabilities \citep[e.g.][]{linton_catch-at-age_2011,henriquez_interactions_2016}. Overall, parameter and derived parameters estimates are generally within the range of many other stock assessment models.  
 
 The simple nature of the Length-SRA model makes it a good candidate model for inclusion on closed-loop simulation studies. Further testing of this model in a closed-loop simulation set up would provide more insight on the model performance on achieving management outcomes \citep{punt_management_2014}. As mentioned before, we expect that the length-SRA, when used as an assessment tool, will yield slightly conservative management benchmarks which might lead to higher average catch in the long term if the stock is currently overfished. However, it is also possible that these conservative benchmarks result in forgone yield in the medium and long term. We recommend, therefore that this approach be tested in  a simulation set up before it is considered as part of a management strategy. 
 

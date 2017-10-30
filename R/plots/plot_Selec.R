@@ -46,10 +46,11 @@ plot_Sel <- function( M, sv=FALSE, nome=""){
 			nlen<-length(M[[i]]$SArep$len)
 
 			umaxes_est<-apply(M[[i]]$SArep$Ulength,1,mean)
-			sels_est<-(M[[i]]$SArep$Ulength)/umaxes_est
+			sels_est<-((M[[i]]$SArep$Ulength)/umaxes_est)
+
 
 			umaxes_om<-apply(M[[i]]$OM$Ulength[estyrs,],1,mean)
-			sels_OM<-(M[[i]]$OM$Ulength[estyrs,])/umaxes_om
+			sels_OM<-((M[[i]]$OM$Ulength[estyrs,])/umaxes_om)
 
 			selom <- data.frame(sel=c(sels_OM),len=rep(1:ncol(sels_OM),each=length(estyrs)),yr=rep(estyrs,ncol(sels_OM)),type="OM", scenario=scn[M[[i]]$OM$scnNumber], scnNumber=scn[M[[i]]$OM$scnNumber])
 			selest <- data.frame(sel=c(sels_est),len=rep(1:ncol(sels_est),each=length(estyrs)),yr=rep(estyrs,ncol(sels_est)),type="EST",scenario=scn[M[[i]]$OM$scnNumber],scnNumber=scn[M[[i]]$OM$scnNumber])
@@ -62,72 +63,75 @@ plot_Sel <- function( M, sv=FALSE, nome=""){
 	}
 
 	#summary(cio)
-	df<-rbind(cio,cip)
-	for(sc in 1:length(scn)){
-		df3<-df[df$scenario==scn[sc],]
-		cio3<-cio[cio$scenario==scn[sc],]
-	
-		limo<-	cio3[1:(length(unique(cio3$yr))*length(unique(cio3$len))),]
-	
-		p <- ggplot(df3,aes(x=as.factor(len),y=sel,color=type)) 
-		p <- p + geom_boxplot(outlier.shape = NA)
-		p <- p + facet_wrap(~yr,scale="free")
-		p <- p + geom_line(data=limo,aes(y=sel,x=len), color="black")
-		p <- p + ggtitle(paste(scn[sc]))
-		p <- p + labs(x="Length",y="U")
-		p <- p + theme_bw(12) 
-		p <- p + scale_colour_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
-				
-		print(p) 
-
-		if(sv==TRUE){
-			setwd("/Users/catarinawor/Documents/Length_SRA/report")
-			ggsave(paste(nome,"sel_",scn[sc],".pdf",sep=""), plot=p)
-			
-		}
-	
-	}
-		
-
-
+	#df<-rbind(cio,cip)
 	#for(sc in 1:length(scn)){
-	#	for(ll in 1:ncol(sels_OM)){
-	#		for(y in 1:length(estyrs)){
-
-	#		cioy<-c(calc_quantile(cio$sel[cio$yr==estyrs[y]&cio$len==ll&cio$scenario==scn[sc]]))
-	#		cipy<-c(calc_quantile(cip$sel[cip$yr==estyrs[y]&cip$len==ll&cio$scenario==scn[sc]]))
-
-	#		co<-data.frame(median=cioy[3],low=cioy[1],high=cioy[5] , ll=ll,year=estyrs[y], type="om", scenario=cio$scenario[cio$yr==estyrs[y]&cio$len==ll&cio$scenario==scn[sc]])
-	#		ce<-data.frame(median=cipy[3],low=cipy[1],high=cipy[5] , ll=ll,year=estyrs[y], type="est", scenario=cip$scenario[cio$yr==estyrs[y]&cio$len==ll&cio$scenario==scn[sc]])
-			
-	#		omd<-rbind(omd,co)
-	#		esd<-rbind(esd,ce)
-	#		}
+	#	df3<-df[df$scenario==scn[sc],]
+	#	cio3<-cio[cio$scenario==scn[sc],]
+	#	
+	#	limo<-	cio3[1:(length(unique(cio3$yr))*length(unique(cio3$len))),]
+	#
+	#	p <- ggplot(df3,aes(x=as.factor(len),y=sel,color=type)) 
+	#	p <- p + geom_boxplot(outlier.shape = NA)
+	#	p <- p + facet_wrap(~yr,scale="free")
+	#	p <- p + geom_line(data=limo,aes(y=sel,x=len), color="black")
+	#	p <- p + ggtitle(paste(scn[sc]))
+	#	p <- p + labs(x="Length",y="U")
+	#	p <- p + theme_bw(12) 
+	#	p <- p + scale_colour_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
+	#			
+	#	print(p) 
+	#
+	#	if(sv==TRUE){
+	#		setwd("/Users/catarinawor/Documents/Length_SRA/report")
+	#		ggsave(paste(nome,"sel_",scn[sc],".pdf",sep=""), plot=p)
+	#		
 	#	}
-
+	#
 	#}
-
-
-	#	df2<-rbind(omd,esd)
 		
+	omd<-NULL
+	esd<-NULL
 
+	for(sc in 1:length(scn)){
+		for(ll in 1:ncol(sels_OM)){
+			for(y in 1:length(estyrs)){
+
+			cioy<-c(calc_quantile(cio$sel[cio$yr==estyrs[y]&cio$len==ll&cio$scenario==scn[sc]]))
+			cipy<-c(calc_quantile(cip$sel[cip$yr==estyrs[y]&cip$len==ll&cio$scenario==scn[sc]]))
+
+			co<-data.frame(median=cioy[3],low=cioy[1],high=cioy[5] , ll=ll,year=estyrs[y], type="om", scenario=cio$scenario[cio$yr==estyrs[y]&cio$len==ll&cio$scenario==scn[sc]])
+			ce<-data.frame(median=cipy[3],low=cipy[1],high=cipy[5] , ll=ll,year=estyrs[y], type="est", scenario=cip$scenario[cio$yr==estyrs[y]&cio$len==ll&cio$scenario==scn[sc]])
+			
+			omd<-rbind(omd,co)
+			esd<-rbind(esd,ce)
+			}
+		}
+
+	}
+
+
+		df2<-rbind(omd,esd)
 		
-	#	for(sc in 1:length(scn)){
-	#		df3<-df2[df2$scenario==scn[sc],]
+		summary(df2)
+		
+		for(sc in 1:length(scn)){
+			df3<-df2[df2$scenario==scn[sc],]
 	
-	#		summary(df3)
+			summary(df3)
 
-	#		p2 <- ggplot(df3,aes(x=(ll),y=median,color=type,fill=type)) 
-	#		p2 <- p2 + geom_line()
-	#		p2 <- p2 + geom_ribbon(aes(ymax=high, ymin=low),alpha=0.2)
-	#		p2 <- p2 + theme_bw(11)
-	#		p2 <- p2 + facet_wrap(~year,scale="free")
-	#		p2 <- p2 + ggtitle(paste(scn[sc]))
-	#		print(p2)
 
-	#		setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-	#		ggsave(paste("sel_",scn[sc],".pdf",sep=""), plot=p2)
-	#	}
+
+			p2 <- ggplot(df3,aes(x=(ll),y=median,color=type,fill=type)) 
+			p2 <- p2 + geom_line()
+			p2 <- p2 + geom_ribbon(aes(ymax=high, ymin=low),alpha=0.2)
+			p2 <- p2 + theme_bw(11)
+			p2 <- p2 + facet_wrap(~year,scale="free")
+			p2 <- p2 + ggtitle(paste(scn[sc]))
+			print(p2)
+
+			setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
+			ggsave(paste(nome,"_sel_",scn[sc],".pdf",sep=""), plot=p2)
+		}
 
 		
 		
@@ -152,6 +156,8 @@ plot_Sel_pub <- function( M ){
 	cio<-NULL
 
 	cip<-NULL
+
+
 	
 	for(i in 1:n){
 
@@ -159,8 +165,6 @@ plot_Sel_pub <- function( M ){
 			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
 
 			estyrs<-M[[i]]$OM$rep_yr:M[[i]]$OM$eyr
-			
-			names(M[[i]]$SArep)
 
 			umaxes_est<-apply(M[[i]]$SArep$Ulength,1,mean)
 			sels_est<-(M[[i]]$SArep$Ulength)/umaxes_est
@@ -168,8 +172,8 @@ plot_Sel_pub <- function( M ){
 			umaxes_om<-apply(M[[i]]$OM$Ulength[estyrs,],1,mean)
 			sels_OM<-(M[[i]]$OM$Ulength[estyrs,])/umaxes_om
 
-			selom <- data.frame(sel=c(sels_OM),len=rep(M[[i]][[1]]$len,each=length(estyrs)),yr=rep(estyrs,ncol(sels_OM)),type="OM", scenario=scn[M[[i]]$OM$scnNumber], scnNumber=scn[M[[i]]$OM$scnNumber])
-			selest <- data.frame(sel=c(sels_est),len=rep(M[[i]][[1]]$len,each=length(estyrs)),yr=rep(estyrs,ncol(sels_est)),type="EST",scenario=scn[M[[i]]$OM$scnNumber],scnNumber=scn[M[[i]]$OM$scnNumber])
+			selom <- data.frame(sel=c(sels_OM),len=rep(M[[i]][[1]]$len,each=length(estyrs)),yr=rep(estyrs,ncol(sels_OM)),type="OM", scenario=scn[M[[i]]$OM$scnNumber], scnNumber=scn[M[[i]]$OM$scnNumber], seed=i)
+			selest <- data.frame(sel=c(sels_est),len=rep(M[[i]][[1]]$len,each=length(estyrs)),yr=rep(estyrs,ncol(sels_est)),type="EST",scenario=scn[M[[i]]$OM$scnNumber],scnNumber=scn[M[[i]]$OM$scnNumber],seed=i)
 
 			
 			cio <- rbind(cio,selom)
@@ -189,17 +193,33 @@ plot_Sel_pub <- function( M ){
 	#df22$scenario<-factor(df22$scenario,levels = rev(c(levels(df22$scenario)),ordered = TRUE)
 
 	#df22$len<-as.factor(df22$len)
-	#	summary(df22)
+	#	head(df22)
 
 	#	summary(df22)
 	#cio22<-cio[cio$yr==21|cio$yr==30|cio$yr==40|cio$yr==50,]
 	#cio22$len<-as.factor(cio22$len)
 	#cio22$year<-as.factor(cio22$yr)
-	
-	#	summary(cio22)
-
 	#limo<-	cio22[1:(length(unique(cio22$yr))*length(unique(cio22$len))*length(unique(cio22$scenario))),]
-		
+	
+
+	#p2 <- ggplot(df22,aes(x=len,y=sel,color=type)) 
+	#p2 <- p2 + geom_line(aes(linetype=as.factor(seed)))
+	#p2 <- p2 + facet_grid(scenario~year, labeller = label_both ,scales="free_y")
+	#p2 <- p2 + theme_bw(12) + scale_linetype_manual(values=rep("solid",1168), guide="none")
+	#p2 <- p2 + coord_cartesian(ylim=c(0,1.0))
+	##p2 <- p2 + geom_line(data=cio22,aes(y=sel,x=as.numeric(as.factor(len))), color="black")
+	#p2 <- p2 + labs(x="Length",y="U")
+	#p2 <- p2 + theme_bw(12) 
+	#p2 <- p2 + scale_x_discrete(breaks=seq(8,60, by=4))
+	#p2 <- p2 + scale_colour_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
+	#p2 <- p2 + theme(axis.text = element_text(face="bold", size=11),
+  	#		axis.title = element_text(face="bold", size=13),
+  	#		strip.text = element_text(face="bold", size=15))
+  	#		p2 <- p2 + guides(fill = guide_legend(title = NULL),color=guide_legend(title = NULL))
+	#print(p2)	
+
+
+
 	#p2 <- ggplot(df22,aes(x=as.factor(len),y=sel,color=type)) 
 	#p2 <- p2 + geom_boxplot(outlier.shape = NA)
 	#p2 <- p2 + facet_grid(scenario~year, labeller = label_both ,scales="free_y")
@@ -213,7 +233,7 @@ plot_Sel_pub <- function( M ){
 	#p2 <- p2 + theme(axis.text = element_text(face="bold", size=11),
   	#		axis.title = element_text(face="bold", size=13),
   	#		strip.text = element_text(face="bold", size=15))
-  	#		p2 <- p2 + guides(fill = guide_legend(title = NULL),color=guide_legend(title = NULL))
+    #			p2 <- p2 + guides(fill = guide_legend(title = NULL),color=guide_legend(title = NULL))
 	#print(p2)	
 
 
@@ -266,6 +286,7 @@ plot_Sel_pub <- function( M ){
 
 		summary(df2)
 		repyr<-c(21,30,40,50)
+		#repyr<-c(25,35,45,49)
 		
 
 		df22<-df2[df2$year==21|df2$year==30|df2$year==40|df2$year==50,]		
@@ -275,7 +296,7 @@ plot_Sel_pub <- function( M ){
 		p2 <- ggplot(df22,aes(x=ll,y=median,color=type,fill=type)) 
 			p2 <- p2 + geom_line()
 			p2 <- p2 + geom_ribbon(aes(ymax=high, ymin=low),alpha=0.2)
-			p2 <- p2 + facet_grid(scenario~year, labeller = label_both)
+			p2 <- p2 + facet_grid(scenario~year, labeller = label_both, scales= "free_y")
 			p2 <- p2 + labs(x="Length",y="Selectivity")
 			p2 <- p2 + theme_bw(12) 
 			p2 <- p2 + scale_colour_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
@@ -290,7 +311,7 @@ plot_Sel_pub <- function( M ){
 			setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
 			ggsave("sel_publ.pdf", plot=p2, width = 14, height = 10)
 		}
-	}
+	
 
 		
 }		
@@ -516,7 +537,7 @@ plot_USel <- function( M )
 			print(p2)
 
 			setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-			ggsave(paste("sel_",scn[sc],".pdf",sep=""), plot=p2)
+			ggsave(paste( scn[sc],"_sel",".pdf",sep=""), plot=p2)
 		}
 
 		
@@ -532,8 +553,7 @@ plot_USel <- function( M )
 
 
 
-plot_Sel_biasLinf <- function( M, sv=FALSE, nome="")
-{
+plot_Sel_biasLinf <- function( M, sv=FALSE, nome=""){
 	cat("plot_Sel")
 
 	n <- length( M )
@@ -667,8 +687,5 @@ plot_Sel_biasLinf <- function( M, sv=FALSE, nome="")
 		#p <- p + ylim(min(fdf$Low),max(fdf$High))
 	
 	
-}
-	
 
-names(M[[1]][[1]])
-M[[1]][[1]]$len
+	

@@ -26,25 +26,33 @@ readOutput <- function(dir)
 	
 	sims<-readOutput("/Users/catarinawor/Documents/length_SRA/admb/")
 	
-	#Rinint  is the one in the results
-	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/Rinit/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/qpr/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/new_bc/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen10/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen2/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen6/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50sel/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50vp4/")
+	#Rinit  is the one in the results
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base2/")
+	
+	#new runs with Rinit, SigR *2.0,qpr and vulpen=50 
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/Rinit/")
+	
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/smooth_sel/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/smooth_sel_novpen/")
+	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/fspr/")
+
+	#vulpen500
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen1000/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/novulpen/")
+	
+	#prior on q and SigR =2.0
+	#latest one with high variability in deriv quants
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/wt2qprior/")
+	
+
 	
 	#this one is the oneI sent to Carl
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50priork09/")
 
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/test/")
 	
-	
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50vp50/")
+	#the new Oct 5 on with just Ro
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50/")
 
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/dome_shaped/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/dome_shaped_highU/")

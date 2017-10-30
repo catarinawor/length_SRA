@@ -37,7 +37,9 @@ plot_Recdevs <- function( M )
 		if(M[[i]]$SApar$maxgrad<1.0e-04){
 			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
 
+
 			
+						
 			est<-(M[[i]]$SArep$wt)
 
 			
@@ -49,11 +51,13 @@ plot_Recdevs <- function( M )
 			bias<- (est- true) #/ true
 			
 			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
+			myr<-(M[[i]]$SArep$yr[1]-length(M[[i]]$SArep$age)+1):M[[i]]$SArep$yr[length(M[[i]]$SArep$yr)]
 
-			df <- data.frame(bias=bias,  true =true,est=est,year=(M[[i]]$SArep$yr[1]-9):M[[i]]$SArep$yr[length(M[[i]]$SArep$yr)],scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			df <- data.frame(bias=bias,  true=true,est=est,yr=myr
+				,scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
 			mdf <- rbind(mdf,df)
-
 			
+
 		}
 	}
 
@@ -68,11 +72,11 @@ plot_Recdevs <- function( M )
 
 	
 	p <- ggplot(mdf) 
-	p <- p + geom_boxplot(aes(x=as.factor(year),y=bias))
+	p <- p + geom_boxplot(aes(x=as.factor(yr),y=bias))
 	p <- p + geom_hline(yintercept=0, color="darkred", size=1.2, alpha=0.3)
 	p <- p + labs(x="year",y=" rec dev rel_error")
 	p <- p + theme_bw(12) 
-	p <- p + coord_cartesian(ylim=c(-0.5, 0.5))
+	p <- p + coord_cartesian(ylim=c(-1., 1.))
 	#p <- p + annotate("text" , x = 1, y = 0.48, label = paste("n = ",conv_n))
 	p <- p + facet_wrap(~scenario)
 	#p <- p + geom_text(data=mdf, aes(x=1.2, y=0.48, label=converge), parse=TRUE)
