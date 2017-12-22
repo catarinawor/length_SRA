@@ -8,6 +8,11 @@
 *.so
 
 # iSCAM output
+*.bar
+*.cov
+*.dep
+*.hes
+variance
 *.psv
 *.cor
 *.rep
