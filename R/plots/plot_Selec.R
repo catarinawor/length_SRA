@@ -170,7 +170,7 @@ plot_Sel_pub <- function( M ){
 			sels_est<-(M[[i]]$SArep$Ulength)/umaxes_est
 
 			umaxes_om<-apply(M[[i]]$OM$Ulength[estyrs,],1,mean)
-			sels_OM<-(M[[i]]$OM$Ulength[estyrs,])/umaxes_om
+			sels_OM<-(M[[i]]$OM$Ulength[estyrs,])#/umaxes_om
 
 			selom <- data.frame(sel=c(sels_OM),len=rep(M[[i]][[1]]$len,each=length(estyrs)),yr=rep(estyrs,ncol(sels_OM)),type="OM", scenario=scn[M[[i]]$OM$scnNumber], scnNumber=scn[M[[i]]$OM$scnNumber], seed=i)
 			selest <- data.frame(sel=c(sels_est),len=rep(M[[i]][[1]]$len,each=length(estyrs)),yr=rep(estyrs,ncol(sels_est)),type="EST",scenario=scn[M[[i]]$OM$scnNumber],scnNumber=scn[M[[i]]$OM$scnNumber],seed=i)
@@ -536,8 +536,8 @@ plot_USel <- function( M )
 			p2 <- p2 + ggtitle(paste(scn[sc]))
 			print(p2)
 
-			setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-			ggsave(paste( scn[sc],"_sel",".pdf",sep=""), plot=p2)
+			#setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
+			#ggsave(paste( scn[sc],"_sel",".pdf",sep=""), plot=p2)
 		}
 
 		
@@ -639,6 +639,8 @@ plot_Sel_biasLinf <- function( M, sv=FALSE, nome=""){
 	
 	}
 		
+
+
 
 
 	#for(sc in 1:length(scn)){

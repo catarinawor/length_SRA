@@ -452,17 +452,6 @@ pit
 
 
 
-pit<-ggplot(it_all)
-pit<-pit+geom_line(aes(x=year,y=predicted),size = 1.2)
-pit<-pit+geom_point(aes(x=year,y=observed),shape = 21, stroke = 1.2)
-pit<-pit+facet_wrap(~species,scales="free")
-pit<-pit+ ylab("Index of abundance")
-pit<-pit+ theme_bw(16) + xlab(" ")
-pit <- pit +coord_cartesian(xlim = c(1975,2013))
-pit
-
-
-
 
 
 pm<-ggplot(msyall[msyall$variable=="Umsy",])

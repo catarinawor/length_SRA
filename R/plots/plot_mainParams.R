@@ -193,7 +193,7 @@ plot_params_publ <- function( M , Rinit=T )
 
 
 	p <- ggplot(df2) 
-	p <- p + geom_boxplot(aes(x=scenario,y=value))+ coord_flip(ylim=c(-0.7, 0.7))
+	p <- p + geom_boxplot(aes(x=scenario,y=value))+ coord_flip(ylim=c(-1., 1.0))
 	p <- p + geom_hline(yintercept=0, color="black", size=1.2, alpha=0.3)
 	p <- p + labs(x="Scenario",y="Relative Proportional Error")
 	p <- p + theme_bw(12) 

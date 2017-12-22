@@ -34,31 +34,11 @@ readOutput <- function(dir)
 	
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/smooth_sel/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/smooth_sel_novpen/")
-	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/fspr/")
-
-	#vulpen500
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/vulpen1000/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/novulpen/")
 	
-	#prior on q and SigR =2.0
-	#latest one with high variability in deriv quants
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/wt2qprior/")
-	
+	#FINAL
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/fspr/")
+	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
 
-	
-	#this one is the oneI sent to Carl
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50priork09/")
-
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/test/")
-	
-	#the new Oct 5 on with just Ro
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/linf50/")
-
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/dome_shaped/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/dome_shaped_highU/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/highsigR/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf60/")
 		
 
 	###setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/no_bc/")

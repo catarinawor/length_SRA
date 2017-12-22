@@ -26,15 +26,14 @@
 #no vulpen
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/novulpen"
 
-#use prior in q and set sigR=2.0 in the last phase
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/wt2qprior"
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/smooth_sel"
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/smooth_sel_novpen"
+#new fspr calculations and final formulation of estimation model
+
 DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/fspr"
 
 
-#just Ro
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/linf50"
+#appendix stuff Linf misspecification
+DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/biasedlinf"
+
 
 plotlib<-"/Users/catarinawor/Documents/Length_SRA/R/plots"
 #.RFILES     <- list.files(.LIB,pattern="\\.[Rr]$")
