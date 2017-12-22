@@ -1,10 +1,10 @@
 #Base SCN - vulpen=4
-CC
-CO
-CR
-VC
-VO
-VR
+#CC
+#CO
+#CR
+#VC
+#VO
+#VR
 #Appendix - biased Linf
 #true
 #minus10
@@ -32,4 +32,6 @@ VR
 ##################
 #10highLinf
 #5lowLinf
-
+true
+plus10
+minus10
