@@ -1,20 +1,20 @@
 # Fdb version 3
-["bibtex length_SRA"] 1513895052 "length_SRA.aux" "length_SRA.bbl" "length_SRA" 1513895701
+["bibtex length_SRA"] 1515174612 "length_SRA.aux" "length_SRA.bbl" "length_SRA" 1515188190
   "./cjfas.bst" 1451353368 31021 33fbf337498016a65f8ccc6171278565 ""
-  "length_SRA.aux" 1513895701 16575 1962b8b9a3f4f78be6769987dc833e0b ""
+  "length_SRA.aux" 1515188190 17052 68e26c8059a68f151a365c39225fac5e ""
   "length_SRA.bcf" 1509409674 100537 959dc9e0f4938403eb44678e5ae859e9 ""
-  "references.bib" 1513625048 62745 0c4c4abee596ab4f03cc700e0b7ba038 ""
+  "references.bib" 1513976278 64643 377d29b7ed194b9a19ac8be4929ba03a ""
   (generated)
   "length_SRA.bbl"
   "length_SRA.blg"
-["pdflatex"] 1513895700 "length_SRA.tex" "length_SRA.pdf" "length_SRA" 1513895701
+["pdflatex"] 1515188189 "length_SRA.tex" "length_SRA.pdf" "length_SRA" 1515188190
   "./Figure1.pdf" 1509399788 9496 541785b166fec45845151ed397f93089 ""
   "./Figure2.pdf" 1509399820 11580 1731b61a2cbfe48e4238425406134372 ""
   "./Figure3.pdf" 1509399339 20907 b32b33c19d7ff0a012103d39017b3b31 ""
-  "./Figure4.pdf" 1509662943 33737 8d309109564bdba1e2af25144c35f965 ""
-  "./Figure5.pdf" 1509405164 17969 d49a0cb503892ac3b1c265cbcb1b4b76 ""
+  "./Figure4.pdf" 1513994709 31612 f983b758acaa2618732f739f1225d6e0 ""
+  "./Figure5.pdf" 1515174410 23259 389d8a5cef7f39e7c9fdc164e0ca6f03 ""
   "./Figure6.pdf" 1509404569 16760 47db3c2fe1ef0a7ed377135019303b7c ""
-  "./length_SRA.out" 1513895701 825 9aebb86505c33b589b751a6cc0965a4f ""
+  "./length_SRA.out" 1515188190 825 9aebb86505c33b589b751a6cc0965a4f ""
   "/usr/local/texlive/2015/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2015/texmf-dist/fonts/map/fontname/texfonts.map" 1272929888 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2015/texmf-dist/fonts/tfm/adobe/courier/pcrr8r.tfm" 1136768653 1292 bd42be2f344128bff6d35d98474adfe3 ""
@@ -201,13 +201,13 @@
   "Figure1.pdf" 1509399788 9496 541785b166fec45845151ed397f93089 ""
   "Figure2.pdf" 1509399820 11580 1731b61a2cbfe48e4238425406134372 ""
   "Figure3.pdf" 1509399339 20907 b32b33c19d7ff0a012103d39017b3b31 ""
-  "Figure4.pdf" 1509662943 33737 8d309109564bdba1e2af25144c35f965 ""
-  "Figure5.pdf" 1509405164 17969 d49a0cb503892ac3b1c265cbcb1b4b76 ""
+  "Figure4.pdf" 1513994709 31612 f983b758acaa2618732f739f1225d6e0 ""
+  "Figure5.pdf" 1515174410 23259 389d8a5cef7f39e7c9fdc164e0ca6f03 ""
   "Figure6.pdf" 1509404569 16760 47db3c2fe1ef0a7ed377135019303b7c ""
-  "length_SRA.aux" 1513895701 16575 1962b8b9a3f4f78be6769987dc833e0b ""
-  "length_SRA.bbl" 1513895052 11252 7a7e0fff5b5a78d3412d612e47d74bc6 "bibtex length_SRA"
-  "length_SRA.out" 1513895701 825 9aebb86505c33b589b751a6cc0965a4f ""
-  "length_SRA.tex" 1513895699 48751 4b4abb46ecac94b0d6c3d5650c5a77d9 ""
+  "length_SRA.aux" 1515188190 17052 68e26c8059a68f151a365c39225fac5e ""
+  "length_SRA.bbl" 1515174612 11762 f7435f249fc5a3003024e4c1c3cfd788 "bibtex length_SRA"
+  "length_SRA.out" 1515188190 825 9aebb86505c33b589b751a6cc0965a4f ""
+  "length_SRA.tex" 1515188188 49611 f40a4b8524873393de701c0492ba4daf ""
   (generated)
   "length_SRA.lot"
   "length_SRA.bcf"
