@@ -9,30 +9,13 @@
 #TODO
 #
 
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/linf50priork"
 
-#Vulpen=4
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base2"
-
-#Ro and Rinit estimate
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit"
-
-#Ro and Rinit estimate eith narrower prior on kappa
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/Rinit_prior"
-
-#same as above but with ssvul=1000
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/vulpen1000"
-
-#no vulpen
-#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/novulpen"
-
-#new fspr calculations and final formulation of estimation model
-
+# final formulation of estimation model
 DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/fspr"
 
 
 #appendix stuff Linf misspecification
-DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/biasedlinf"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/biasedlinf"
 
 
 plotlib<-"/Users/catarinawor/Documents/Length_SRA/R/plots"
