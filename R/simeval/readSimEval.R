@@ -35,9 +35,26 @@ readOutput <- function(dir)
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/smooth_sel/")
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/smooth_sel_novpen/")
 	
+	#low obs error
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/lowCltErr/")
+
+	#no obs error
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noCltErr/")
+
+	#no Rinit
+	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit/")
+
+	#no Rinit wrong k prior
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinitwrongkprior/")
+
+	#no Rinit high survey cv
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinithighcvIt/")
+
+
+
 	#FINAL
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/fspr/")
-	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
 
 		
 

@@ -196,9 +196,9 @@ plot_Sel_pub <- function( M ){
 			cioy<-c(calc_quantile(cio$sel[cio$yr==estyrs[y]&cio$len==mylen[ll]&cio$scenario==scn[sc]]))
 			cipy<-c(calc_quantile(cip$sel[cip$yr==estyrs[y]&cip$len==mylen[ll]&cio$scenario==scn[sc]]))
 
-			obs1<-cio$sel[cio$yr==estyrs[y]&cio$len==mylen[ll]&cio$scenario==scn[sc]][12]
-			obs2<-cio$sel[cio$yr==estyrs[y]&cio$len==mylen[ll]&cio$scenario==scn[sc]][90]
-			obs3<-cio$sel[cio$yr==estyrs[y]&cio$len==mylen[ll]&cio$scenario==scn[sc]][180]
+			obs1<-cip$sel[cio$yr==estyrs[y]&cio$len==mylen[ll]&cio$scenario==scn[sc]][12]
+			obs2<-cip$sel[cio$yr==estyrs[y]&cio$len==mylen[ll]&cio$scenario==scn[sc]][90]
+			obs3<-cip$sel[cio$yr==estyrs[y]&cio$len==mylen[ll]&cio$scenario==scn[sc]][180]
 
 			co<-data.frame(median=rep(cioy[3],3),low=rep(cioy[1],3),high=rep(cioy[5],3),
 						 obs=c(obs1,obs2,obs3), obsn=1:3, ll=rep(mylen[ll],3),year=rep(estyrs[y],3),
@@ -230,10 +230,10 @@ plot_Sel_pub <- function( M ){
 		p2 <- ggplot(df22,aes(x=ll,y=median,color=type,fill=type)) 
 			p2 <- p2 + geom_line()
 			p2 <- p2 + geom_ribbon(aes(ymax=high, ymin=low),alpha=0.2)
-			#p2 <- p2 + geom_line(aes(x=ll,y=obs,linetype=obsn))
-			p2 <- p2 + facet_grid(scenario~year, labeller = label_both, scales= "free_y")
+			p2 <- p2 + geom_line(aes(x=ll,y=obs,linetype=as.factor(obsn)),show.legend = FALSE)
+			p2 <- p2 + facet_grid(scenario~year, labeller = label_both)
 			p2 <- p2 + labs(x="Length",y="Selectivity")
-			p2 <- p2 + theme_bw(12) 
+			p2 <- p2 + theme_bw(12) + scale_linetype_manual(values=c("dashed","twodash", "dotted"))
 			p2 <- p2 + scale_colour_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
 			p2 <- p2 + scale_fill_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
 			p2 <- p2 + theme(axis.text = element_text(face="bold", size=12),
@@ -244,20 +244,6 @@ plot_Sel_pub <- function( M ){
 
 
 
-
-		p2 <- ggplot(df22,aes(x=ll,y=median,color=type,fill=type)) 
-			p2 <- p2 + geom_line()
-			p2 <- p2 + geom_ribbon(aes(ymax=high, ymin=low),alpha=0.2)
-			p2 <- p2 + facet_grid(scenario~year, labeller = label_both, scales= "free_y")
-			p2 <- p2 + labs(x="Length",y="Selectivity")
-			p2 <- p2 + theme_bw(12) 
-			p2 <- p2 + scale_colour_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
-			p2 <- p2 + scale_fill_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
-			p2 <- p2 + theme(axis.text = element_text(face="bold", size=12),
-  			axis.title = element_text(face="bold", size=12),
-  			strip.text = element_text(face="bold", size=15))
-  			p2 <- p2 + guides(fill = guide_legend(title = NULL),color=guide_legend(title = NULL))
-			print(p2)
 		
 		if(sv==TRUE){
 			setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
@@ -565,9 +551,7 @@ plot_Sel_biasLinf <- function( M, sv=FALSE, nome=""){
 	limo$sel<-	limo$x
 
 	#limo$len[limo$scenario=="plus10"]<-	limo$len[limo$scenario=="plus10"]
-
-	unique(df_A$len[df_A$scenario=="true"])
-	[seq(1,33,2)]
+	
 
 	summary(df_A[df_A$scenario=="minus10",])
 
