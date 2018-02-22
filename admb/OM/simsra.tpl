@@ -406,6 +406,7 @@ FUNCTION void addErrorClt(const int& ii)
 
        		
 			obsClt(ii) = rmvlogistic(Clt(ii),tau_length,seed+ii)* sum(Clt(ii));
+			//obsClt(ii) = Clt(ii);
 			//cout<<"Clt(ii) is"<<endl<<Clt(ii)<<endl;
 			//cout<<"obsClt(ii) is"<<endl<<obsClt(ii)<<endl;
 			
@@ -609,12 +610,12 @@ FUNCTION output_ctl
 	mfs<<"##                      -4 gamma        (p1=alpha,p2=beta)                              ##"<< endl;	
 	mfs<<"##                      -5 no prior        pvec=0.0                              ##"<< endl;	
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	//mfs<<"## npar"<<endl<< "3"<< endl;
-	mfs<<"## npar"<<endl<< "4"<< endl;
+	mfs<<"## npar"<<endl<< "3"<< endl;
+	//mfs<<"## npar"<<endl<< "4"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ——————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<< log(Ro*0.8) <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 0 <<"\t"<< 3.0	<<"\t"<< 7.0   	<<"\t"<<"#log_ro   	##"<<endl;
-	mfs<< log(rini*1.1)  	 <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< 3.0 	<<"\t"<< 7.0   	<<"\t"<<"#log_rinit   	##"<<endl;
+	//mfs<< log(rini*1.1)  	 <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< 3.0 	<<"\t"<< 7.0   	<<"\t"<<"#log_rinit   	##"<<endl;
 	//mfs<< log(Ro) <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0	<<"\t"<< 7.0   	<<"\t"<<"#log_ro   	##"<<endl;
    	//mfs<< log(rini)  	 <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0 	<<"\t"<< 7.0   	<<"\t"<<"#log_rinit   	##"<<endl;
    	//mfs<< log(reck*0.8) 	 <<"\t"<<  1.6 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  1.6 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
@@ -640,7 +641,7 @@ FUNCTION output_ctl
 	mfs<<"##initial values for recruitment deviations in first year ##"<< endl;
 	mfs<<"#log(q) prior - same codes as above##"<< endl;
 	mfs<<"#prior   p1      p2  ##"<< endl;
-  	mfs<< 1 <<"\t"<<	   0	 <<"\t"<<	 0.2 << endl;
+  	mfs<< 5 <<"\t"<<	   0	 <<"\t"<<	 0.2 << endl;
 	mfs<<"#closed loop ##"<<endl<<0<< endl;
 	mfs<<"# eof " << endl << 999 <<endl;
 
@@ -675,7 +676,7 @@ FUNCTION output_data
 	ofs<<"# yt " << endl << vbt(rep_yr,eyr)  <<endl;
 	ofs<<"# Clt"<< endl << obsClt.sub(rep_yr,eyr) <<endl;
 	//ofs<<"# Clt"<< endl << Clt.sub(rep_yr,eyr) <<endl;
-	ofs<<"# linf "<< endl << Linf*0.9<<endl;//     
+	ofs<<"# linf "<< endl << Linf <<endl;//     
 	ofs<<"# k "<< endl << k <<endl;
 	ofs<<"# to " << endl << to <<endl;
 	ofs<<"# cvl " << endl << cvl <<endl;

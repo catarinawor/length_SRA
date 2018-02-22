@@ -8,14 +8,22 @@
 
 #TODO
 #
+#low Clt error tau=0.05
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/lowCltErr"
 
 
 # final formulation of estimation model
-DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/fspr"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/fspr"
 
 
 #appendix stuff Linf misspecification
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/biasedlinf"
+
+
+
+#===================================================
+#post revision directories
+DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/noRinit"
 
 
 plotlib<-"/Users/catarinawor/Documents/Length_SRA/R/plots"

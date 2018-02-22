@@ -34,15 +34,15 @@
 #tau
 0.2
 #tau_length_comps
-0.1
+0.05
 #surv
 0.7
 #wmat;
 0.5
 #Growth parameters
 #Linf;
-68
-#50
+#68
+50
 #k
 0.3
 #to
