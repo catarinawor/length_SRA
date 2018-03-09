@@ -167,8 +167,8 @@ plot_derivQuant_publ <- function( M )
   strip.text = element_text(face="bold", size=16))
 	print(p)
 
-	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-	ggsave("derivQuant_publ.pdf", plot=p)
+	#setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
+	#ggsave("derivQuant_publ.pdf", plot=p)
 
 	ggplot_build(p)$data
 

@@ -26,24 +26,34 @@ readOutput <- function(dir)
 	
 	sims<-readOutput("/Users/catarinawor/Documents/length_SRA/admb/")
 	
-	#Rinit  is the one in the results
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base2/")
-	
-	#new runs with Rinit, SigR *2.0,qpr and vulpen=50 
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/Rinit/")
-	
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/smooth_sel/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/smooth_sel_novpen/")
-	
-	#low obs error
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/lowCltErr/")
+	#This will be the one with main paper results after the mistake has been corrected
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base/")
 
-	#no obs error
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noCltErr/")
+	#SigR*2 after the mistake has been corrected 
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base_sigR2/")
+	
+	#SigR*2 after the mistake has been corrected 
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base_sigR2_q5/")
+	
+	#test with bias correction in q
+	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/test/")
+	
+	
 
+	#This will be the one with biased Linf results after the mistake has been corrected
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
+
+	
+	
 	#no Rinit
-	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit/")
 
+	#no Rinit no k prior
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit_nokprior/")
+
+	#no Rinit no k prior no clt error
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit_nokprior_noCltErr/")
+	
 	#no Rinit wrong k prior
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinitwrongkprior/")
 

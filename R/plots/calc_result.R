@@ -15,6 +15,16 @@
 # final formulation of estimation model
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/fspr"
 
+# final formulation of estimation model - with Pla correction
+DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base"
+
+# final formulation of estimation model - with Pla correction  and SigR*2 qpriorsd .2
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base_sigR2"
+
+# final formulation of estimation model - with Pla correction, SigR*2 qpriorsd .5
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/base_sigR2_q5"
+
+
 
 #appendix stuff Linf misspecification
 #DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/biasedlinf"
@@ -23,7 +33,8 @@
 
 #===================================================
 #post revision directories
-DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/noRinit"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/noRinit"
+#DIR<-"/Users/catarinawor/Documents/Length_SRA/R/simResult/noRinit_nokprior"
 
 
 plotlib<-"/Users/catarinawor/Documents/Length_SRA/R/plots"
@@ -52,11 +63,12 @@ for(p in 1:length(plotfiles)){
 }
 
 length(SIMSdat)
-	
-plot_params( SIMSdat ,Rinit=TRUE, sv=F, nome="")
+
+plot_params_deriv( SIMSdat ,Rinit=TRUE, sv=F, nome="")	
+#plot_params( SIMSdat ,Rinit=TRUE, sv=F, nome="")
 #plot_params( SIMSdat ,Rinit=F,sv=F, nome="")
 plot_params_publ( SIMSdat ,Rinit=TRUE)
-plot_derivQuant( SIMSdat, sv=F, nome="novp" )
+plot_derivQuant( SIMSdat, sv=F, nome="fix" )
 plot_derivQuant_publ( SIMSdat )
 plot_SBiomass( SIMSdat , sv=F, nome="novp")
 plot_udevs( SIMSdat )
