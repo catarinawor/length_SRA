@@ -273,7 +273,9 @@ FUNCTION propAgeAtLengh
 		z1 = (( len - lstp * 0.5 )- la( a ))/( std( a ));
 		z2 = (( len + lstp * 0.5 )- la( a ))/( std( a ));
 		
-		for( int b=1; b< nlen; b++ )
+		P_al( a, 1 )=cumd_norm( z2( 1 ));
+
+		for( int b=2; b< nlen; b++ )
 		{
 			P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
 		}
@@ -371,6 +373,12 @@ FUNCTION populationDynamics
 		//Proportion of individuals at length 
 		//note admb matrix multiplication is yj = \sum_i xi * mij 
 		Nlt(i+1) = Nat(i+1)*P_al;
+
+
+		//cout<<" i+1 "<< i+1 <<endl;
+		//cout<<"sum(Nat( y ) ) "<<sum(Nat( i+1 ) )<<endl;
+		//cout<<"sum(Nlt( y ) ) "<<sum(Nlt( i+1 ) )<<endl;
+
 		//Explitation rate at length
 		//Ulength(i+1) = ut(i+1)/(1.+mfexp(-1.7*(len-4.)/0.1)); //4 is length of 50% mat hard coded in
 		//calcUlength(i+1,indselyr(i+1));
@@ -610,16 +618,17 @@ FUNCTION output_ctl
 	mfs<<"##                      -4 gamma        (p1=alpha,p2=beta)                              ##"<< endl;	
 	mfs<<"##                      -5 no prior        pvec=0.0                              ##"<< endl;	
 	mfs<<"## ———————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
-	mfs<<"## npar"<<endl<< "3"<< endl;
-	//mfs<<"## npar"<<endl<< "4"<< endl;
+	//mfs<<"## npar"<<endl<< "3"<< endl;
+	mfs<<"## npar"<<endl<< "4"<< endl;
 	mfs<<"## ival         		lb      	ub        phz     prior   p1      p2        #parameter            ##"<< endl;
 	mfs<<"## ——————————————————————————————————————————————————————————————————————————————————— ##"<< endl;
 	mfs<< log(Ro*0.8) <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 0 <<"\t"<< 3.0	<<"\t"<< 7.0   	<<"\t"<<"#log_ro   	##"<<endl;
-	//mfs<< log(rini*1.1)  	 <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< 3.0 	<<"\t"<< 7.0   	<<"\t"<<"#log_rinit   	##"<<endl;
+	mfs<< log(rini*1.1)  	 <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<< 3.0 	<<"\t"<< 7.0   	<<"\t"<<"#log_rinit   	##"<<endl;
 	//mfs<< log(Ro) <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0	<<"\t"<< 7.0   	<<"\t"<<"#log_ro   	##"<<endl;
    	//mfs<< log(rini)  	 <<"\t"<< 3.0 <<"\t"<< 7.0   <<"\t"<<  1  <<"\t"<< 5  <<"\t"<< 3.0 	<<"\t"<< 7.0   	<<"\t"<<"#log_rinit   	##"<<endl;
    	//mfs<< log(reck*0.8) 	 <<"\t"<<  1.6 <<"\t"<< 4.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  1.6 	<<"\t"<< 4.0  	<<"\t"<<"#log_reck  ##"<<endl;
-   	mfs<< log(reck*0.8)  	  <<"\t"<<  1.6 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.5	<<"\t"<<"#log_reck  ##"<<endl;
+   	mfs<< log(reck*0.8)  	  <<"\t"<<  1.6 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.5	<<"\t"<<"#log_reck  ##"<<endl; //base case
+   	//mfs<< log(reck*0.8)  	  <<"\t"<<  1.6 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 0  <<"\t"<<  1.6	<<"\t"<< 5.0	<<"\t"<<"#log_reck  ##"<<endl;
    	//mfs<< log(reck*0.8) 	  <<"\t"<<  1.6 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.9  	<<"\t"<<"#log_reck  ##"<<endl;
    	//mfs<< log(8) 	 	 <<"\t"<<  1.0 <<"\t"<< 5.0   <<"\t"<<  1  <<"\t"<< 1  <<"\t"<<  log(reck)	<<"\t"<< 0.8 	<<"\t"<<"#log_reck  ##"<<endl;
    	//mfs<< log(Linf)   <<"\t"<< 1.3  <<"\t"<< 4.0   <<"\t"<<  -3  <<"\t"<< 0  <<"\t"<<  1.3 	<<"\t"<< 4.0 	<<"\t"<<"#log_Linf  ##"<<endl;
@@ -641,7 +650,7 @@ FUNCTION output_ctl
 	mfs<<"##initial values for recruitment deviations in first year ##"<< endl;
 	mfs<<"#log(q) prior - same codes as above##"<< endl;
 	mfs<<"#prior   p1      p2  ##"<< endl;
-  	mfs<< 5 <<"\t"<<	   0	 <<"\t"<<	 0.2 << endl;
+  	mfs<< 5 <<"\t"<<	   0	 <<"\t"<<	 0.5 << endl;
 	mfs<<"#closed loop ##"<<endl<<0<< endl;
 	mfs<<"# eof " << endl << 999 <<endl;
 
@@ -746,6 +755,7 @@ FUNCTION output_true
 	ofs<<"utarget" << endl << utarget<<endl;
 	ofs<<"ytarget" << endl << ytarget<<endl;
 	ofs<<"Ulength" << endl << Ulength <<endl;	
+	ofs<<"Uage" << endl << Uage <<endl;	
 	ofs<<"ObsUlength"<<endl << ObsUlength<< endl;
 	ofs<<"maxUy"<<endl << maxUy<< endl;
 	ofs<<"avgUy"<<endl << avgUy<< endl;

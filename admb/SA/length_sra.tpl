@@ -212,7 +212,7 @@ PARAMETER_SECTION
 	likeprof_number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	likeprof_number Ro;							// unfished recruitment (estimated - based on log_Ro)
 	//number Rbar;	
-	//likeprof_number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
+	likeprof_number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
 	number sbo;
 	number sigR;
 	//number sigRinit;
@@ -296,12 +296,12 @@ FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
 	Ro = mfexp( theta(1,1) );
-	reck = mfexp( theta(2,1) ); 
-	sigR = mfexp( theta(3,1) );
+	//reck = mfexp( theta(2,1) ); 
+	//sigR = mfexp( theta(3,1) );
 	
-	//Rinit = mfexp( theta(2,1) );
-	//reck = mfexp( theta(3,1) ); 
-	//sigR = mfexp( theta(4,1) );
+	Rinit = mfexp( theta(2,1) );
+	reck = mfexp( theta(3,1) ); 
+	sigR = mfexp( theta(4,1) );
 	//sigRinit = mfexp( theta(5,1) );
 
 
@@ -386,7 +386,9 @@ FUNCTION propAgeAtLengh
 		z1 = (( len - lstp * 0.5 )- la( a ))/( std( a ));
 		z2 = (( len + lstp * 0.5 )- la( a ))/( std( a ));
 		
-		for( int b=1; b< nlen; b++ )
+		P_al( a, 1 )= cumd_norm( z2( 1 ));
+
+		for( int b=2; b< nlen; b++ )
 		{
 			P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
 		}
@@ -409,19 +411,16 @@ FUNCTION initialYear
 
 	
 
-	Nat( syr, sage )= Ro;
-	//Nat(syr,sage)= Rinit;  
+	//Nat( syr, sage )= Ro;
+	Nat(syr,sage)= Rinit;  
 
-	for( int a = 2; a <= nage; a++ )
+	for( int a = sage+1; a <= nage; a++ )
 	{
 		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	}		
 	Nat( syr, nage ) /= (1. - Sa);
 
-
-
-
-	//Nat(syr,sage)= Rinit;  
+ 
 	
 	
 	//for( int a = sage+1; a <= nage; a++ )
@@ -515,6 +514,8 @@ FUNCTION SRA
 		//=====================================================================================
 		//Numbers at lengh
 		Nlt( y ) = Nat( y ) * P_al;	
+
+		
 		for( int b = 1; b <= nlen; b++ )
 		{
 			// length-distribution by year
@@ -617,7 +618,7 @@ FUNCTION observation_model
 	
 	for( int i = 1; i <= nyt ; i++ )
 	{
-		zstat(i)=(log(survB(i))-log(psurvB(iyr(i))));//-cv_it*cv_it/2.
+		zstat(i)=((log(survB(i))-log(psurvB(iyr(i))))-cv_it*cv_it/2.);//-cv_it*cv_it/2.
 	}
 	
 	//cout<<"survB is "<<survB<<endl;
@@ -723,8 +724,8 @@ FUNCTION objective_function
 	//else
 	//{
 	if(last_phase()){
-		pvec(1)=dnorm(wt,sigR*1.414214);
-		//pvec(1)=dnorm(wt,sigR*2.0);
+		//pvec(1)=dnorm(wt,sigR*1.414214);
+		pvec(1)=dnorm(wt,sigR*2.0);
 		
 		//pvec(1)=dnorm(wt,2.0);
 		dvariable s = 0.;
@@ -1048,7 +1049,7 @@ FUNCTION output_runone
 	ofs<<"avgUy "<< endl << avgUy <<endl;
 	ofs<<"Ulength "<< endl << Ulength <<endl;
 	ofs<<"Ro "<< endl << Ro <<endl;
-	//ofs<<"Rinit "<< endl << Rinit <<endl;
+	ofs<<"Rinit "<< endl << Rinit <<endl;
 	ofs<<"reck "<< endl << reck <<endl;
 	//ofs<<"wt_init "<< endl << wt_init <<endl;
 	ofs<<"wt "<< endl << wt <<endl;
@@ -1074,7 +1075,7 @@ REPORT_SECTION
 	output_runone();
 	
 	REPORT(Ro);
-	//REPORT(Rinit);
+	REPORT(Rinit);
 	REPORT(reck);
 	REPORT(cv_it);
 	REPORT(sigR);
@@ -1177,7 +1178,7 @@ FINAL_SECTION
 	ofstream ofs("../../lprofs/LL_prof.rep",ios::app);
 
 	ofs<<"Ro"<< "\t" << Ro << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
-	//ofs<<"Rinit"<< "\t" << Rinit << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
+	ofs<<"Rinit"<< "\t" << Rinit << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
 	ofs<<"reck"<< "\t" << reck << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
 	
 
