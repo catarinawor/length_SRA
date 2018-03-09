@@ -85,3 +85,10 @@ variance
 Icon?
 ehthumbs.db
 Thumbs.db
+
+#random files#
+######################
+seed.txt
+*.pdf
+*.png
+
