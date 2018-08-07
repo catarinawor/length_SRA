@@ -95,14 +95,14 @@ plot_SBiomass <- function( M , sv=F, nome="")
 					type=rep(c("simulated",rep("estimated",4)),each=length(scenariop)))
 	summary(fdf)
 	
-	p <- ggplot(fdf,aes(x=Year,y=Median,color=type,fill=type)) + geom_line()
+	p <- ggplot(fdf,aes(x=Year,y=Median,color=type,fill=type)) + geom_line(size=2)
 	p <- p + geom_ribbon(aes(ymax=High, ymin=Low),alpha=0.2)
 	#p <- p + geom_line(aes(x=Year, y=Obs,linetype=(obsn)),show_guide = FALSE)
 	p <- p + labs(x="Year",y="Total Biomass")
-	p <- p + theme_bw(12)
+	p <- p + theme_bw(16)
 	p <- p + facet_wrap(~scenario,scale="free")
-	p <- p + scale_colour_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
-	p <- p + scale_fill_grey(start = 0.1, end = 0.6,labels = c("simulated", "estimated"))
+	p <- p + scale_colour_grey(start = 0., end = 0.7,labels = c("simulated", "estimated"))
+	p <- p + scale_fill_grey(start = 0., end = 0.7,labels = c("simulated", "estimated"))
 	p <- p + theme(axis.text = element_text(face="bold", size=12),
   			axis.title = element_text(face="bold", size=12),
   			strip.text = element_text(face="bold", size=15))

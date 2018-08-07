@@ -146,7 +146,7 @@ plot_derivQuant_publ <- function( M )
 	df2<-melt(mdf,variable.name = "parameter",id=c("scenario","scnnumber"))
 	summary(df2)
 
-	levels(df2$parameter)<-c("Depletion",expression("Yield"["target"]), expression("U"["target"]),"q")
+	levels(df2$parameter)<-c(paste("Depletion", " (",expression("SB"["T"]/"SB"["0"]),")"),expression("Yield"["target"]), expression("U"["target"]),"q")
 	df2$valuep<-df2$value*100
 	df2$converge<-conv_n[df2$scnnumber]
 

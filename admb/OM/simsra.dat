@@ -11,12 +11,11 @@
 #nage
 20
 #nlen
-#30
-22
-#33
+23
+#21
 #slen
-#12
-18
+26
+#21
 #lstp
 2
 #niyr
@@ -41,8 +40,8 @@
 0.5
 #Growth parameters
 #Linf;
-#68
-50
+68
+#50
 #k
 0.3
 #to
