@@ -146,7 +146,7 @@ plot_derivQuant_publ <- function( M )
 	df2<-melt(mdf,variable.name = "parameter",id=c("scenario","scnnumber"))
 	summary(df2)
 
-	levels(df2$parameter)<-c("Depletion",expression("Yield"["target"]), expression("U"["target"]),"q")
+	levels(df2$parameter)<-c(paste("Depletion", " (",expression("SB"["T"]/"SB"["0"]),")"),expression("Yield"["target"]), expression("U"["target"]),"q")
 	df2$valuep<-df2$value*100
 	df2$converge<-conv_n[df2$scnnumber]
 
@@ -167,8 +167,8 @@ plot_derivQuant_publ <- function( M )
   strip.text = element_text(face="bold", size=16))
 	print(p)
 
-	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-	ggsave("derivQuant_publ.pdf", plot=p)
+	#setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
+	#ggsave("derivQuant_publ.pdf", plot=p)
 
 	ggplot_build(p)$data
 
@@ -179,3 +179,70 @@ plot_derivQuant_publ <- function( M )
 	
 }
 
+
+#================
+#for comparison with people that use the log method
+
+plot_derivQuant_log <- function( M )
+{
+cat("plot_derivQuant")
+
+	n <- length( M )
+	scn<-read_scnnames()
+
+
+	mdf <- NULL
+
+	conv_n<-numeric(length=length(scn))
+
+	for(i in 1:n){
+
+		if(M[[i]]$SApar$maxgrad<1.0e-04){
+
+			conv_n[M[[i]]$OM$scnNumber] <-  conv_n[M[[i]]$OM$scnNumber] + 1
+
+
+			est<-c(M[[i]]$SArep$depletion[length(M[[i]]$SArep$depletion)],
+				M[[i]]$SArep$ytarget[length(M[[i]]$SArep$ytarget)],
+				M[[i]]$SArep$utarget[length(M[[i]]$SArep$utarget)],
+				M[[i]]$SArep$q)
+				
+
+			true<-c(M[[i]]$OM$depl[length(M[[i]]$OM$depl)],
+			 	M[[i]]$OM$ytarget[length(M[[i]]$OM$ytarget)],
+				M[[i]]$OM$utarget[length(M[[i]]$OM$utarget)],
+				M[[i]]$OM$q)
+				#M[[i]]$OM$avgUy[length(M[[i]]$OM$avgUy)])
+
+			bias<- log(est)- log(true)
+
+			df <- data.frame(Depletion=bias[1],MSY=bias[2],UMSY=bias[3],q=bias[4],scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			mdf <- rbind(mdf,df)
+		}
+	}
+
+	
+	df2<-melt(mdf,variable.name = "parameter",id=c("scenario","scnnumber"))
+	summary(df2)
+
+	levels(df2$parameter)<-c("Depletion",expression("Yield"["target"]), expression("U"["target"]),"q")
+	df2$valuep<-df2$value*100
+	df2$converge<-conv_n[df2$scnnumber]
+
+	df2$scenario<-factor(df2$scenario,levels = rev(levels(df2$scenario)),ordered = TRUE)
+
+
+
+	
+	p <- ggplot(df2) 
+	p <- p + geom_boxplot(aes(x=scenario,y=value))+coord_flip(ylim=c(-1, 1))
+	p <- p + geom_hline(yintercept=0, color="black", size=1.2, alpha=0.3)
+	p <- p + labs(x="Scenario",y="Relative Proportional Error")
+	p <- p + facet_wrap(~parameter,ncol = 1,labeller = label_parsed)
+	p <- p + theme_bw(12)
+	p <- p + theme(axis.text = element_text(face="bold", size=12),
+  axis.text.x= element_text(angle=0,hjust = .5),
+  axis.title = element_text(face="bold", size=12),
+  strip.text = element_text(face="bold", size=16))
+	print(p)
+}

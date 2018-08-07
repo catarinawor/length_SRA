@@ -26,25 +26,78 @@ readOutput <- function(dir)
 	
 	sims<-readOutput("/Users/catarinawor/Documents/length_SRA/admb/")
 	
-	#Rinit  is the one in the results
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base2/")
+	#This will be the one with main paper results after the mistake has been corrected
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base/")
+
+	#SigR*2 after the mistake has been corrected 
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base_sigR2/")
 	
-	#new runs with Rinit, SigR *2.0,qpr and vulpen=50 
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/Rinit/")
+	#SigR*2 after the mistake has been corrected 
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/base_sigR2_q5/")
 	
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/smooth_sel/")
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/smooth_sel_novpen/")
+	#test with bias correction in q
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/test/")
 	
+	
+
+	#This will be the one with biased Linf results after the mistake has been corrected
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
+
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinfNew/")
+
+	
+	
+	#no Rinit
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinitAEPtwo/")
+
+
+	#no Rinit no k prior
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit_nokprior/")
+
+	#no Rinit no k prior no clt error and it err
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit_nokprior_noCltErr/")
+	
+	#no Rinit no k and q prior, no clt error and no it er
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit_noprior_noobserr/")
+	
+	#no Rinit no clt error 
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit_noCltErr/")
+	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit_noCltErrAEP/")
+	
+	#fast grow
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/fastgrowAEP/")
+	
+
+	#no Rinit, all error,  and no k and q prior done
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit_noprior/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinit_nopriorAEP/")
+		
+	#no Rinit high clt error 
+	# setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinithighcvIt/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinithighclterrAEP/")
+	
+	
+
+	#no Rinit wrong k prior
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinitwrongkprior/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinitwrongkpriorAEP/")
+	
+
+	#no Rinit high survey cv
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinithighcvIt/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/noRinithighcvItAEP/")
+
+	#no Rinit biased Linf
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf_noRinit/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf_noRinitAEP/")
+
+
 	#FINAL
 	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/fspr/")
-	setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
+	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/biasedlinf/")
 
 		
-
-	###setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/no_bc/")
-	
-	#setwd("/Users/catarinawor/Documents/length_SRA/R/simResult/cann/")
-
 
 	file.name <- paste("base",seed,".Rdata",sep="")
 	

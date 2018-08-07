@@ -60,6 +60,10 @@ plot_SBiomass <- function( M , sv=F, nome="")
 		scenariop<-NULL
 		yearp<-NULL
 
+		obs1<-NULL
+		obs2<-NULL
+		obs3<-NULL
+
 		
 
 	for(m in 1:length(scn)){
@@ -72,26 +76,44 @@ plot_SBiomass <- function( M , sv=F, nome="")
 
 		qqp<-apply(cip[cip$scenario==scn[m],-c(ncol(cip))],2,calc_quantile)
 		medianp<-c(medianp,qqp["50%",])
+		
+		obs1<-c(obs1,unlist((cip[cip$scenario==scn[m],-c(ncol(cip))])[12,],use.names = FALSE))
+		obs2<-c(obs2,unlist((cip[cip$scenario==scn[m],-c(ncol(cip))])[90,],use.names = FALSE))
+		obs3<-c(obs3,unlist((cip[cip$scenario==scn[m],-c(ncol(cip))])[180,],use.names = FALSE))
 		lowp<-c(lowp,qqp["2.5%",])
 		highp<-c(highp,qqp["97.5%",])
 		scenariop<-c(scenariop,rep(scn[m],length(qqp["50%",])))
 		yearp<-c(yearp,M[[i]]$SArep$yr)
 	}
 
-	
 
-	fdf<-data.frame (Median=c(median,medianp),Low=c(low,lowp), High=c(high,highp),Year=c(year,yearp), scenario=c(scenario,scenariop), type=rep(c("simulated","estimated"),each=length(scenariop)))
+
+	fdf<-data.frame(Median=c(median,rep(medianp,4)),Low=c(low,rep(lowp,4)), High=c(high,rep(highp,4)),
+					Obs=c(rep(NA,length=length(median)),rep(NA,length=length(medianp)),as.vector(obs1),obs2,obs3),
+					obsn=c(rep(NA,length=length(median)),rep(NA,length=length(medianp)),rep(c("1","2","3"),each=length(obs1))),	
+					Year=c(year,rep(yearp,4)), scenario=c(scenario,rep(scenariop,4)), 
+					type=rep(c("simulated",rep("estimated",4)),each=length(scenariop)))
 	summary(fdf)
 	
-	p <- ggplot(fdf,aes(x=Year,y=Median,color=type,fill=type)) + geom_line()
+	p <- ggplot(fdf,aes(x=Year,y=Median,color=type,fill=type)) + geom_line(size=2)
 	p <- p + geom_ribbon(aes(ymax=High, ymin=Low),alpha=0.2)
+	#p <- p + geom_line(aes(x=Year, y=Obs,linetype=(obsn)),show_guide = FALSE)
 	p <- p + labs(x="Year",y="Total Biomass")
-	p <- p + theme_bw(12)
+	p <- p + theme_bw(16)
 	p <- p + facet_wrap(~scenario,scale="free")
+	p <- p + scale_colour_grey(start = 0., end = 0.7,labels = c("simulated", "estimated"))
+	p <- p + scale_fill_grey(start = 0., end = 0.7,labels = c("simulated", "estimated"))
+	p <- p + theme(axis.text = element_text(face="bold", size=12),
+  			axis.title = element_text(face="bold", size=12),
+  			strip.text = element_text(face="bold", size=15))
 	print(p)
 
+
+
+
+
 	if(sv==TRUE){
-		setwd("/Users/catarinawor/Documents/Length_SRA/report/")
+		setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
 		ggsave(paste(nome,"SBiomass.pdf",sep=""), plot=p)
 		
 	}	

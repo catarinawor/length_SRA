@@ -163,39 +163,14 @@ PARAMETER_SECTION
 
 	init_bounded_vector_vector theta(1,npar,1,1,theta_lb,theta_ub,theta_phz);
 
-	//init_number log_Ro;			    	//Log of average unfished recruitment
-	//init_number log_Linf(phz_growth);	//log of l infinity
-	//init_number log_k(phz_growth);		//log of k from VB
-	//init_number log_cvl(phz_growth);	// log of coefficient of variantion for age at length curve
-	//init_number log_reck(phz_reck);		// log of recruitment compensation ratio
-
-	// set growth parameters to true values
-	//!! log_Linf=log(ilinf);
-	//!! log_k=log(ik);
-	//!! log_cvl=log(icvl);
-	//!! log_reck=log(ireck);
-	//!! log_Ro=log(iRo);
- 	
-		
-	//init_bounded_dev_vector wt(syr+1,eyr,-9.,9.,3); 
-
-	//init_vector wt(syr+1,eyr,2); 
-	//init_bounded_vector wt(syr+1,eyr,-5.,5.,3); 
-	//init_bounded_dev_vector wt(syr+1,eyr,-5.,5.,3); 
-	
-	//init_bounded_dev_vector log_wt_init(syr-nag,syr-1,-5.,5.,3); 
 	
 	init_bounded_dev_vector wt(syr-nag,eyr,-5.,5.,3); 
-	//init_bounded_vector wt_init(sage,nage,-5.,5.,2); 
 	
-	//!!cout<< "chegou aqui"<<endl;
-
+	
 
 	
  	!! wt = (iwt);
- 	//!! wt_init = (iwtinit);
- 	//!! log_wt_init = log(iwt_init);
-
+ 	
  	vector lvec(1,2);
  	vector pvec(1,2);
  	vector npvec(1,npar);
@@ -205,25 +180,17 @@ PARAMETER_SECTION
 	number fpen;						// penalty to be added to likelihood when posfun is used
 	number ffpen;	
 	number fffpen;	
-	//number Linf;						// von Bertalanffy asymptotic length (estimated - based on log_linf)
-	//number k;							// von Bertalanffy metabolic parameter (estimated - based on log_k)
-	//number to;
-	//number cvl;							// coefficient of variation in length at age (estimated - based on log_cvl)
+	
 	likeprof_number reck;						// Goodyear recruitment compensation parameter (estimated - based on log_reck)
 	likeprof_number Ro;							// unfished recruitment (estimated - based on log_Ro)
-	//number Rbar;	
-	likeprof_number Rinit;						// recruitment in the first year (estimated - based on log_Rinit)
+	
 	number sbo;
 	number sigR;
-	//number sigRinit;
-	//number sigVul;	
-	//number cv_it;
 	
 
 
 	number ssvul; 						// it is the sum sq devs for the length vul deviations (mean va(L) - va(L,t))^2
 	
-	//number Eo;							// unfished egg deposition
 	number reca;						// alpha of stock-recruit relationship
 	number recb;						// beta of stock-recruit relationship
 	number phie;
@@ -232,13 +199,11 @@ PARAMETER_SECTION
 
 	vector zstat(1,nyt);				// MLE of q
 
- 	//vector vul(1,nage);					// age-specific vulnerabilities
-	vector la(sage,nage);					// length-at-age
+ 	vector la(sage,nage);					// length-at-age
 	vector std(sage,nage);
 	vector wa(sage,nage);					// weight-at-age
 	vector lxo(sage,nage);					// unfished survivorship at age
-	//vector lz(sage,nage);					// unfished survivorship at age
-
+	
 	//PB added after bias correction
 	vector sbt(syr,eyr);					
 	
@@ -281,6 +246,8 @@ PROCEDURE_SECTION
 	SRA();
 	observation_model();
 	objective_function();
+	//output_runone();
+	//exit(1	);
 
 	if(last_phase())
 	{
@@ -296,27 +263,10 @@ FUNCTION trans_parms
 	
 	//Bring parameters from log to normal space
 	Ro = mfexp( theta(1,1) );
-	//reck = mfexp( theta(2,1) ); 
-	//sigR = mfexp( theta(3,1) );
+	reck = mfexp( theta(2,1) ); 
+	sigR = mfexp( theta(3,1) );
 	
-	Rinit = mfexp( theta(2,1) );
-	reck = mfexp( theta(3,1) ); 
-	sigR = mfexp( theta(4,1) );
-	//sigRinit = mfexp( theta(5,1) );
-
-
-
 	
-	//sigVul = mfexp( theta(5,1) );
-
-	//cout<<"Ro is "<< Ro<<endl;
-	//cout<<"Rinit is "<< Rinit<<endl;
-	//cout<<"sigR is "<< sigR<<endl;
-	//cout<<"wt is "<< wt<<endl;
-	
-	//exit(1);
-	//cout<<"ok after trans_parms"<<endl;
-
 
 	
 FUNCTION incidence_functions
@@ -334,7 +284,6 @@ FUNCTION incidence_functions
  	//Ulpen.initialize();
 	
 	
-
 	la = Linf * ( 1. - mfexp( -k * ( age - to )));
 	std = la * cvl;
 	
@@ -386,7 +335,9 @@ FUNCTION propAgeAtLengh
 		z1 = (( len - lstp * 0.5 )- la( a ))/( std( a ));
 		z2 = (( len + lstp * 0.5 )- la( a ))/( std( a ));
 		
-		for( int b=1; b< nlen; b++ )
+		P_al( a, 1 )= cumd_norm( z2( 1 ));
+
+		for( int b=2; b< nlen; b++ )
 		{
 			P_al( a, b )=cumd_norm( z2( b ))-cumd_norm( z1( b ));
 		}
@@ -409,36 +360,26 @@ FUNCTION initialYear
 
 	
 
-	//Nat( syr, sage )= Ro;
-	Nat(syr,sage)= Rinit;  
+	Nat( syr, sage )= Ro;
+	
+	//cout<<"Nat( syr, sage )"<<Nat( syr, sage )<<endl;
 
-	for( int a = 2; a <= nage; a++ )
+	for( int a = sage+1; a <= nage; a++ )
 	{
 		Nat( syr, a ) = Nat( syr, a - 1 ) * Sa;	// initial age-structure
 	}		
-	Nat( syr, nage ) /= (1. - Sa);
+	//Nat( syr, nage ) /= (1. - Sa);
+	Nat( syr, nage ) += Nat( syr,nage )*Sa;
 
-
-
-
-	//Nat(syr,sage)= Rinit;  
-	
-	
-	//for( int a = sage+1; a <= nage; a++ )
-	//{
-	//	Nat( syr, a ) = Nat( syr, a - 1 ) * Sa * (1.  - u_init) ;	//  initial age-structure
-	//}		
-	//Nat( syr, nage ) /= 1. - (Sa*(1.-u_init));
-	//Nat(syr,nage)+=  Nat( syr, nage ) *Sa*  (1. - u_init);
-	
+ 
 	for( int a = sage; a <= nage; a++ ){
 		//Nat( syr, a ) *=  mfexp(wt_init(a) );//
-		Nat( syr, a ) *=  mfexp(wt(syr-a+sage) -sigR*sigR/2. );//
+		Nat( syr, a ) *=  mfexp(wt(syr-a+sage)-sigR*sigR/2. );//-sigR*sigR/2. 
 		
 		Nat( syr )( a ) =  posfun( Nat( syr )( a ), tiny, fpen);
 	}
 	
-	
+	//cout<<"Nat( syr, sage )"<<Nat( syr, sage )<<endl;
 
 	//Nat(syr)(sage+1,nage) = Rinit* wt_init;
 	//Nat(syr)(sage+1,nage) = elem_prod(Nat(syr)(sage+1,nage), lxo(sage+1,nage));
@@ -450,13 +391,7 @@ FUNCTION initialYear
 	// exploitation by lengt
 	for( int b = 1; b <= nlen; b++ )
 	{	
-		//Ulength( syr )(b) = 1./posfun2(  Nlt( syr, b )/Clt( syr, b ) ,1.0, fpen);	
-		//Ulength( syr )(b) = 1.-posfun(1.-(Clt( syr, b ) /  Nlt( syr, b )),tinyyy,fffpen);
 		Ulength( syr )(b) = 1.-posfun2(1.-(Clt( syr, b ) /  Nlt( syr, b )),tinyyy,fffpen);
-		
-
-		//Ulength( syr )(b) = Clt( syr, b ) /  Nlt( syr, b )t
-		//penUl( syr )(b) = posfun(1.-Ulength( syr )(b),tinyyy,fffpen);
 	}
 
 	// exploitation rate for fully recruited age class
@@ -477,9 +412,7 @@ FUNCTION initialYear
 	psurvB(syr) = Nat(syr) * elem_prod(wa,vul);
 	
 	
-	//cout<<"Nat"<<endl<<Nat( syr)<<endl;
-	//exit(1);
-
+	
 FUNCTION SRA
 
 	// RL: these are the devs for the vul penalty  
@@ -492,19 +425,17 @@ FUNCTION SRA
 	{	
 	    dvariable sbtm = fec * Nat(y - 1);	
 		
-		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * mfexp( wt(y) -sigR*sigR/2. );//	///mfexp( sigR*sigR/2.) B-H recruitment
+		Nat( y, sage ) = (reca * sbtm / ( 1. + recb * sbtm)) * mfexp( wt(y)-sigR*sigR/2.  );//-sigR*sigR/2.	///mfexp( sigR*sigR/2.) B-H recruitment
 						
 		
 		// age-distribution post-recruitment
-		//Nat(y)(sage+1,nage) = ++elem_prod(Nat(y-1)(sage,nage-1)*Sa,1.-Uage(y - 1)(sage,nage-1));
 		
 		for( int a = sage +1; a <= nage; a++ ){
 			Nat( y )( a ) =  Nat( y - 1 )( a - 1 )* Sa * (1. - Uage( y - 1 )( a -1 ));
 				
 		}
 		
-		//Nat( y, nage ) +=  Nat( y-1, nage ) *Sa*  (1. - Uage( y-1)( nage ));
-		Nat( y, nage ) /= (1. - Sa * ( 1. - Uage( y - 1, nage)));
+		Nat( y, nage ) +=  Nat( y-1, nage ) *Sa*  (1. - Uage( y-1)( nage ));
 		
 		for( int aa = sage; aa <= nage; aa++ ){
 			Nat( y )( aa ) =  posfun( Nat( y )( aa ), tiny, fpen);
@@ -515,20 +446,18 @@ FUNCTION SRA
 		//=====================================================================================
 		//Numbers at lengh
 		Nlt( y ) = Nat( y ) * P_al;	
+
+		
 		for( int b = 1; b <= nlen; b++ )
 		{
 			// length-distribution by year
 			
 			// exploitation by length										
 			Ulength( y, b ) = 1.-posfun(1.-(Clt( y, b ) /  Nlt( y, b )),tinyyy,fffpen);	// BvP put this back in to keep values from going over one
-			//Ulength( y, b ) = 1./posfun2( Nlt( y, b )/Clt( y, b ),1.0, fpen);	// CW inserted this back in to keep values from going over one
-			//Ulength( y, b ) = Clt( y, b ) /  Nlt( y, b );	// BvP put this back in to keep values from going over one
-			//penUl( y )(b) = posfun(1.-Ulength( y )(b),tinyyy,fffpen);
 		}
 		//Upow( y ) = sum(pow(Ulength( y ),10));
 			
 		// exploitation by age -- is this wrong??
-		//Uage( y) = Ulength( y ) * P_la;	
 		for( int au = sage; au <= nage; au++ ){
 			Uage( y )(au) = Ulength( y ) * P_al(au);
 		}
@@ -548,24 +477,7 @@ FUNCTION SRA
 		psurvB(y) =  Nat(y) * elem_prod(wa,vul);
 	}
 	
-	//cout<<"maxUy"<<endl<<maxUy<<endl;
-	//cout<<"Ro"<<endl<<Ro<<endl;
-	//cout<<"reck"<<endl<<reck<<endl;
-	//cout<<"wt"<<endl<<wt<<endl;
-	//cout<<"Nat"<<endl<<Nat<<endl;
-	//
-	//exit(1);
 
-		//tradition
-		//for( int b = 1; b <= nlen; b++ )
-		//{ 
-		//	//  exploitation rate relative to fully recruited U(expected value?) at length over al years
-		//	// RL: It is just the mean for the vul(L) (ie. integrated across t) to be used in the penalty for the vulnerability 
-		//	muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);	
-		//	//muUl(b) = sum(elem_div( column(Ulength,b),avgUy ) ) / size_count(avgUy);		
-		//}
-		
-		
 
 
 		
@@ -576,64 +488,26 @@ FUNCTION SRA
 				muUl(b) = sum(elem_div(  column(Ulength,b)(y-2,y),avgUy(y-2,y) ) ) / 3.;		
 			}
 			
-			// penalty against dramatic changes in vulnerability?? 
-			//Upen( y ) = pow( Ulength( y ) / posfun( avgUy( y ), tiny, fpen ) - muUl, 2. );	
-			//Upen( y ) = pow( Ulength( y )(nlen-5,nlen) /  maxUy( y ) - avgUylast( y ), 2. );
 			
 			Upen( y ) = pow( Ulength( y )(1,nlen-5) /  avgUy( y ) - muUl, 2. );		
 		}
 		ssvul = sum( Upen );				// vulnerability penalty
 
-		//for( int y = syr+3; y <= eyr; y++ )
-		//{
-		//	for( int b = 4; b <= nlen; b++ )
-		//	{ 
-		//		muUl(b) = Ulength(y)(b)-mean(Ulength(y)(b-3,b));
-		//	}
-		//	// penalty against dramatic changes in vulnerability?? 
-		//	//Upen( y ) = pow( Ulength( y ) / posfun( avgUy( y ), tiny, fpen ) - muUl, 2. );	
-		//	//Upen( y ) = pow( Ulength( y )(nlen-5,nlen) /  maxUy( y ) - avgUylast( y ), 2. );
-		//	
-		//	Upen( y ) = (pow( muUl, 2. ));		
-		//}
-		//ssvul = sum( Upen );				// vulnerability penalty
-
-
-		//exit(1);
-
-
-	//FUNCTION stock_recruit_residuals
-
-
-	//delta = log(Recs)-log(Recz);//+0.5*sigR*sigR;
-	//for( int y = syr + 1; y <= eyr; y++ )
-	//{	
-	 //   dvariable sbtm = fec * Nat(y - 1);
- 	//Recs = (reca * sbtm / ( 1. + recb * sbtm)) * (wt( y ));
-	
+		
 	
 FUNCTION observation_model
 	
 	
 	for( int i = 1; i <= nyt ; i++ )
 	{
-		zstat(i)=(log(survB(i))-log(psurvB(iyr(i))));//-cv_it*cv_it/2.
+		zstat(i)=((log(survB(i))-log(psurvB(iyr(i)))));//-cv_it*cv_it/2.
 	}
 	
-	//cout<<"survB is "<<survB<<endl;
-	//cout<<"psurvB is "<<endl<<psurvB<<endl;
-
-	///exit(1);
-			
+		
 	q=mfexp(mean(zstat));
 	
 	
 	zstat -= mean(zstat);
-	//cout<<"q is "<<q<<endl;					// z-statistic used for calculating MLE of q
-	//cout<<"zstat is "<<zstat<<endl;
-	//zstat -= cv_it*cv_it/2.;
-	
-	 	//exit(1);
 	
 FUNCTION objective_function 
 	//dvar_vector lvec(1,1);
@@ -646,19 +520,22 @@ FUNCTION objective_function
 		op = mean(zstat);
 		lvec(2)=1.e5 * op*op;
 		
+		
+		
 	}else{
-		lvec(1)=norm2(zstat)/cv_it;//
+
+		lvec(1)=dnorm(zstat,cv_it);
+		//lvec(1)=norm2(zstat)/cv_it;//
+		
 		dvariable op = 0.;
 		op = mean(zstat);
 		lvec(2)=1.e5 * op*op;
+		
+		//lvec(2)=0.0;
 
-		//lvec(1)=norm2(zstat);
+		
 	}
-	//lvec(2)=dnorm(delta,sigR);
-	//lvec(2)=dnorm(log_wt,sigR);
-	//lvec(1)=norm2(zstat)/cv_it;
-	//lvec(2)=0;
-	//dvar_vector npvec(1,npar);
+	
 	npvec.initialize();
 	
 	//dvar_vector pvec(1,1);
@@ -705,41 +582,28 @@ FUNCTION objective_function
 			}
 	}
 	
-	//if(active(log_reck))
-	//{  
- 	//	dvariable h=reck/(4.+reck);	
- 	//	// beta a=1 and b=1 --> flat
-	//	pvec(1)=dbeta((h-0.2)/0.8,1.,1.);
-	//	cout<<" (h-0.2)/0.8 is "<< (h-0.2)/0.8<< endl;
-	//	cout<<" (h is "<< h << endl;
-	//	
-   	//}
 	
-	//if(last_phase())
-	//{		
-	//pvec(1)=dnorm(wt,sigR); 	//  estimate recruitment deviations with dnorm function
-	//pvec(2)=dnorm(log_wt_init,sigR); 	//  estimate recruitment deviations with dnorm function
-	//}
-	//else
-	//{
 	if(last_phase()){
-		pvec(1)=dnorm(wt,sigR*2.0);
-		//pvec(1)=dnorm(wt,2.0);
+		//pvec(1)=dnorm(wt,sigR*1.414214);
+		pvec(1)=dnorm(wt,sigR*2.);
+		//pvec(1)=norm2(wt)/sigR;
+		
 		dvariable s = 0.;
 		s = mean(wt);
-		pvec(2)=1.e5 * s*s;
-
-		//pvec(3)=dnorm(wt_init,sigRinit);
-		//pvec(1)=dnorm(wt,2.0);
+		pvec(2)=1.e9 * s*s;
+		
+		//pvec(2)=0.;
 		
 
 	}else{
-		pvec(1)=norm2(wt)/sigR;
+		pvec(1)=dnorm(wt,sigR);
+		//pvec(1)=norm2(wt)/sigR;
+		
 		dvariable s = 0.;
 		s = mean(wt);
-		pvec(2)=1.e5 * s*s;
-
-		//pvec(3)=dnorm(wt_init,sigRinit);
+		pvec(2)=1.e9 * s*s;
+		//pvec(2)=0.;
+		
 	}
 	//sigR;///1000.0; 	
 	//pvec(2)=(norm2(log_wt_init));///1000.0; 	
@@ -793,71 +657,11 @@ FUNCTION objective_function
 
 
 	//=====================================================================================
-	//pergunta:
-	//
 	
-	//pvec(2) = (ssvul/(sigVul));
-	//pvec(2) = 0.0;
-	//cout<<"sum(npvec) "<<endl<<sum(npvec)<<endl;
-	// RL: see commment above
-	//==================================================================================
-	//Lprof runs
-	//nll =  sum(lvec); non-positive def hessian
-	//nll =  sum(pvec); non-positive def hessian
-	//nll =   sum(lvec)+ sum(pvec); non-positive def hessian
-	//nll =   sum(lvec)+ sum(pvec); non-positive def hessian
-	//nll =   sum(lvec)+ sum(pvec)+ ssvul/(sigVul); good
-	//nll =   sum(lvec)+ sum(pvec)+sum(penmaxUy); good
-	//nll =   sum(lvec)+ sum(pvec)+sum(npvec); good
-	//nll =  sum(lvec) +sum(pvec)+sum(npvec)+ ssvul/(sigVul)+sum(penmaxUy);
-
-	///nll =  sum(lvec) +sum(pvec)+sum(npvec)+ ssvul/(sigVul)+sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
-	//
 	
-	//+ ssvul/(sigVul);
-	//+sum(penmaxUy);
-	//+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul)+fffpen+fpen+ffpen +sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
-	
-
 	//scenario 1 - optimum
 	nll =  sum(lvec) +sum(pvec)+sum(npvec)+ sum(qpvec) + fffpen+fpen+ffpen ;// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
 	
-
-	//+sum(penmaxUy)+ssvul/(sigVul)
-
-
-
-	//scenario 2
-	//nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul) +sum(penmaxUy);// +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
-	
-	//scenario 3 - much worse
-	//nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+ ssvul/(sigVul)+fffpen+fpen+ffpen ;// +sum(penmaxUy) +sum(penmaxUy)+ ssvul/(sigVul);// + ssvul/(sigVul)+ffpen; // sum(npvec)+ ssvul/(sigVul);// 
-	
-	//scenario 4
-	//nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec)+ fffpen+fpen+ffpen +sum(penmaxUy);// ssvul/(sigVul)
-	
-	//scenario 5 -worse of them all
-	//nll = sum(lvec) + sum(pvec)+sum(npvec)+ sum(qpvec);// 
-	
-
-	//nll = sum(lvec) + sum(npvec);//+ sum(pvec);
-	//nll = sum(lvec) + sum(npvec)+ sum(pvec)+fpen+sum(Ulpen);
-	//nll = sum(lvec)+ sum(npvec)  + sum(pvec)  +  ffpen +   sum(qpvec)   ;//+ ssvul/(sigVul) + fpen +fffpen+ + sum(penmaxUy) //mean(penmaxUy)  + fffpen*100000 +
-	
-	//nll = sum(lvec) +  sum(pvec);
-	//cout<<"mean(penmaxUy) is "<< mean(penmaxUy)<<endl;
-	//cout<<"lvec is "<< sum(lvec)<<endl;
-	//cout<<"pvec is "<< sum(pvec)<<endl;
-	//cout<<"npvec is "<< sum(npvec)<<endl;
-	//cout<<"ffpen is "<< ffpen<<endl;
-	//cout<<"fffpen is "<< fffpen<<endl;
-	
-	//cout<<"q is "<< (q)<<endl;
-	//cout<<"qpvec is "<< sum(qpvec)<<endl;
-
-	//nll = sum(lvec) +  sum(pvec);
-
-
 FUNCTION calc_msy
 
 	dvector utest(1,1001);
@@ -951,15 +755,7 @@ FUNCTION void calc_Fspr_target( double target )
 
 		selage(y)= value(Uage(y)/mean(Uage(y))+Uage(y-1)/mean(Uage(y-1)))/2.;
 
-		//dvector tmpsel(sage,nage);
-		//tmpsel(sage) = value(Uage(y)(sage));
-		//tmpsel(sage+1) = value(Uage(y)(sage+1)+Uage(y)(sage))/2;
-		//for(int aa=sage+2;aa<=nage;aa++){
-		//	tmpsel(aa)= value((Uage(y)(aa)+tmpsel(aa-1)+tmpsel(aa-2))/3.);
-		//}
-
-		//selage(y)=tmpsel/max(tmpsel);
-
+		
 		//selage= seltotal(ii);
 		dvector tmp_phiz(1,NF);
 		dvector tmp_target(1,NF);
@@ -1046,7 +842,7 @@ FUNCTION output_runone
 	ofs<<"avgUy "<< endl << avgUy <<endl;
 	ofs<<"Ulength "<< endl << Ulength <<endl;
 	ofs<<"Ro "<< endl << Ro <<endl;
-	ofs<<"Rinit "<< endl << Rinit <<endl;
+	//ofs<<"Rinit "<< endl << Rinit <<endl;
 	ofs<<"reck "<< endl << reck <<endl;
 	//ofs<<"wt_init "<< endl << wt_init <<endl;
 	ofs<<"wt "<< endl << wt <<endl;
@@ -1062,9 +858,6 @@ FUNCTION output_runone
 	ofs<<"pvec"<< endl << sum(pvec) <<endl;
 	//ofs<<"Ulpen "<< endl << Ulpen <<endl;
 		
-		
-	//cout<<"OK after otput_runone"<<endl;
-		
 	
 	
 REPORT_SECTION
@@ -1072,7 +865,6 @@ REPORT_SECTION
 	output_runone();
 	
 	REPORT(Ro);
-	REPORT(Rinit);
 	REPORT(reck);
 	REPORT(cv_it);
 	REPORT(sigR);
@@ -1085,16 +877,14 @@ REPORT_SECTION
 	REPORT(to);
 	REPORT(cvl);
  	REPORT(wt);
- 	//REPORT(wt_init);
-
- 	
+ 
  
  	dvector predSurvB(1,nyt);
  	for( int i = 1; i <= nyt ; i++ )
 	{
 		predSurvB(i)=value(psurvB(iyr(i)));
 	}
- 	//predSurvB=psurvB(iyr(1,nyt));
+ 	
 	
 	REPORT(predSurvB);
 	REPORT(survB);
@@ -1134,11 +924,6 @@ REPORT_SECTION
 	REPORT(phie);
 
 
-	
-	//ofs<<"priork "<< "\t"  << sum(npvec)<< "\t"  <<Ro <<endl;
-	//ofs<<"Vulpen"<< "\t"  << ssvul/(sigVul)<< "\t"  <<Ro <<endl;
-	//ofs<<"Upen"<< "\t"  << sum(penmaxUy)<< "\t" <<Ro <<endl;
-
 
 RUNTIME_SECTION
 convergence_criteria .00001, .0001, .00001
@@ -1175,7 +960,7 @@ FINAL_SECTION
 	ofstream ofs("../../lprofs/LL_prof.rep",ios::app);
 
 	ofs<<"Ro"<< "\t" << Ro << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
-	ofs<<"Rinit"<< "\t" << Rinit << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
+	//ofs<<"Rinit"<< "\t" << Rinit << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
 	ofs<<"reck"<< "\t" << reck << "\t" << nll << "\t"  << sum(lvec) << "\t"  << sum(pvec) << "\t"  << sum(npvec) << "\t"  << ssvul/(sigVul) << "\t"  << sum(penmaxUy) <<endl;
 	
 

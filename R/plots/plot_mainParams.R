@@ -18,7 +18,7 @@ require(tidyr)
 require(ggplot2)
 
 
-plot_params <- function( M , Rinit=T , sv=F, nome="")
+plot_params <- function( M , Rinit=F , sv=F, nome="")
 {
 	cat("plot_params")
 
@@ -153,11 +153,11 @@ plot_params_publ <- function( M , Rinit=T )
 
 
 			est<-c(M[[i]]$SArep$Ro,
-				M[[i]]$SArep$Rinit,
+				#M[[i]]$SArep$Rinit,
 				M[[i]]$SArep$reck)
 				
 			true<-c(M[[i]]$OM$Ro,
-				M[[i]]$OM$Rinit,
+				#M[[i]]$OM$Rinit,
 				M[[i]]$OM$reck)
 				
 			
@@ -166,16 +166,19 @@ plot_params_publ <- function( M , Rinit=T )
 			
 			#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7])
 
-			df <- data.frame(Ro=bias[1],  Rinit=bias[2], kappa=bias[3], scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
-			#df <- data.frame(Ro=lnbias[1],  Rinit=lnbias[2], kappa=lnbias[3], scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			#df <- data.frame(Ro=bias[1],  Rinit=bias[2], kappa=bias[3], scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			df <- data.frame(Ro=bias[1],   kappa=bias[2], scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
 			
 				#df <- data.frame(Ro=bias[1], Rinit=bias[2], kappa=bias[3],Linf=bias[4],k=bias[5],to=bias[6],cvl=bias[7], scenario=scn[M[[i]]$OM$scnNumber])
 
 			mdf <- rbind(mdf,df)
 
 			#af <- data.frame(true = true, est = est, param=c("Ro", "Rinit","kappa","Linf","k","to","cvl"))
-			af <- data.frame(true = true, est = est, param=c("Ro", "Rinit" , "kappa"), scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
 			
+			#af <- data.frame(true = true, est = est, param=c("Ro", "Rinit" , "kappa"), scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			af <- data.frame(true = true, est = est, param=c("Ro",  "kappa"), scenario=scn[M[[i]]$OM$scnNumber],scnnumber=M[[i]]$OM$scnNumber)
+			
+
 			adf <- rbind(adf,af)
 		}
 	}
@@ -207,7 +210,7 @@ plot_params_publ <- function( M , Rinit=T )
 
 
 	setwd("/Users/catarinawor/Documents/Length_SRA/R/plots/figs")
-	ggsave("main_params_publ.pdf", plot=p)
+	#ggsave("main_params_publ.pdf", plot=p)
 
 	#ggplot_build(p)$
 

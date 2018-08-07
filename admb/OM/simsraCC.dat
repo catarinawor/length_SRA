@@ -11,12 +11,11 @@
 #nage
 20
 #nlen
-#30
-22
-#33
+23
+#21
 #slen
-#12
-18
+26
+#21
 #lstp
 2
 #niyr
@@ -34,7 +33,7 @@
 #tau
 0.2
 #tau_length_comps
-0.1
+0.05
 #surv
 0.7
 #wmat;

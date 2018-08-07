@@ -28,6 +28,7 @@ variance
 *.p[0-9]*
 *.r[0-9]*
 *.b[0-9]*
+variance
 
 # Latex Stuff
 *.aux
@@ -89,3 +90,10 @@ variance
 Icon?
 ehthumbs.db
 Thumbs.db
+
+#random files#
+######################
+seed.txt
+*.pdf
+*.png
+
